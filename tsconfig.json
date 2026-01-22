@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    /* 基础选项 */
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "sourceMap": true,
+    "outDir": "../dist",
+    "rootDir": "./src",
+    "removeComments": true,
+    
+    /* 严格模式与安全检查 */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "skipLibCheck": true,
+
+    /* 模块兼容性 */
+    "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* 路径别名配置 (Laravel 风格) */
+    "baseUrl": ".",
+    "paths": {
+      "@root": ["./*"],
+      "@/*": ["src/*"],
+      "@app/*": ["src/app/*"],
+      "@bootstrap/*": ["src/bootstrap/*"],
+      "@config/*": ["src/config/*"],
+      "@database/*": ["src/database/*"],
+      "@public/*": ["src/public/*"],
+      "@resources/*": ["src/resources/*"],
+      "@routes/*": ["src/routes/*"],
+      "@storage/*": ["src/storage/*"],
+      "@utils/*": ["src/utils/*"]
+    },
+    "plugins": [
+      { "transform": "typescript-transform-paths" },
+      { "transform": "typescript-transform-paths", "afterDeclarations": true }
+    ]
+  },
+  "imports": {
+    "#*": "../dist/*"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+}
