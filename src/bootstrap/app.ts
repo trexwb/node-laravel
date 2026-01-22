@@ -12,6 +12,7 @@ import consoleRoutes from '#routes/console';
 import frontRoutes from '#routes/front';
 import { dataShaper } from '#app/Http/Middleware/DataShaper';
 import { forceHttps } from '#app/Http/Middleware/ForceHttps';
+import { responseWrapper } from '#app/Http/Middleware/ResponseWrapper';
 import { config } from '#bootstrap/configLoader';
 
 // 1. 基础实例化
@@ -37,6 +38,9 @@ export async function bootstrap(app: express.Application) {
   app.use(express.urlencoded({ extended: true }));
   app.use(multer().none());
   app.use(cors());
+  app.set('trust proxy', true);
+  // 注册响应包装器
+  app.use(responseWrapper);
 
   // 启动服务提供者 (初始化事件监听等)
   AppServiceProvider.boot();

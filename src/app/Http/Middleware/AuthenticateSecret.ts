@@ -1,0 +1,52 @@
+import type { Request, Response, NextFunction } from 'express';
+import { container } from '#bootstrap/app';
+import crypto from 'node:crypto';
+
+export const authenticateSecret = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  // 1. 获取 Headers
+  const appId = req.headers['app-id'] as string;
+  const appSecret = req.headers['app-secret'] as string; // 这里实际传的是签名后的密文
+
+  if (!appId || !appSecret) {
+    return res.error(401, 'appId/appSecret is empty');
+  }
+
+  // 2. 提取时间戳 (根据你的逻辑：密文的最后 10 位是时间戳)
+  const timeStampStr = appSecret.substring(32);
+  const timeStamp = parseInt(timeStampStr) || 0;
+  const tokenTime = parseInt(process.env.TOKEN_TIME || '1800');
+
+  // 3. 校验时间戳是否过期
+  const now = Math.floor(Date.now() / 1000);
+  if (timeStamp < now - tokenTime) {
+    return res.error(401, 'appSecret expiration');
+  }
+
+  // 4. 从数据库/缓存获取原始 Secret
+  // 假设你已经定义了 secretsHelper 或者直接使用 Model
+  const secretRow = await container.db('secrets')
+    .where({ app_id: appId })
+    .first();
+
+  if (!secretRow) {
+    return res.error(401, 'appId/appSecret error');
+  }
+
+  if (!secretRow.status) {
+    return res.error(403, 'appSecret has been disabled',);
+  }
+
+  // 5. 核心：校验签名算法
+  // 算法逻辑: md5(md5(appId + timeStamp) + raw_app_secret) + timeStamp
+  const md5 = (str: string) => crypto.createHash('md5').update(str).digest('hex');
+
+  const expectedSecret = md5(md5(secretRow.app_id.toString() + timeStampStr) + secretRow.app_secret.toString()) + timeStampStr;
+
+  if (appSecret !== expectedSecret) {
+    return res.error(401, 'appSecret verification failed');
+  }
+
+  // 6. 鉴权通过，挂载数据供后续使用
+  (req as any).secretRow = secretRow;
+  next();
+};
