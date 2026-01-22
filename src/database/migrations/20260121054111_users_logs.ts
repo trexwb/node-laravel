@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
     table.foreign('user_id').references('id').inTable(`${process.env.DB_PREFIX}users`);
     table.json('source').nullable();
     table.text('handle').notNullable();
-    table.timestamps();
+    table.timestamps().defaultTo(knex.fn.now());
   });
 }
 

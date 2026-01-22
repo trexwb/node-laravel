@@ -1,4 +1,3 @@
-// src/routes/channels.ts
 import { WebSocketServer, WebSocket } from 'ws';
 import { ChatHandler } from '#app/WebSockets/ChatHandler';
 

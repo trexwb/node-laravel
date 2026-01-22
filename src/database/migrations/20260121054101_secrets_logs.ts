@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
     table.foreign('secret_id').references('id').inTable(`${process.env.DB_PREFIX}secrets`).onDelete('CASCADE').onUpdate('CASCADE');
     table.json('source').nullable().comment('操作前');
     table.json('handle').nullable().comment('操作内容');
-    table.timestamps();
+    table.timestamps().defaultTo(knex.fn.now());
     table.comment('密钥变更记');
   });
 }

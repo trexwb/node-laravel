@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { User } from '#app/Models/UserModel';
+import { Users } from '#app/Models/Users';
 import { ImageService } from '#app/Services/ImageService';
 import { UserRegistered } from '#app/Events/UserRegistered';
 import * as _ from 'lodash-es';
@@ -11,7 +11,7 @@ export class UserController {
       const file = (req as any).file; // 假设使用了 multer 中间件处理上传
 
       // 1. 使用 Model 存储数据
-      const userId = await User.create({
+      const userId = await Users.create({
         email,
         name,
         password, // 实际应加密

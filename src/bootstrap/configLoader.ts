@@ -1,10 +1,12 @@
 import app from '#config/app';
 import database from '#config/database';
+import cache from '#config/cache';
 import * as _ from 'lodash-es';
 
 const configs: Record<string, any> = {
   app,
-  database
+  database,
+  cache
 };
 
 /**

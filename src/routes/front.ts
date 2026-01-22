@@ -39,4 +39,10 @@ if (FRONT_PORT == 'html') {
   }));
 }
 
+router.use('/storage', express.static(path.join(__dirname, '../public/storage')));
+
+router.get('/heartbeat', (_req, res) => {
+  res.success();
+});
+
 export default router;
