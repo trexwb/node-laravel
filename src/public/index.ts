@@ -32,10 +32,12 @@ runWithCluster(async () => {
   }
 
   // --- 3. 初始化 WebSocket ---
-  // WebSocket 可以挂载到 HTTP 上，也可以挂载到 HTTPS 上
-  // 如果两个都想支持，可以创建两个 WSS 实例，或者共用逻辑
-  const wss = new WebSocketServer({ server: httpsServer || httpServer });
-  registerChannels(wss);
+  if (config.ws.enabled) {
+    // WebSocket 可以挂载到 HTTP 上，也可以挂载到 HTTPS 上
+    // 如果两个都想支持，可以创建两个 WSS 实例，或者共用逻辑
+    const wss = new WebSocketServer({ server: httpsServer || httpServer });
+    registerChannels(wss);
+  }
 
   // --- 4. 启动监听 ---
   httpServer.listen(httpPort, () => {

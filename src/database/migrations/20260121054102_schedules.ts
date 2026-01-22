@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('time').notNullable().comment('执行时间');
     table.json('handler').nullable().comment('执行内容');
     table.specificType('status', 'TINYINT UNSIGNED').defaultTo(0).comment('状态:0非默认，1默认');
-    table.timestamps();
+    table.timestamps().defaultTo(knex.fn.now());
     table.timestamp('deleted_at').nullable();
     table.comment('计划任务');
   });

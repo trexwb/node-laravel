@@ -1,8 +1,7 @@
-import { BaseModel } from '#app/Models/BaseModel';
-import { User } from '#app/Models/UserModel';
+import { BaseModel } from '#app/Models/Base';
+import { Users } from '#app/Models/Users';
 import { Model } from 'objection';
 
-// 示例：app/Models/User.ts
 export class UsersLogs extends BaseModel {
   static get tableName() {
     return `${process.env.DB_PREFIX || ''}users_logs`;
@@ -29,7 +28,7 @@ export class UsersLogs extends BaseModel {
     return {
       user: {
         relation: Model.BelongsToOneRelation,
-        modelClass: User,
+        modelClass: Users,
         join: {
           from: 'users_logs.user_id',
           to: 'users.id'

@@ -1,7 +1,6 @@
-import { BaseModel } from '#app/Models/BaseModel';
+import { BaseModel } from '#app/Models/Base';
 
-// 示例：app/Models/User.ts
-export class User extends BaseModel {
+export class Users extends BaseModel {
   static get tableName() {
     return `${process.env.DB_PREFIX || ''}users`;
   }
@@ -10,9 +9,7 @@ export class User extends BaseModel {
     return {
       type: 'object',
       properties: {
-        // 替代 new CastBoolean()
         isActive: { type: 'boolean' },
-        // 替代 new CastInteger()
         level: { type: 'integer' }
       }
     };

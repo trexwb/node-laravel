@@ -1,10 +1,16 @@
 export default {
   name: process.env.APP_NAME || 'NodeLaravel',
   env: process.env.APP_ENV || 'development',
-  url: process.env.APP_URL || 'http://localhost:3000',
+  url: process.env.APP_URL || 'localhost',
   http_port: parseInt(process.env.HTTP_PORT || '80'),
   https_port: parseInt(process.env.HTTPS_PORT || '443'),
   timezone: process.env.TIME_ZONE || 'Asia/Shanghai',
+  upload_path: process.env.UPLOAD_PATH || 'storage/uploads',
+  ws: {
+    port: parseInt(process.env.WS_PORT || '8080'),
+    path: process.env.WS_PATH || '/socket.io',
+    enabled: process.env.WS_ENABLED === 'true'
+  },
   ssl: {
     key: process.env.SSL_KEY_PATH || '../certs/server.key',
     cert: process.env.SSL_CERT_PATH || '../certs/server.crt',
