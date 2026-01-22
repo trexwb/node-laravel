@@ -1,12 +1,11 @@
 import type { Request, Response, NextFunction } from 'express';
 import { Crypto } from '#utils/crypto';
 
-export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
+export const authenticateToken = (req: Request, res: Response, next: NextFunction): any => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ msg: 'Unauthorized: Missing Token', data: null });
-    return;
+    return res.error(401, 'Unauthorized: Missing Token');
   }
 
   const token = authHeader.split(' ')[1];
@@ -17,21 +16,18 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
 
     // 2. 基础合法性校验
     if (!decryptedResult || !decryptedResult.token || !decryptedResult.timeStamp) {
-      res.status(401).json({ msg: 'Unauthorized: Invalid Token Structure', data: null });
-      return;
+      return res.error(401, 'Unauthorized: Invalid Token Structure');
     }
 
     // 3. 类型安全检查
     if (typeof decryptedResult.timeStamp !== 'number') {
-      res.status(401).json({ msg: 'Unauthorized: Invalid Timestamp', data: null });
-      return;
+      return res.error(401, 'Unauthorized: Invalid Timestamp');
     }
 
     // 4. 过期校验 (强制拦截)
     const now = Math.floor(Date.now() / 1000);
     if (now > decryptedResult.timeStamp) {
-      res.status(401).json({ msg: 'Unauthorized: Token Expired', data: null });
-      return;
+      return res.error(401, 'Unauthorized: Token Expired');
     }
 
     // 5. 将解析后的信息挂载到 req 对象
@@ -41,7 +37,6 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     next();
   } catch (error) {
     console.error('Authentication error:', error);
-    res.status(401).json({ msg: 'Unauthorized: Authentication Failed', data: null });
-    return;
+    return res.error(401, 'Unauthorized: Authentication Failed');
   }
 };

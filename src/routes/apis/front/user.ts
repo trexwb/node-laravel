@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '#app/Http/Middleware/Authenticate';
+import { authenticateToken } from '#app/Http/Middleware/AuthenticateToken';
 import { UserController } from '#app/Http/Controllers/UserController';
 
 const router = Router();
@@ -7,7 +7,7 @@ const router = Router();
 router.post('/register', UserController.register);
 
 // 这里的路径是相对于文件名的，即：GET /api/user/profile
-router.get('/profile', authenticate, (_req, res) => {
+router.get('/profile', authenticateToken, (_req, res) => {
   res.json({ id: 1, name: 'Hello' });
 });
 
