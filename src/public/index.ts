@@ -39,13 +39,13 @@ runWithCluster(async () => {
 
   // --- 4. 启动监听 ---
   httpServer.listen(httpPort, () => {
-    console.log(`[Worker ${process.pid}] 🔓 HTTP Server: http://localhost:${httpPort}`);
+    console.log(`[Worker ${process.pid}] 🔓 HTTP Server: http://${config.url || 'localhost'}:${httpPort}`);
   });
 
   if (httpsServer) {
     const httpsPort = config.https_port;
     httpsServer.listen(httpsPort, () => {
-      console.log(`[Worker ${process.pid}] 🔒 HTTPS Server: https://localhost:${httpsPort}`);
+      console.log(`[Worker ${process.pid}] 🔒 HTTPS Server: https://${config.url || 'localhost'}:${httpsPort}`);
     });
   }
 });

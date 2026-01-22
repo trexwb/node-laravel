@@ -1,4 +1,4 @@
-import { rateLimit } from 'express-rate-limit';
+import rateLimit from 'express-rate-limit';
 import type { Request, Response } from 'express';
 
 /**
@@ -19,11 +19,6 @@ export const throttle = (max: number = 60, windowMinutes: number = 1) => {
         message: 'Too Many Attempts.',
         retry_after: `${windowMinutes} minute(s)`
       });
-    },
-
-    // 区分客户端的 Key (如果有登录用户按用户ID限制，否则按IP)
-    keyGenerator: (req: Request) => {
-      return (req as any).user?.id || req.ip;
     }
   });
 };

@@ -37,6 +37,7 @@ export async function bootstrap(app: express.Application) {
   app.use(express.urlencoded({ extended: true }));
   app.use(multer().none());
   app.use(cors());
+  app.set('trust proxy', true);
 
   // 启动服务提供者 (初始化事件监听等)
   AppServiceProvider.boot();
