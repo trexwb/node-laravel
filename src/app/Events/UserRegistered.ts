@@ -1,4 +1,4 @@
-import { container } from '@bootstrap/app';
+import { container } from '#bootstrap/app';
 
 export class UserRegistered {
   public static readonly eventName = 'user.registered';

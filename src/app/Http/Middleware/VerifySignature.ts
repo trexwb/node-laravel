@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { container } from '@bootstrap/app';
+import type { Request, Response, NextFunction } from 'express';
+import { container } from '#bootstrap/app';
 import crypto from 'node:crypto';
 import { toPairs, sortBy, fromPairs } from 'lodash-es';
 

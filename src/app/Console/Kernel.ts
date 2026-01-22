@@ -1,5 +1,5 @@
 import schedule from 'node-schedule';
-import { container } from '@bootstrap/app';
+import { container } from '#bootstrap/app';
 
 export class Kernel {
   /**

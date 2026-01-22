@@ -3,9 +3,9 @@ import { createServer as createHttpServer } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
 import { readFileSync } from 'node:fs';
 import { WebSocketServer } from 'ws';
-import { container, bootstrap } from '@bootstrap/app';
-import { runWithCluster } from '@bootstrap/cluster';
-import { registerChannels } from '@routes/channels';
+import { container, bootstrap } from '#bootstrap/app';
+import { runWithCluster } from '#bootstrap/cluster';
+import { registerChannels } from '#routes/channels';
 
 runWithCluster(async () => {
   const { app } = container;

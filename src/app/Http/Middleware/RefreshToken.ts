@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { Crypto } from '@utils/crypto';
-import { container } from '@bootstrap/app';
+import type { Request, Response, NextFunction } from 'express';
+import { Crypto } from '#utils/crypto';
+import { container } from '#bootstrap/app';
 
 export const refreshToken = (req: Request, res: Response, next: NextFunction) => {
   const config = container.config('app.security');

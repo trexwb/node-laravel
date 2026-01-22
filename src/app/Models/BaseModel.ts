@@ -1,8 +1,8 @@
-import _ from 'lodash-es';
 import { Model, snakeCaseMappers } from 'objection';
-import dayjs from '@app/Helpers/Format';
-import { container } from '@bootstrap/app';
-import { CastInterface } from '@app/Casts/CastInterface';
+import dayjs from '#app/Helpers/Format';
+import { container } from '#bootstrap/app';
+import type { CastInterface } from '#app/Casts/CastInterface';
+import * as _ from 'lodash-es';
 
 export abstract class BaseModel extends Model {
   protected static table: string;

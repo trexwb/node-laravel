@@ -1,5 +1,5 @@
-import dayjs from '@app/Helpers/Format';
-import { CastInterface } from './CastInterface';
+import dayjs from '#app/Helpers/Format';
+import type { CastInterface } from '#app/Casts/CastInterface';
 
 export interface CastDateTimeOptions {
   timezone?: string;          // 返回时区

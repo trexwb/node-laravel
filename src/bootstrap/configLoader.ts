@@ -1,6 +1,6 @@
-import app from '../config/app';
-import database from '../config/database';
-import _ from 'lodash-es';
+import app from '#config/app';
+import database from '#config/database';
+import * as _ from 'lodash-es';
 
 const configs: Record<string, any> = {
   app,

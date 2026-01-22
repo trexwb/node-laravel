@@ -2,17 +2,17 @@ import express from 'express';
 import cors from 'cors';
 import { Model } from 'objection';
 import knex from 'knex';
-import knexConfig from '@database/knexfile';
+import knexConfig from '#database/knexfile';
 import EventEmitter from 'events';
 import multer from 'multer';
-import { AppServiceProvider } from '@app/Providers/AppServiceProvider';
-import { Handler } from '@app/Exceptions/Handler';
-import apiRoutes from '@routes/api';
-import consoleRoutes from '@routes/console';
-import frontRoutes from '@routes/front';
-import { dataShaper } from '@app/Http/Middleware/DataShaper';
-import { forceHttps } from '@app/Http/Middleware/ForceHttps';
-import { config } from '@bootstrap/configLoader';
+import { AppServiceProvider } from '#app/Providers/AppServiceProvider';
+import { Handler } from '#app/Exceptions/Handler';
+import apiRoutes from '#routes/api';
+import consoleRoutes from '#routes/console';
+import frontRoutes from '#routes/front';
+import { dataShaper } from '#app/Http/Middleware/DataShaper';
+import { forceHttps } from '#app/Http/Middleware/ForceHttps';
+import { config } from '#bootstrap/configLoader';
 
 // 1. 基础实例化
 const db = knex(knexConfig[process.env.APP_ENV || 'development']);

@@ -1,10 +1,14 @@
 import { Router } from 'express';
 import path from 'node:path';
-import { loadDynamicRoutes } from '@bootstrap/routeLoader';
-import { throttle } from '@app/Http/Middleware/Throttle';
-import { refreshToken } from '@app/Http/Middleware/RefreshToken';
-import { verifySignature } from '@app/Http/Middleware/VerifySignature';
-import { encryptResponse } from '@app/Http/Middleware/EncryptResponse';
+import { loadDynamicRoutes } from '#bootstrap/routeLoader';
+import { throttle } from '#app/Http/Middleware/Throttle';
+import { refreshToken } from '#app/Http/Middleware/RefreshToken';
+import { verifySignature } from '#app/Http/Middleware/VerifySignature';
+import { encryptResponse } from '#app/Http/Middleware/EncryptResponse';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = Router();
 

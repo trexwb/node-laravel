@@ -1,5 +1,5 @@
-import { BaseModel } from '@app/Models/BaseModel';
-import { User } from '@app/Models/UserModel';
+import { BaseModel } from '#app/Models/BaseModel';
+import { User } from '#app/Models/UserModel';
 import { Model } from 'objection';
 
 // 示例：app/Models/User.ts

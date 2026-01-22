@@ -1,7 +1,9 @@
-import { Knex } from "knex";
 import path from 'path';
+import type { Knex } from 'knex';
+import { fileURLToPath } from 'url';
 
 export async function seed(knex: Knex): Promise<void> {
+  const __filename = fileURLToPath(import.meta.url);
   const seedFilePath = path.basename(__filename, path.extname(__filename));
   return await knex(`${process.env.DB_PREFIX}seeds`)
     .where({ name: seedFilePath })

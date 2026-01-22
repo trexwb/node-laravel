@@ -1,5 +1,5 @@
 import { rateLimit } from 'express-rate-limit';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 /**
  * 节流中间件工厂

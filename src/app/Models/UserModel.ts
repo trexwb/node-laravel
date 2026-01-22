@@ -1,4 +1,4 @@
-import { BaseModel } from '@app/Models/BaseModel';
+import { BaseModel } from '#app/Models/BaseModel';
 
 // 示例：app/Models/User.ts
 export class User extends BaseModel {

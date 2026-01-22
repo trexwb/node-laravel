@@ -12,7 +12,10 @@
 import path from 'path';
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 const FRONT_PORT = process.env.FRONT_PORT || 3000;

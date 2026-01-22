@@ -1,11 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { Crypto } from '@utils/crypto';
-
-interface decryptedResult {
-  token: string;
-  timeStamp: number;
-  [key: string]: any; // 支持其他可选属性
-}
+import type { Request, Response, NextFunction } from 'express';
+import { Crypto } from '#utils/crypto';
 
 export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;

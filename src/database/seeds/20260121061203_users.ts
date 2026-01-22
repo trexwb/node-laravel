@@ -1,13 +1,16 @@
-import { Knex } from "knex";
+import type { Knex } from 'knex';
 import fs from 'fs';
 import path from 'path';
-import utils from '../../utils/index';
-import { Crypto } from '../../utils/crypto';
-
-const rootPath = path.resolve(__dirname, '../../../../');
-const tempFilePath = path.join(rootPath, 'temp_install.json');
+import utils from '#utils/index';
+import { Crypto } from '#utils/crypto';
+import { fileURLToPath } from 'url';
 
 export async function seed(knex: Knex): Promise<void> {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  const rootPath = path.resolve(__dirname, '../../../../');
+  const tempFilePath = path.join(rootPath, 'temp_install.json');
   const seedFilePath = path.basename(__filename, path.extname(__filename));
   return await knex(`${process.env.DB_PREFIX}seeds`)
     .where({ name: seedFilePath })

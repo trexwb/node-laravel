@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import _ from 'lodash-es';
+import type { Request, Response, NextFunction } from 'express';
+import * as _ from 'lodash-es';
 
 export const dataShaper = (req: Request, res: Response, next: NextFunction) => {
   // 获取前端请求的字段，例如：?fields=id,name,permissions

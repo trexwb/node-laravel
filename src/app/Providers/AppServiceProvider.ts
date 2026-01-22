@@ -1,4 +1,4 @@
-import { UserRegistered } from '@app/Events/UserRegistered';
+import { UserRegistered } from '#app/Events/UserRegistered';
 
 export class AppServiceProvider {
   /**

@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { container } from '@bootstrap/app';
-import { Crypto } from '@utils/crypto';
+import type { Request, Response, NextFunction } from 'express';
+import { container } from '#bootstrap/app';
+import { Crypto } from '#utils/crypto';
 
 export const encryptResponse = (_req: Request, res: Response, next: NextFunction) => {
   const isEnabled = container.config('app.security.return_encrypt');

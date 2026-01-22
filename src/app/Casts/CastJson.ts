@@ -1,4 +1,4 @@
-import { CastInterface } from './CastInterface';
+import type { CastInterface } from '#app/Casts/CastInterface';
 
 export class CastJson implements CastInterface {
   get(value: any) {

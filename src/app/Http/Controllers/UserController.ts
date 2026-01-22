@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
-import { User } from '@app/Models/UserModel';
-import { ImageService } from '@app/Services/ImageService';
-import { UserRegistered } from '@app/Events/UserRegistered';
-import _ from 'lodash-es';
+import type { Request, Response, NextFunction } from 'express';
+import { User } from '#app/Models/UserModel';
+import { ImageService } from '#app/Services/ImageService';
+import { UserRegistered } from '#app/Events/UserRegistered';
+import * as _ from 'lodash-es';
 
 export class UserController {
   public static async register(req: Request, res: Response, next: NextFunction) {

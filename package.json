@@ -4,6 +4,7 @@
   "private": true,
   "description": "中国美术学院证书打印系统 - 后端服务",
   "author": "trexwb",
+  "type": "module",
   "main": "../dist/public/index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/public/index.ts",
@@ -46,5 +47,16 @@
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3"
+  },
+  "imports": {
+    "#app/*": "./src/app/*.ts",
+    "#bootstrap/*": "./src/bootstrap/*.ts",
+    "#config/*": "./src/config/*.ts",
+    "#database/*": "./src/database/*.ts",
+    "#public/*": "./src/public/*.ts",
+    "#resources/*": "./src/resources/*.ts",
+    "#routes/*": "./src/routes/*.ts",
+    "#storage/*": "./src/storage/*.ts",
+    "#utils/*": "./src/utils/*.ts"
   }
 }

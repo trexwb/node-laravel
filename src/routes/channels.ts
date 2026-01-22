@@ -1,6 +1,6 @@
 // src/routes/channels.ts
 import { WebSocketServer, WebSocket } from 'ws';
-import { ChatHandler } from '@app/WebSockets/ChatHandler';
+import { ChatHandler } from '#app/WebSockets/ChatHandler';
 
 /**
  * 注册 WebSocket 频道逻辑

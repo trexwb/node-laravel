@@ -2,19 +2,18 @@
  * @Author: trexwb
  * @Date: 2025-07-10 12:12:02
  * @LastEditors: trexwb
- * @LastEditTime: 2026-01-21 17:01:55
+ * @LastEditTime: 2026-01-22 11:14:08
  * @FilePath: /print/server/install.js
  * @Description: 
  * @一花一世界，一叶一如来
  * @Copyright (c) 2025 by 杭州大美, All Rights Reserved. 
  */
 'use strict';
-import dotenv from 'dotenv';
+import 'dotenv/config'; // 简写，自动加载根目录 .env
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -1,9 +1,8 @@
-import dotenv from 'dotenv';
-import path from 'path';
+import 'dotenv/config'; // 简写，自动加载根目录 .env
 import type { Knex } from 'knex';
-// 加载 .env 环境变量
-dotenv.config({ path: path.join(__dirname, '../../.env') });
-import { config } from '../bootstrap/configLoader';
+import { config } from '#bootstrap/configLoader';
+
+console.log('host:', config('database.host'));
 
 const dbConfig: { [key: string]: Knex.Config } = {
   development: {
