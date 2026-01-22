@@ -13,6 +13,7 @@ import path from 'path';
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { fileURLToPath } from 'url';
+import { Jobs } from '#app/Models/Jobs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,7 +25,15 @@ const FRONT_PORT = process.env.FRONT_PORT || 3000;
 const frontDistPath = path.resolve(__dirname, '../../../', './front/.output');
 router.use(express.static(path.resolve(frontDistPath, 'public')));
 
-if (FRONT_PORT == 'html') {
+router.use('/storage', express.static(path.join(__dirname, '../public/storage')));
+
+router.get('/heartbeat', async (_req, res) => {
+  const jobRecord = await Jobs.getNextAvailable();
+  console.log('jobRecord:', jobRecord);
+  res.success(jobRecord);
+});
+
+if (FRONT_PORT == 'nuxt') {
   router.get('/{*splat}', (_req, res) => {
     res.status(200).sendFile(path.resolve(frontDistPath, 'index.html'));
   });
@@ -38,11 +47,5 @@ if (FRONT_PORT == 'html') {
     }
   }));
 }
-
-router.use('/storage', express.static(path.join(__dirname, '../public/storage')));
-
-router.get('/heartbeat', (_req, res) => {
-  res.success();
-});
 
 export default router;

@@ -3,11 +3,6 @@ import { SendWelcomeEmail } from '#app/Jobs/SendWelcomeEmail';
 // 以后每增加一个 Job，手动在这里 import
 // import { GenerateInvoice } from '#app/Jobs/GenerateInvoice';
 
-interface JobPayload {
-  className: string;
-  params: any;
-}
-
 /**
  * 任务映射表：将字符串类名映射到真正的类构造函数
  */

@@ -1,10 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
 import { Crypto } from '#utils/crypto';
-import { container } from '#bootstrap/app';
+import { config } from '#bootstrap/configLoader';
 
 export const refreshToken = (req: Request, res: Response, next: NextFunction) => {
-  const config = container.config('app.security');
-  const tokenTime = Number(config.token_time || 1800);
+  const appConfig = config('app.security');
+  const tokenTime = Number(appConfig.token_time || 1800);
 
   // 1. 从请求中获取当前的 User 对象（假设前面的 Authenticate 中间件已解析并注入）
   const user = (req as any).user;

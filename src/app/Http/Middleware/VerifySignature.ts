@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { container } from '#bootstrap/app';
+import { config } from '#bootstrap/configLoader';
 import crypto from 'node:crypto';
 // import { toPairs, sortBy, fromPairs } from 'lodash-es';
 
@@ -18,7 +18,7 @@ function sortObjectDeep(obj: any): any {
 }
 
 export const verifySignature = (req: Request, res: Response, next: NextFunction) => {
-  const isEnabled = container.config('app.security.request_encrypt');
+  const isEnabled = config('app.security.request_encrypt');
   if (!isEnabled) return next();
 
   // 1. 从 Headers 获取签名和时间戳
@@ -39,7 +39,7 @@ export const verifySignature = (req: Request, res: Response, next: NextFunction)
   const params = { ...req.query, ...req.body };
 
   // 4. 签名算法：参数排序 -> 加上时间戳 -> 拼接 -> HMAC
-  const appKey = container.config('app.security.app_key');
+  const appKey = config('app.security.app_key');
 
   // 按照字母顺序排序键
   const sortedParams = sortObjectDeep(params);

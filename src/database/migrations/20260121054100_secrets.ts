@@ -11,7 +11,8 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('times_expire').nullable().comment('有效期');
     table.json('extension').nullable().comment('扩展信息');
     table.specificType('status', 'TINYINT UNSIGNED').defaultTo(0).comment('状态：0禁用，1启用');
-    table.timestamps().defaultTo(knex.fn.now());
+    table.specificType('updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+    table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('deleted_at').nullable();
     table.comment('API访问密钥');
   });

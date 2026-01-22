@@ -29,7 +29,7 @@ export const responseWrapper = (_req: Request, res: Response, next: NextFunction
   res.error = function (code: string | number = 400, msg: string = 'fail') {
     const dataObj: ApiResponse = {
       code,
-      msg: 'fail'
+      msg
     };
     return res.status(Number((code || 400).toString().substring(0, 3) || 400)).json(dataObj);
   };

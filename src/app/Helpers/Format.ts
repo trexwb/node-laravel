@@ -1,13 +1,13 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
-import { container } from '#bootstrap/app';
+import { config } from '#bootstrap/configLoader';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 // 设置默认时区（比如中国）
-const TIME_ZONE = container.config('app.timezone');
+const TIME_ZONE = config('app.timezone');
 dayjs.tz.setDefault(TIME_ZONE || 'Asia/Shanghai');
 
 export const formatCurrency = (amount: number) => {

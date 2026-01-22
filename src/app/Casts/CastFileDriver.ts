@@ -1,11 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { container } from '#bootstrap/app';
+import { config } from '#bootstrap/configLoader';
 import type { CacheDriver } from '#app/Casts/CastInterface';
 
 export class FileDriver implements CacheDriver {
-  private cachePath = path.resolve(container.config('cache.path') || 'storage/framework/cache');
+  private cachePath = path.resolve(config('cache.path') || 'storage/framework/cache');
 
   private getFilePath(key: string) {
     const hash = crypto.createHash('md5').update(key).digest('hex');

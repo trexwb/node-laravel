@@ -8,7 +8,8 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('attempts').defaultTo(0); // 已尝试次数
     table.timestamp('reserved_at').nullable(); // 锁定时间（防止重复消费）
     table.timestamp('available_at').index();   // 计划执行时间
-    table.timestamps().defaultTo(knex.fn.now());
+    table.specificType('updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+    table.timestamp('created_at').defaultTo(knex.fn.now());
     table.comment('队列');
   });
 }

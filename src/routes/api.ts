@@ -2,6 +2,7 @@ import { Router } from 'express';
 import path from 'node:path';
 import { loadDynamicRoutes } from '#bootstrap/routeLoader';
 import { throttle } from '#app/Http/Middleware/Throttle';
+import { authenticateSecret } from '#app/Http/Middleware/AuthenticateSecret';
 import { refreshToken } from '#app/Http/Middleware/RefreshToken';
 import { verifySignature } from '#app/Http/Middleware/VerifySignature';
 import { encryptResponse } from '#app/Http/Middleware/EncryptResponse';
@@ -24,7 +25,7 @@ async function initializeRoutes() {
   const apisDir = path.join(__dirname, 'apis');
   const dynamicApiRoutes = await loadDynamicRoutes(apisDir);
 
-  router.use('/', throttle(60, 1), verifySignature, dynamicApiRoutes);
+  router.use('/', throttle(60, 1), authenticateSecret, verifySignature, dynamicApiRoutes);
 }
 
 // 执行初始化

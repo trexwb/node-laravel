@@ -41,7 +41,7 @@ export async function loadDynamicRoutes(basePath: string, urlPrefix: string = ''
 
     if (typeof routeHandler === 'function' || Object.getPrototypeOf(routeHandler) === Router) {
       router.use(`/${routePath}`, routeHandler);
-      console.log(`[Route] Registered: /${routePath}`);
+      // console.log(`[Route] Registered: /${routePath}`);
     }
   }
 
