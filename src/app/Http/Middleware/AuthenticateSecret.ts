@@ -8,7 +8,7 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
   const appSecret = req.headers['app-secret'] as string; // 这里实际传的是签名后的密文
 
   if (!appId || !appSecret) {
-    return res.error(401, 'appId/appSecret is empty');
+    return res.error(401006014001, 'appId/appSecret is empty');
   }
 
   // 2. 提取时间戳 (根据你的逻辑：密文的最后 10 位是时间戳)
@@ -19,7 +19,7 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
   // 3. 校验时间戳是否过期
   const now = Math.floor(Date.now() / 1000);
   if (timeStamp < now - tokenTime) {
-    return res.error(401, 'appSecret expiration');
+    return res.error(401006014002, 'appSecret expiration');
   }
 
   // 4. 从数据库/缓存获取原始 Secret
@@ -29,11 +29,11 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
     .first();
 
   if (!secretRow) {
-    return res.error(401, 'appId/appSecret error');
+    return res.error(401006014003, 'appId/appSecret error');
   }
 
   if (!secretRow.status) {
-    return res.error(403, 'appSecret has been disabled',);
+    return res.error(403006014001, 'appSecret has been disabled',);
   }
 
   // 5. 核心：校验签名算法
@@ -43,7 +43,7 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
   const expectedSecret = md5(md5(secretRow.app_id.toString() + timeStampStr) + secretRow.app_secret.toString()) + timeStampStr;
 
   if (appSecret !== expectedSecret) {
-    return res.error(401, 'appSecret verification failed');
+    return res.error(401006014004, 'appSecret verification failed');
   }
 
   // 6. 鉴权通过，挂载数据供后续使用
