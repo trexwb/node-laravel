@@ -1,4 +1,4 @@
-import { Model, snakeCaseMappers } from 'objection';
+import { Model, snakeCaseMappers, QueryBuilder } from 'objection';
 import type { Pojo } from 'objection';
 import { nowInTz, formatDate } from '#app/Helpers/Format';
 import type { CastInterface } from '#app/Casts/CastInterface';
@@ -12,6 +12,40 @@ export class BaseModel extends Model {
   protected static hidden: string[] = [];
   protected static casts: Record<string, CastInterface | string> = {};
   protected static useTimestamps: boolean = true;
+
+  static buildQuery(
+    qb: QueryBuilder<BaseModel> = this.query(),
+    filters: {
+      id?: number;
+      [key: string]: any; // 允许其他属性
+    } = {}
+  ): QueryBuilder<BaseModel> {
+    function applyWhereCondition(field: string, value: any) {
+      if (Array.isArray(value)) {
+        if (value.length > 0) query.whereIn(field, value);
+      } else if (value) {
+        query.where(field, value);
+      }
+    }
+    let query = qb;
+    if (filters.id != null) {
+      applyWhereCondition('id', filters.id);
+    }
+    return query;
+  }
+
+  $parseDatabaseJson(json: Pojo): Pojo {
+    json = super.$parseDatabaseJson(json);
+    for (const key of Object.keys(json)) {
+      const value = json[key];
+      // 这里的逻辑可以根据你的字段命名习惯优化，比如只处理以 At 结尾的字段
+      if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
+        // 将时间转为指定时区并格式化
+        json[key] = formatDate(value);
+      }
+    }
+    return json;
+  }
 
   $formatJson(json: Pojo): Pojo {
     json = super.$formatJson(json);

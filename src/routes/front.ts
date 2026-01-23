@@ -13,7 +13,7 @@ import path from 'path';
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { fileURLToPath } from 'url';
-import { Jobs } from '#app/Models/Jobs';
+import { SendWelcomeEmail } from '#app/Jobs/SendWelcomeEmail';
 import { nowInTz } from '#app/Helpers/Format';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,17 +29,10 @@ router.use(express.static(path.resolve(frontDistPath, 'public')));
 router.use('/storage', express.static(path.join(__dirname, '../public/storage')));
 
 router.get('/heartbeat', async (req, res) => {
-  let jobRecord = null;
   if (req.query.action === 'create') {
-    jobRecord = await Jobs.createJob({ task: 'heartbeat', timestamp: nowInTz() }, '2026-01-01 23:59:59');
-  } else if (req.query.action === 'update') {
-    jobRecord = await Jobs.updateById(1, { finished_at: '2026-01-01 00:00:00' } as any);
-  } else {
-    jobRecord = await Jobs.getNextAvailable();
-    console.log('jobRecord.reservedAt:', [jobRecord?.reservedAt, jobRecord?.availableAt, jobRecord?.finishedAt, jobRecord?.updatedAt, jobRecord?.createdAt]);
+    await SendWelcomeEmail.dispatch({ task: 'hello', timestamp: nowInTz() });
   }
-  console.log('jobRecord:', JSON.stringify(jobRecord));
-  res.success(jobRecord);
+  res.success();
 });
 
 if (FRONT_PORT == 'nuxt') {

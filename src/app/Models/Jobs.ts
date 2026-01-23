@@ -136,37 +136,21 @@ export class Jobs extends BaseModel {
 
   // 辅助方法：获取下一条待处理任务
   static async getNextAvailable() {
-    // console.log(this.query()
-    //   .select()
-    //   .whereNull('reserved_at')
-    //   .whereNull('finished_at')
-    //   .orderBy('id', 'asc')
-    //   .toKnexQuery()
-    //   .toSQL().sql,
-    // );
     const job = await this.query()
       .select()
       .where('available_at', '<=', nowInTz())
-      // .whereNull('reserved_at')
+      .whereNull('reserved_at')
       .whereNull('finished_at')
       .orderBy('id', 'asc')
+      //   .toKnexQuery()
+      //   .toSQL().sql,
       .first()
       .forUpdate()
       .skipLocked();
 
     if (!job) return null;
     // 立即标记为已预留
-    await job.$query().patch({ reservedAt: nowInTz() });
+    // await job.$query().patch({ reservedAt: nowInTz() });
     return job;
-  }
-
-  static async updateAvailable() {
-    return await this.query()
-      .where('available_at', '<=', nowInTz())
-      .whereNull('reserved_at')
-      .orderBy('id', 'asc')
-      .first()
-      .forUpdate()
-      .skipLocked();
   }
 }

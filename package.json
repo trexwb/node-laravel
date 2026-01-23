@@ -7,9 +7,11 @@
   "type": "module",
   "main": "./dist/src/public/index.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/public/index.ts",
     "build": "tsc && tsc-alias",
     "start": "node ./dist/src/public/index.js",
+    "start:dev": "nodemon --exec ts-node -r tsconfig-paths/register src/public/index.ts",
+    "artisan": "node ./dist/src/artisan.js",
+    "artisan:dev": "ts-node -r tsconfig-paths/register src/artisan.ts",
     "knex": "knex --knexfile src/database/knexfile.ts",
     "migrate:make": "npm run knex migrate:make -- -x ts",
     "migrate:latest": "npm run knex migrate:latest",
