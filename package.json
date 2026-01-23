@@ -1,8 +1,8 @@
 {
-  "name": "node-laravel-framework",
+  "name": "caa-print-server",
   "version": "1.0.0",
   "private": true,
-  "description": "Node Laravel Style Framework",
+  "description": "中国美术学院证书打印系统 - 后端服务",
   "author": "trexwb",
   "type": "module",
   "main": "./dist/src/public/index.js",

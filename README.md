@@ -207,6 +207,161 @@ npm run start
 
 ---
 
+# 📊 错误码规范
+
+## 📁 错误码结构
+
+所有错误码遵循 **状态码 + 目录码 + 文件码 + 错误序号** 的四段式结构：
+
+`状态码(3位) - 目录码(3位) - 文件码(3位) - 错误序号(3位)`
+
+**示例：** `401006014001`
+
+---
+
+## 🎯 状态码（第一段）
+
+| 状态码 | 说明 |
+|--------|------|
+| 1xx | 信息响应 |
+| 100 | 客户端可继续发送请求体（常用于POST大文件前的预检） |
+| 101 | 切换协议 |
+| 102 | 处理中 |
+| 103 | 请求范围已就绪 |
+| 2xx | 成功响应 |
+| 200 | 请求成功 |
+| 201 | 新资源已创建 |
+| 202 | 已接受 |
+| 203 | 非授权信息 |
+| 204 | 无内容 |
+| 205 | 重置内容 |
+| 206 | 部分内容 |
+| 3xx | 重定向 |
+| 301 | 永久重定向 |
+| 302 | 临时重定向 |
+| 303 | 查看其它位置 |
+| 304 | 未修改 |
+| 4xx | 客户端错误 |
+| 400 | 错误请求 |
+| 401 | 未授权 |
+| 402 | 需要付款 |
+| 403 | 禁止访问 |
+| 404 | 未找到 |
+| 405 | 方法不允许 |
+| 408 | 请求超时 |
+| 413 | 请求实体过大 |
+| 414 | 请求URI过长 |
+| 415 | 不支持的媒体类型 |
+| 429 | 请求过多 |
+| 5xx | 服务器错误 |
+| 500 | 服务器内部错误 |
+| 501 | 未实现 |
+| 502 | 网关错误 |
+| 503 | 服务不可用 |
+| 504 | 网关超时 |
+| 505 | HTTP版本不受支持 |
+
+---
+
+## 📂 业务层目录码（第二段）
+
+| 码 | 目录 |
+|----|------|
+| 001 | app/Casts |
+| 002 | app/Console |
+| 003 | app/Events |
+| 004 | app/Exceptions |
+| 005 | app/Http/Controllers |
+| 006 | app/Http/Middleware |
+| 007 | app/Http/Requests |
+| 008 | app/Http/Resources |
+| 009 | app/Http/ViewComposers |
+| 010 | app/Jobs |
+| 011 | app/Listeners |
+| 012 | app/Models |
+| 013 | app/Providers |
+| 015 | app/Repositories |
+| 016 | app/Services |
+| 017 | app/Traits |
+
+---
+
+## 📄 文件码（第三段）
+
+| 码 | 文件 |
+|----|------|
+| 001 | app/Casts/CastBoolean.ts |
+| 002 | app/Casts/CastDateTime.ts |
+| 003 | app/Casts/CastFileDriver.ts |
+| 004 | app/Casts/CastInterface.ts |
+| 005 | app/Casts/CastJson.ts |
+| 006 | app/Casts/CastRedisDriver.ts |
+| 007 | app/Console/Commands/QueueWorker.ts |
+| 008 | app/Console/Kernel.ts |
+| 009 | app/Events/UserRegistered.ts |
+| 010 | app/Exceptions/Handler.ts |
+| 011 | app/Helpers/Format.ts |
+| 012 | app/Helpers/Str.ts |
+| 013 | app/Http/Controllers/UserController.ts |
+| 014 | app/Http/Middleware/AuthenticateSecret.ts |
+| 015 | app/Http/Middleware/AuthenticateToken.ts |
+| 016 | app/Http/Middleware/DataShaper.ts |
+| 017 | app/Http/Middleware/EncryptResponse.ts |
+| 018 | app/Http/Middleware/ForceHttps.ts |
+| 019 | app/Http/Middleware/RefreshToken.ts |
+| 020 | app/Http/Middleware/ResponseWrapper.ts |
+| 021 | app/Http/Middleware/Throttle.ts |
+| 022 | app/Http/Middleware/VerifySignature.ts |
+| 023 | app/Jobs/Job.ts |
+| 024 | app/Jobs/SendWelcomeEmail.ts |
+| 025 | app/Models/Base.ts |
+| 026 | app/Models/Jobs.ts |
+| 027 | app/Models/Users.ts |
+| 028 | app/Models/UsersLogs.ts |
+| 029 | app/Providers/AppServiceProvider.ts |
+| 030 | app/Services/CacheService.ts |
+| 031 | app/Services/ImageService.ts |
+| 032 | app/WebSockets/ChatHandler.ts |
+
+---
+
+## 🎬 错误序号（第四段）
+
+错误序号从 `001` 开始，在同一文件中按需递增，确保同一文件内的错误码不重复。
+
+---
+
+## 📌 使用示例
+
+### 示例场景
+`app/Http/Middleware/AuthenticateSecret.ts` 中验证 appId 和 appSecret：
+
+```typescript
+if (!appId || !appSecret) {
+  return res.error('401006014001', 'appId/appSecret 不能为空');
+}
+```
+
+### 错误码解析
+- **401** - 状态码：未授权
+- **006** - 目录码：`app/Http/Middleware`
+- **014** - 文件码：`AuthenticateSecret.ts`
+- **001** - 错误序号：该文件中第一个定义的错误
+
+---
+
+## 💡 最佳实践
+
+1. **统一格式**：所有错误码使用三段连字符分隔的格式
+2. **文档同步**：新增文件时及时更新文件码表格
+3. **错误信息**：错误码需配以清晰的中文说明
+4. **序号管理**：同一文件内的错误序号应连续且不重复
+5. **错误码管理**：通过这个方式就可以把数字与提示对应起来，形成一个错误码表，前后端可以统一，并且方便运用于多语言
+
+---
+
+> 📝 注意：错误码设计为可读性强、定位精确的结构，便于快速定位问题来源。
+
 ## 📌 设计理念
 
 > **让 Node.js 后端开发拥有 Laravel 一样的“秩序感”**
