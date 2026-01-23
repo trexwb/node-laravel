@@ -47,7 +47,7 @@ export class QueueWorker {
           // 4. 失败逻辑：增加重试次数并释放锁定
           await jobRecord.$query().patch({
             attempts: (jobRecord.attempts as number) + 1,
-            reserved_at: null
+            reservedAt: null
           });
         }
       } else {

@@ -12,6 +12,7 @@ const dbConfig: { [key: string]: Knex.Config } = {
       user: config('database.user'),
       password: config('database.password'),
       database: config('database.database'),
+      timezone: '+08:00',
     },
     pool: {
       min: 2,
@@ -35,6 +36,7 @@ const dbConfig: { [key: string]: Knex.Config } = {
       user: config('database.user'),
       password: config('database.password'),
       database: config('database.database'),
+      timezone: '+08:00',
     },
     pool: { min: 2, max: 20 },
     migrations: { directory: './migrations' },
