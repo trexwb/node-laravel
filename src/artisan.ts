@@ -5,9 +5,7 @@ import { container, bootstrap } from '#bootstrap/app';
 import { QueueWorker } from '#app/Console/Commands/QueueWorker';
 import { CacheService } from '#app/Services/CacheService';
 import fs from 'node:fs/promises';
-import { rm, access } from 'node:fs/promises';
 import path from 'node:path';
-import { constants } from 'node:fs';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +20,7 @@ const init = async () => {
 
 program
   .name('artisan')
-  .description('CaaPrintServer 命令行工具')
+  .description('Node Laravel Framework 命令行工具')
   .version('1.0.0');
 
 // --- 注册命令 1: queue:work ---
