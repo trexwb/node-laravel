@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { config } from '#bootstrap/configLoader';
-import crypto from 'node:crypto';
+import { Crypto } from '#utils/crypto'
 // import { toPairs, sortBy, fromPairs } from 'lodash-es';
 
 function sortObjectDeep(obj: any): any {
@@ -18,43 +18,31 @@ function sortObjectDeep(obj: any): any {
 }
 
 export const verifySignature = (req: Request, res: Response, next: NextFunction) => {
-  const isEnabled = config('app.security.request_encrypt');
+  const isEnabled = config('app.security.verify_signature');
   if (!isEnabled) return next();
 
-  // 1. 从 Headers 获取签名和时间戳
-  const sign = req.headers['x-sign'] as string;
-  const timestamp = req.headers['x-timestamp'] as string;
+  // 提取业务参数 (Query + Body)
+  const params = { ...req.query, ...req.body };
+  if (params.length === 0) return next();
 
-  if (!sign || !timestamp) {
+  // 从 Headers 获取签名和时间戳
+  const sign = req.headers['x-sign'] as string;
+  if (!sign) {
     return res.error(403006022001, 'Signature or Timestamp missing');
   }
 
-  // 2. 验证时间戳（防止超过 5 分钟的请求，提高安全性）
-  const now = Math.floor(Date.now() / 1000);
-  if (Math.abs(now - parseInt(timestamp)) > 300) {
-    return res.error(403006022002, 'Request expired');
-  }
-
-  // 3. 提取业务参数 (Query + Body)
-  const params = { ...req.query, ...req.body };
-
-  // 4. 签名算法：参数排序 -> 加上时间戳 -> 拼接 -> HMAC
-  const appKey = config('app.security.app_key');
+  // 签名算法：参数排序 -> 加上时间戳 -> 拼接 -> HMAC
+  const appKey = (req as any).secretRow?.appSecret || config('app.security.app_key');
 
   // 按照字母顺序排序键
   const sortedParams = sortObjectDeep(params);
   // const sortedParams = fromPairs(sortBy(toPairs(params), 0));
 
   // 待签名字符串包含：时间戳 + 参数序列化
-  const stringToSign = `${timestamp}${JSON.stringify(sortedParams)}`;
-
-  const serverSign = crypto
-    .createHmac('sha256', appKey)
-    .update(stringToSign)
-    .digest('hex');
+  const serverSign = Crypto.md5(Crypto.md5(JSON.stringify(sortedParams)) + appKey);
 
   if (sign !== serverSign) {
-    return res.error(403006022003, 'Invalid signature');
+    return res.error(403006022002, 'Invalid signature');
   }
 
   next();

@@ -306,22 +306,23 @@ npm run start
 | 014 | app/Http/Middleware/AuthenticateSecret.ts |
 | 015 | app/Http/Middleware/AuthenticateToken.ts |
 | 016 | app/Http/Middleware/DataShaper.ts |
-| 017 | app/Http/Middleware/EncryptResponse.ts |
-| 018 | app/Http/Middleware/ForceHttps.ts |
-| 019 | app/Http/Middleware/RefreshToken.ts |
-| 020 | app/Http/Middleware/ResponseWrapper.ts |
-| 021 | app/Http/Middleware/Throttle.ts |
-| 022 | app/Http/Middleware/VerifySignature.ts |
-| 023 | app/Jobs/Job.ts |
-| 024 | app/Jobs/SendWelcomeEmail.ts |
-| 025 | app/Models/Base.ts |
-| 026 | app/Models/Jobs.ts |
-| 027 | app/Models/Users.ts |
-| 028 | app/Models/UsersLogs.ts |
-| 029 | app/Providers/AppServiceProvider.ts |
-| 030 | app/Services/CacheService.ts |
-| 031 | app/Services/ImageService.ts |
-| 032 | app/WebSockets/ChatHandler.ts |
+| 017 | app/Http/Middleware/DecryptRequest.ts |
+| 018 | app/Http/Middleware/EncryptResponse.ts |
+| 019 | app/Http/Middleware/ForceHttps.ts |
+| 020 | app/Http/Middleware/RefreshToken.ts |
+| 021 | app/Http/Middleware/ResponseWrapper.ts |
+| 022 | app/Http/Middleware/Throttle.ts |
+| 023 | app/Http/Middleware/VerifySignature.ts |
+| 024 | app/Jobs/Job.ts |
+| 025 | app/Jobs/SendWelcomeEmail.ts |
+| 026 | app/Models/Base.ts |
+| 027 | app/Models/Jobs.ts |
+| 028 | app/Models/Users.ts |
+| 029 | app/Models/UsersLogs.ts |
+| 030 | app/Providers/AppServiceProvider.ts |
+| 031 | app/Services/CacheService.ts |
+| 032 | app/Services/ImageService.ts |
+| 033 | app/WebSockets/ChatHandler.ts |
 
 ---
 

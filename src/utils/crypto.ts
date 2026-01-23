@@ -1,9 +1,10 @@
 import crypto from 'node:crypto';
+import { config } from '#bootstrap/configLoader';
 
 export class Crypto {
   private static readonly algorithm = 'aes-256-cbc';
-  private static readonly key = Buffer.from(process.env.APP_KEY || 'default_32_chars_secret_key_here_'.substring(0, 32));
-  private static readonly iv = crypto.randomBytes(16);
+  private static readonly key = Buffer.from(config('app.security.app_key') || crypto.randomBytes(32));
+  private static readonly iv = Buffer.from(config('app.security.app_iv') || crypto.randomBytes(16));
 
   // md5加密
   public static md5(str: string): string {
@@ -31,7 +32,7 @@ export class Crypto {
       }
 
       const encryptedText = JSON.stringify(encryptedData);
-      const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+      const cipher = crypto.createCipheriv(this.algorithm, key, iv);
       let encrypted = cipher.update(encryptedText, 'utf8', 'hex');
       encrypted += cipher.final('hex');
       return encrypted;
@@ -50,7 +51,7 @@ export class Crypto {
       if (Buffer.byteLength(key) !== 32 || Buffer.byteLength(iv) !== 16) {
         throw new Error('Invalid key or iv length');
       }
-      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+      const decipher = crypto.createDecipheriv(this.algorithm, key, iv);
       let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       // 验证解密后的字符串是否为有效的 JSON

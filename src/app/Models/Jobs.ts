@@ -6,7 +6,7 @@ export class Jobs extends BaseModel {
   // 显式声明属性，对应数据库字段
   id!: number;
   queue!: string;
-  payload!: string;
+  payload!: object;
   attempts!: number;
   reservedAt!: Date | null;
   availableAt!: Date;
@@ -25,7 +25,11 @@ export class Jobs extends BaseModel {
         queue: { type: 'string' },
         payload: { type: 'object' },
         attempts: { type: 'integer' },
-        // 其他字段可选加
+        reservedAt: { type: ['string', 'null'] },
+        availableAt: { type: 'string' },
+        finishedAt: { type: ['string', 'null'] },
+        createdAt: { type: 'Date' },
+        updatedAt: { type: 'Date' },
       }
     };
   }
@@ -61,8 +65,15 @@ export class Jobs extends BaseModel {
     } = {}
   ): QueryBuilder<Jobs> {
     let query = qb;
+    function applyWhereCondition(field: string, value: any) {
+      if (Array.isArray(value)) {
+        if (value.length > 0) query.whereIn(field, value);
+      } else if (value) {
+        query.where(field, value);
+      }
+    }
     if (filters.id != null) {
-      query = query.where('id', filters.id);
+      applyWhereCondition('id', filters.id);
     }
     if (filters.reserved === true) {
       query = query.whereNotNull('reserved_at');

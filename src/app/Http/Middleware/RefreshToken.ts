@@ -12,6 +12,8 @@ export const refreshToken = (req: Request, res: Response, next: NextFunction) =>
 
   // 拦截响应
   const originalJson = res.json;
+  const appKey = (req as any).secretRow?.appSecret || config('app.security.app_key');
+  const appIv = (req as any).secretRow?.appIv || config('app.security.app_iv');
 
   res.json = function (body): Response {
     if (user && currentTokenPayload && currentTokenPayload.timeStamp) {
@@ -28,14 +30,18 @@ export const refreshToken = (req: Request, res: Response, next: NextFunction) =>
           timeStamp: now + tokenTime
         };
 
-        const newToken = Crypto.generateToken(JSON.stringify(newTokenData));
+        // const newToken = Crypto.generateToken(JSON.stringify(newTokenData));
+        const newToken = Crypto.encrypt(newTokenData, appKey, appIv);
 
         // 3. 注入 Header
-        res.setHeader('X-New-Token', newToken);
-        // 必须暴露 Header，否则前端 Axios 等库无法读取自定义 Header
-        res.setHeader('Access-Control-Expose-Headers', 'X-New-Token');
-
-        console.log(`[Token] 🚀 User ${user.id} token refreshed. Remaining: ${timeLeft}s`);
+        if (newToken !== undefined && newToken !== null) {
+          res.setHeader('X-New-Token', newToken);
+          // 必须暴露 Header，否则前端 Axios 等库无法读取自定义 Header
+          res.setHeader('Access-Control-Expose-Headers', 'X-New-Token');
+          console.log(`[Token] 🚀 User ${user.id} token refreshed. Remaining: ${timeLeft}s`);
+        } else {
+          console.warn('[Token] ⚠️ Token encryption failed, skipping refresh header');
+        }
       }
     }
 

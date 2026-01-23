@@ -20,6 +20,7 @@ export class BaseModel extends Model {
       [key: string]: any; // 允许其他属性
     } = {}
   ): QueryBuilder<BaseModel> {
+    let query = qb;
     function applyWhereCondition(field: string, value: any) {
       if (Array.isArray(value)) {
         if (value.length > 0) query.whereIn(field, value);
@@ -27,7 +28,6 @@ export class BaseModel extends Model {
         query.where(field, value);
       }
     }
-    let query = qb;
     if (filters.id != null) {
       applyWhereCondition('id', filters.id);
     }

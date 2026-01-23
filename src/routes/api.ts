@@ -24,11 +24,9 @@ router.use(encryptResponse);
 async function initializeRoutes() {
   const apisDir = path.join(__dirname, 'apis');
   const dynamicApiRoutes = await loadDynamicRoutes(apisDir);
-
   router.use('/', throttle(60, 1), authenticateSecret, verifySignature, dynamicApiRoutes);
 }
 
 // 执行初始化
 initializeRoutes();
-
 export default router;
