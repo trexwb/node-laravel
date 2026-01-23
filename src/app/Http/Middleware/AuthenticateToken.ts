@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { config } from '#bootstrap/configLoader';
 import { Crypto } from '#utils/crypto';
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): any => {
@@ -11,29 +12,28 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   const token = authHeader.split(' ')[1];
 
   try {
-    // 1. 解密获取原始 Payload (包含 token 和 timeStamp)
-    const decryptedResult = Crypto.decryptToken(token);
+    const appKey = (req as any).secretRow?.appSecret || config('app.security.app_key');
+    const appIv = (req as any).secretRow?.appIv || config('app.security.app_iv');
 
+    // 1. 解密获取原始 Payload (包含 token 和 timeStamp)
+    // const decryptedResult = Crypto.decryptToken(token);
+    const decryptedResult = Crypto.decrypt(token, appKey, appIv);
     // 2. 基础合法性校验
     if (!decryptedResult || !decryptedResult.token || !decryptedResult.timeStamp) {
       return res.error(401006015002, 'Unauthorized: Invalid Token Structure');
     }
-
     // 3. 类型安全检查
     if (typeof decryptedResult.timeStamp !== 'number') {
       return res.error(401006015003, 'Unauthorized: Invalid Timestamp');
     }
-
     // 4. 过期校验 (强制拦截)
     const now = Math.floor(Date.now() / 1000);
     if (now > decryptedResult.timeStamp) {
       return res.error(401006015004, 'Unauthorized: Token Expired');
     }
-
     // 5. 将解析后的信息挂载到 req 对象
     (req as any).user = { id: decryptedResult.token };
     (req as any).tokenPayload = decryptedResult;
-
     next();
   } catch (error) {
     console.error('Authentication error:', error);

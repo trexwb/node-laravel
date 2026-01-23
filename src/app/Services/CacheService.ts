@@ -1,5 +1,6 @@
 import { FileDriver } from '#app/Casts/CastFileDriver';
 import { RedisDriver } from '#app/Casts/CastRedisDriver';
+import { SqliteDriver } from '#app/Casts/CastSqliteDriver';
 import type { CacheDriver } from '#app/Casts/CastInterface';
 
 export class CacheService {
@@ -7,19 +8,19 @@ export class CacheService {
 
   public static getDriver(): CacheDriver {
     if (this.instance) return this.instance;
-
     const driverType = process.env.CACHE_DRIVER || 'file';
-
     switch (driverType) {
       case 'redis':
         this.instance = new RedisDriver();
+        break;
+      case 'sqlite':
+        this.instance = new SqliteDriver();
         break;
       case 'file':
       default:
         this.instance = new FileDriver();
         break;
     }
-
     console.log(`[Cache] Using ${driverType} driver`);
     return this.instance;
   }
@@ -29,12 +30,13 @@ export class CacheService {
   static async set(key: string, value: any, ttl?: number) {
     return await this.getDriver().set(key, value, ttl);
   }
-  static async remember(key: string, ttl: number, callback: () => Promise<any>) {
+  static async remember(key: string, ttl: number = 0, callback: () => Promise<any>) {
     const val = await this.get(key);
     if (val !== null) return val;
-
     const freshData = await callback();
-    await this.set(key, freshData, ttl);
+    // 如果 ttl 为 0，调用我们各驱动中约定的“永久”逻辑或给一个超长有效期
+    const expire = ttl === 0 ? 315360000 : ttl;
+    await this.set(key, freshData, expire);
     return freshData;
   }
 }

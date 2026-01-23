@@ -21,6 +21,7 @@ export default {
     workers: process.env.CLUSTER_WORKERS === 'auto' ? 'auto' : parseInt(process.env.CLUSTER_WORKERS || '1')
   },
   security: {
+    verify_signature: process.env.VERIFY_SIGNATURE === 'true',
     request_encrypt: process.env.REQUEST_ENCRYPT === 'true',
     return_encrypt: process.env.RETURN_ENCRYPT === 'true',
     token_time: parseInt(process.env.TOKEN_TIME || '1800'),

@@ -5,40 +5,70 @@ import type { CacheDriver } from '#app/Casts/CastInterface';
 
 export class RedisDriver implements CacheDriver {
   private client: RedisClientType;
+  private prefix: string;
 
   constructor() {
-    const url = config('cache.host') + ':' + config('cache.port');
-    this.client = createClient({ url });
+    const host = config('cache.host');
+    const port = config('cache.port');
+    const password = config('cache.passwd');
+    this.prefix = config('cache.prefix') || '';
 
-    // 推荐：监听错误，避免未捕获异常导致进程退出
+    /**
+     * 构建 Redis 连接配置
+     * 格式：redis[s]://[[username][:password]@][host][:port][/db-number]
+     */
+    // const auth = password ? `:${encodeURIComponent(password)}@` : '';
+    // const url = `redis://${auth}${host}:${port}`;
+    this.client = createClient({
+      // url,
+      // 如果你不想用 URL 格式，也可以这样写：
+      password,
+      socket: {
+        host,
+        port,
+      },
+    });
+
     this.client.on('error', (err) => {
       console.error('Redis Client Error:', err);
     });
 
-    // 连接客户端
-    this.client.connect().catch(console.error);
+    // 连接
+    this.client.connect().catch((err) => {
+      console.error('Failed to connect to Redis:', err);
+    });
   }
 
   async get(key: string) {
-    const val = await this.client.get(key);
-    return val ? JSON.parse(val) : null;
+    // 自动处理前缀（建议在 Driver 层处理，保持外部 Key 简洁）
+    const val = await this.client.get(this.prefix + key);
+
+    if (!val) return null;
+
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val; // 如果不是 JSON 字符串，则返回原值
+    }
   }
 
   async set(key: string, value: any, ttl: number = 3600) {
-    await this.client.set(key, JSON.stringify(value), {
-      EX: ttl, // 使用选项对象更清晰（也可用 'EX', ttl，但推荐对象）
+    const val = typeof value === 'object' ? JSON.stringify(value) : String(value);
+
+    await this.client.set(this.prefix + key, val, {
+      EX: ttl,
     });
   }
 
   async forget(key: string) {
-    await this.client.del(key);
+    await this.client.del(this.prefix + key);
   }
 
   async flush() {
+    // 注意：flushDb 会清空整个数据库，忽略前缀
     await this.client.flushDb();
   }
 
-  // 可选：提供关闭连接的方法
   async disconnect() {
     await this.client.quit();
   }

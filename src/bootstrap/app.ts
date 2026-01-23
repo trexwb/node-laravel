@@ -19,7 +19,7 @@ import { config } from '#bootstrap/configLoader';
 const db = knex(knexConfig[process.env.APP_ENV || 'development']);
 const eventBus = new EventEmitter();
 const app = express();
-
+app.set('trust proxy', true);
 Model.knex(db);
 
 /**
@@ -38,22 +38,17 @@ export async function bootstrap(app: express.Application) {
   app.use(express.urlencoded({ extended: true }));
   app.use(multer().none());
   app.use(cors());
-
   // 注册响应包装器
   app.use(responseWrapper);
-
   // 启动服务提供者 (初始化事件监听等)
   AppServiceProvider.boot();
-
   // 动态加载路由 (必须 await)
   app.use('/api', dataShaper, apiRoutes);
   app.use('/console', consoleRoutes);
   app.use('/', frontRoutes);
-
   // 注册异常处理器 (!!! 关键点：必须在路由之后)
   // 只有在上面的路由都没有匹配到，或者路由内部调用了 next(err) 时，才会流转到这里
   app.use(Handler.render);
-
   console.log('[Bootstrap] 全局异常处理器已就绪');
 }
 
