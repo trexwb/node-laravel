@@ -1,8 +1,15 @@
 import { Job } from '#app/Jobs/Job';
 
+interface WelcomeEmailData {
+  email: string;
+  [key: string]: any; // 支持其他可选字段
+}
+
 export class SendWelcomeEmail extends Job {
-  constructor(private data: any) {
+  protected data: WelcomeEmailData;
+  constructor(data: WelcomeEmailData) {
     super();
+    this.data = data; // 将数据赋值给实例属性
   }
 
   public async handle(): Promise<void> {

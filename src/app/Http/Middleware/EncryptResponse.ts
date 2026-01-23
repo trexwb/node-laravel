@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
-import { container } from '#bootstrap/app';
+import { config } from '#bootstrap/configLoader';
 import { Crypto } from '#utils/crypto';
 
 export const encryptResponse = (_req: Request, res: Response, next: NextFunction) => {
-  const isEnabled = container.config('app.security.return_encrypt');
+  const isEnabled = config('app.security.return_encrypt');
 
   if (!isEnabled) return next();
 

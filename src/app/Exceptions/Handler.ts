@@ -9,10 +9,8 @@ export class Handler {
       error: {
         msg: err.message || 'Internal Server Error',
         code: err.code || 'UNKNOWN_ERROR',
-        // 建议统一使用 data 结构
-        data: process.env.APP_DEBUG === 'true' ? { stack: err.stack } : null,
         // 仅在开发环境显示堆栈信息
-        stack: process.env.APP_ENV === 'development' ? err.stack : undefined
+        stack: process.env.APP_DEBUG === 'true' ? err.stack : undefined
       }
     });
   }

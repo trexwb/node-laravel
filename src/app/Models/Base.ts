@@ -1,10 +1,11 @@
-import { Model, snakeCaseMappers } from 'objection';
-import dayjs from '#app/Helpers/Format';
-import { container } from '#bootstrap/app';
+import { Model, snakeCaseMappers, QueryBuilder } from 'objection';
+import type { Pojo } from 'objection';
+import { nowInTz, formatDate } from '#app/Helpers/Format';
 import type { CastInterface } from '#app/Casts/CastInterface';
 import * as _ from 'lodash-es';
 
-export abstract class BaseModel extends Model {
+
+export class BaseModel extends Model {
   protected static table: string;
   protected static primaryKey: string = 'id';
   protected static fillable: string[] = [];
@@ -12,45 +13,52 @@ export abstract class BaseModel extends Model {
   protected static casts: Record<string, CastInterface | string> = {};
   protected static useTimestamps: boolean = true;
 
-  /**
-   * 模拟 Laravel 的 create 方法
-   */
-  public static async create(data: any) {
-    // 1. Fillable 白名单过滤
-    let attributes = _.pick(data, this.fillable);
-
-    // 2. 自动补充时间戳
-    if (this.useTimestamps) {
-      const now = dayjs().format('YYYY-MM-DD HH:mm:ss');
-      attributes.created_at = now;
-      attributes.updated_at = now;
+  static buildQuery(
+    qb: QueryBuilder<BaseModel> = this.query(),
+    filters: {
+      id?: number;
+      [key: string]: any; // 允许其他属性
+    } = {}
+  ): QueryBuilder<BaseModel> {
+    function applyWhereCondition(field: string, value: any) {
+      if (Array.isArray(value)) {
+        if (value.length > 0) query.whereIn(field, value);
+      } else if (value) {
+        query.where(field, value);
+      }
     }
-
-    // 3. 执行 Mutators (setXXXAttribute)
-    attributes = this.runMutators(attributes);
-
-    // 4. 执行 Casts (set)
-    attributes = this.runCasts(attributes, 'set');
-
-    const [id] = await container.db(this.table).insert(attributes);
-    return this.find(id);
+    let query = qb;
+    if (filters.id != null) {
+      applyWhereCondition('id', filters.id);
+    }
+    return query;
   }
 
-  /**
-   * 模拟 Laravel 的 find 方法
-   */
-  public static async find(id: any) {
-    const row = await container.db(this.table).where(this.primaryKey, id).first();
-    if (!row) return null;
+  $parseDatabaseJson(json: Pojo): Pojo {
+    json = super.$parseDatabaseJson(json);
+    for (const key of Object.keys(json)) {
+      const value = json[key];
+      // 这里的逻辑可以根据你的字段命名习惯优化，比如只处理以 At 结尾的字段
+      if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
+        // 将时间转为指定时区并格式化
+        json[key] = formatDate(value);
+      }
+    }
+    return json;
+  }
 
-    // 1. 执行 Casts (get)
-    let data = this.runCasts(row, 'get');
-
-    // 2. 执行 Accessors (getXXXAttribute)
-    data = this.runAccessors(data);
-
-    // 3. 隐藏敏感字段
-    return _.omit(data, this.hidden);
+  $formatJson(json: Pojo): Pojo {
+    json = super.$formatJson(json);
+    // 遍历所有字段，如果是 Date 对象或符合日期格式的字符串，进行转换
+    for (const key of Object.keys(json)) {
+      const value = json[key];
+      // 这里的逻辑可以根据你的字段命名习惯优化，比如只处理以 At 结尾的字段
+      if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
+        // 将时间转为指定时区并格式化
+        json[key] = formatDate(value);
+      }
+    }
+    return json;
   }
 
   /**
@@ -104,14 +112,82 @@ export abstract class BaseModel extends Model {
     return snakeCaseMappers();
   }
 
-  // 模拟 Laravel 的自动时间戳
+  // 启用自动时间戳（createdAt, updatedAt）
+  static get createdAtColumn() {
+    return 'createdAt';
+  }
+
+  static get updatedAtColumn() {
+    return 'updatedAt';
+  }
+
+  getUpdatedAtAttribute(value: string | Date) {
+    return formatDate(value);
+  }
+
+  getCreatedAtAttribute(value: string | Date) {
+    return formatDate(value);
+  }
+
+  // 自动时间戳
   $beforeInsert() {
-    const now = new Date().toISOString();
+    // const now = new Date().toISOString();
+    const now = nowInTz();
     (this as any).createdAt = now;
     (this as any).updatedAt = now;
   }
 
+  // 自动更新 updatedAt（Objection 默认已支持，这里显式保留）
   $beforeUpdate() {
-    (this as any).updatedAt = new Date().toISOString();
+    // (this as any).updatedAt = new Date().toISOString();
+    (this as any).updatedAt = nowInTz();
+  }
+
+  static async createMany<This extends typeof BaseModel>(
+    this: This,
+    data: Array<Partial<InstanceType<This>>>
+  ): Promise<InstanceType<This>[]> {
+    if (data.length === 0) {
+      return [];
+    }
+    // 1. 对每条数据应用修改器（setters）和 casts（set）
+    const processedData = data.map(item => {
+      let normalized = { ...item };
+      // 应用修改器（如 setEmailAttribute）
+      normalized = this.runMutators(normalized);
+      // 应用类型转换（如 cast: 'encrypted'）
+      normalized = this.runCasts(normalized, 'set');
+      // 如果启用时间戳，且未提供 createdAt/updatedAt，则由 $beforeInsert 处理
+      // （Objection 会在 insert 时调用 $beforeInsert，所以这里不用手动设）
+      return normalized;
+    });
+
+    // 2. 使用 Objection 的 insert 批量插入（会触发 $beforeInsert）
+    const inserted: InstanceType<This>[] = await this.query().insert(processedData) as unknown as InstanceType<This>[];
+    // const inserted = await this.query().insert(processedData);
+
+    // 3. 对返回结果应用访问器（getters）和 casts（get）
+    // 注意：inserted 是模型实例数组，需转为 plain object 再处理
+    const result = inserted.map((instance: InstanceType<This>) => {
+      let json = instance.toJSON(); // 转为 plain object（已 snake_case -> camelCase）
+      // 应用访问器（如 getCreatedAtAttribute）
+      json = this.runAccessors(json);
+      // 应用类型转换（get）
+      json = this.runCasts(json, 'get');
+      // 重新构造为模型实例（保留方法和关系）
+      return Object.assign(Object.create(this.prototype), json);
+    });
+
+    return result;
+  }
+
+  // 更新任务
+  static async updateById(id: number, data: Partial<BaseModel>) {
+    return await this.query().patchAndFetchById(id, data);
+  }
+
+  // 删除任务（硬删除）
+  static async deleteById(id: number) {
+    return await this.query().deleteById(id);
   }
 }

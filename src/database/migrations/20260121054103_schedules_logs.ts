@@ -10,7 +10,8 @@ export async function up(knex: Knex): Promise<void> {
     table.string('time').notNullable().comment('执行时间');
     table.json('handler').nullable().comment('执行内容');
     table.specificType('status', 'TINYINT UNSIGNED').defaultTo(0).comment('状态:0非默认，1默认');
-    table.timestamps().defaultTo(knex.fn.now());
+    table.specificType('updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+    table.timestamp('created_at').defaultTo(knex.fn.now());
     table.comment('计划任务日志');
   });
 }

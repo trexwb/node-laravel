@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2025-07-10 12:12:02
  * @LastEditors: trexwb
- * @LastEditTime: 2026-01-22 11:14:08
+ * @LastEditTime: 2026-01-23 15:33:31
  * @FilePath: /print/server/install.js
  * @Description: 
  * @一花一世界，一叶一如来
@@ -29,10 +29,11 @@ try {
 
 // 2. 创建uploads目录
 try {
-  const distPath = path.resolve(__dirname, '../dist');
-  fs.mkdirSync(path.resolve(distPath, 'public/uploads'), { recursive: true, mode: 0o777 });
-  fs.mkdirSync(path.resolve(distPath, 'storage'), { recursive: true, mode: 0o777 });
-  // execSync(`chmod 755 ../dist/storage`, { stdio: 'inherit' });
+  const distPath = path.resolve(__dirname, './dist/src');
+  fs.mkdirSync(path.resolve(distPath, './public/uploads'), { recursive: true, mode: 0o777 });
+  fs.mkdirSync(path.resolve(distPath, './storage/cache'), { recursive: true, mode: 0o777 });
+  fs.mkdirSync(path.resolve(distPath, './storage/uploads'), { recursive: true, mode: 0o777 });
+  // execSync(`chmod 755 ./dist/storage`, { stdio: 'inherit' });
 } catch (err) {
   console.error(`❌ 创建uploads目录: 失败`);
 }

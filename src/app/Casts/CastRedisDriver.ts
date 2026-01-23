@@ -1,13 +1,13 @@
 import type { RedisClientType } from 'redis';
 import { createClient } from 'redis';
-import { container } from '#bootstrap/app';
+import { config } from '#bootstrap/configLoader';
 import type { CacheDriver } from '#app/Casts/CastInterface';
 
 export class RedisDriver implements CacheDriver {
   private client: RedisClientType;
 
   constructor() {
-    const url = container.config('cache.host') + ':' + container.config('cache.port');
+    const url = config('cache.host') + ':' + config('cache.port');
     this.client = createClient({ url });
 
     // 推荐：监听错误，避免未捕获异常导致进程退出
