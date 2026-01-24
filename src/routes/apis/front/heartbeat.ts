@@ -1,15 +1,45 @@
 import { Router } from 'express';
 import { SendWelcomeEmail } from '#app/Jobs/SendWelcomeEmail';
 import { authenticateToken } from '#app/Http/Middleware/AuthenticateToken';
+import { decryptRequest } from '#app/Http/Middleware/DecryptRequest';
 import { nowInTz } from '#app/Helpers/Format';
+import { Crypto } from '#utils/crypto';
+import { config } from '#bootstrap/configLoader';
+import { UsersService } from '#app/Services/UsersService';
 
 const router = Router();
 
-router.post('/', authenticateToken, async (req, res) => {
-  if (req.query.action === 'create') {
-    await SendWelcomeEmail.dispatch({ task: 'hello', timestamp: nowInTz() });
-  }
+// 使用解密请求中间件
+// router.use(decryptRequest);
+
+router.post('/', decryptRequest, authenticateToken, async (_req, res) => {
   res.success();
 });
+
+if (process.env.APP_ENV == 'development') {
+  router.post('/mockDate', decryptRequest, authenticateToken, async (req, res) => {
+    if (req.query.action === 'create') {
+      await SendWelcomeEmail.dispatch({ task: 'hello', timestamp: nowInTz() });
+    }
+    res.success();
+  });
+
+  router.post('/mockToken', async (req, res) => {
+    const tokenTime = config('app.security.token_time');
+    const appKey = (req as any).secretRow?.appSecret || config('app.security.app_key');
+    const appIv = (req as any).secretRow?.appIv || config('app.security.app_iv');
+    // const userRow = (req as any).user;
+    const userRow = await UsersService.getId(1);
+    const now = Math.floor(Date.now() / 1000);
+    const newTokenData = {
+      token: userRow.rememberToken, // 根据你的业务 logic
+      timeStamp: now + tokenTime
+    };
+    // const newToken = Crypto.generateToken(JSON.stringify(newTokenData));
+    const newToken = Crypto.encrypt(newTokenData, appKey, appIv);
+    res.success(newToken);
+  });
+}
+
 
 export default router;

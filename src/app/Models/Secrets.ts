@@ -74,11 +74,6 @@ export class Secrets extends BaseModel {
     return query;
   }
 
-  // 查询单个任务
-  static async findById(id: number) {
-    return await this.query().findById(id);
-  }
-
   // 单条查询（非 ID）
   static async findOne(filters: Parameters<typeof this.buildQuery>[1]) {
     const query = this.buildQuery(this.query(), filters);
@@ -99,7 +94,7 @@ export class Secrets extends BaseModel {
   ) {
     const { page = 1, perPage = 10 } = options;
     const offset = (page - 1) * perPage;
-    const baseQuery = this.buildQuery(this.query(),).orderBy('id', 'asc');
+    const baseQuery = this.buildQuery(this.query(), filters).orderBy('id', 'asc');
     const totalCount = await baseQuery.resultSize();
     const items = await baseQuery.clone().limit(perPage).offset(offset);
     return {
