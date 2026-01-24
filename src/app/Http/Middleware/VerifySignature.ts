@@ -23,12 +23,12 @@ export const verifySignature = (req: Request, res: Response, next: NextFunction)
 
   // 提取业务参数 (Query + Body)
   const params = { ...req.query, ...req.body };
-  if (params.length === 0) return next();
+  if (Object.keys(params).length === 0) return next();
 
   // 从 Headers 获取签名和时间戳
   const sign = req.headers['x-sign'] as string;
   if (!sign) {
-    return res.error(403006022001, 'Signature or Timestamp missing');
+    return res.error(403006022001, 'Signature missing');
   }
 
   // 签名算法：参数排序 -> 加上时间戳 -> 拼接 -> HMAC

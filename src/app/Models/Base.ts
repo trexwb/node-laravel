@@ -143,6 +143,11 @@ export class BaseModel extends Model {
     (this as any).updatedAt = nowInTz();
   }
 
+  // 查询单个任务
+  static async findById(id: number) {
+    return await this.query().findById(id);
+  }
+
   static async createMany<This extends typeof BaseModel>(
     this: This,
     data: Array<Partial<InstanceType<This>>>
