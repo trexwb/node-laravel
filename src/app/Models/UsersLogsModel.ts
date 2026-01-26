@@ -1,38 +1,39 @@
-import { BaseModel } from '#app/Models/Base';
-import { Users } from '#app/Models/Users';
+import { BaseModel } from '#app/Models/BaseModel';
+import { UsersModel } from '#app/Models/UsersModel';
 import { config } from '#bootstrap/configLoader';
 import { Model } from 'objection';
 
-export class UsersLogs extends BaseModel {
+export class UsersLogsModel extends BaseModel {
+  // 显式声明属性，对应数据库字段
+  id!: number;
+  userId!: number;
+  source!: object;
+  handle!: string;
+  updatedAt!: Date;
+  createdAt!: Date;
   static get tableName() {
     return `${config('database.prefix')}users_logs`;
   }
 
-  // 对应 Laravel 的 $casts 和 $fillable
-  // Objection 使用 JSON Schema 进行校验和自动格式化
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['userId', 'handle'], // 必填字段
       properties: {
-        id: { type: 'integer' },
         userId: { type: 'integer' },
+        source: { type: 'object' },
         handle: { type: 'string' },
-        // sourceData 会被自动当作 JSON 处理
-        sourceData: { type: 'object' },
       }
     };
   }
 
-  // 对应 Laravel 的 belongsTo (真正的关联！)
   static get relationMappings() {
     return {
       user: {
         relation: Model.BelongsToOneRelation,
-        modelClass: Users,
+        modelClass: UsersModel,
         join: {
-          from: 'users_logs.user_id',
-          to: 'users.id'
+          from: `${this.tableName}}.user_id`,
+          to: `${UsersModel.tableName}.id`
         }
       }
     };

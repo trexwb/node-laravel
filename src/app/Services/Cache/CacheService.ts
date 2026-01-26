@@ -28,9 +28,9 @@ export class CacheService {
 
   // 快捷方法
   static async get(key: string) { return await this.getDriver().get(key); }
-  static async set(key: string, value: any, ttl?: number) {
-    return await this.getDriver().set(key, value, ttl);
-  }
+  static async set(key: string, value: any, ttl?: number) { return await this.getDriver().set(key, value, ttl); }
+  static async forget(key: string) { return await this.getDriver().forget(key); }
+  static async forgetByPattern(pattern: string) { return await this.getDriver().forgetByPattern(pattern); }
   static async remember(key: string, ttl: number = 0, callback: () => Promise<any>) {
     const val = await this.get(key);
     if (val !== null) return val;

@@ -69,6 +69,14 @@ export class RedisDriver implements CacheDriver {
     await this.client.flushDb();
   }
 
+  async forgetByPattern(pattern: string) {
+    const match = `${this.prefix}${pattern}*`;
+    // 使用 scanIterator 迭代匹配的 key
+    for await (const key of this.client.scanIterator({ MATCH: match })) {
+      await this.client.del(key);
+    }
+  }
+
   async disconnect() {
     await this.client.quit();
   }

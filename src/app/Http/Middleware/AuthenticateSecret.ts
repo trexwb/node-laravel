@@ -27,7 +27,7 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
   // 假设你已经定义了 secretsHelper 或者直接使用 Model
   const secretRow = await SecretsService.getAppId(parseInt(appId));
 
-  if (!secretRow) {
+  if (!secretRow || !secretRow.appId || !secretRow.appSecret) {
     return res.error(401006014003, 'appId/appSecret error');
   }
 
@@ -36,7 +36,8 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
   }
 
   // 5. 核心：校验签名算法
-  const expectedSecret = Crypto.md5(Crypto.sha256(`${secretRow?.appId}${timeStampStr}`) + secretRow?.appSecret) + timeStampStr;
+  const appStr = Crypto.sha256(`${secretRow.appId}${timeStampStr}`);
+  const expectedSecret = Crypto.md5(`${appStr}${secretRow.appSecret}`) + timeStampStr;
 
   if (appSecret !== expectedSecret) {
     return res.error(401006014004, 'appSecret verification failed');

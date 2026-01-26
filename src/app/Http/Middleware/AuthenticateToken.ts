@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from 'express';
-import { config } from '#bootstrap/configLoader';
 import { Crypto } from '#utils/crypto';
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): any => {
@@ -12,12 +11,8 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   const token = authHeader.split(' ')[1];
 
   try {
-    const appKey = (req as any).secretRow?.appSecret || config('app.security.app_key');
-    const appIv = (req as any).secretRow?.appIv || config('app.security.app_iv');
-
     // 1. 解密获取原始 Payload (包含 token 和 timeStamp)
-    // const decryptedResult = Crypto.decryptToken(token);
-    const decryptedResult = Crypto.decrypt(token, appKey, appIv);
+    const decryptedResult = Crypto.decryptToken(token);
     // 2. 基础合法性校验
     if (!decryptedResult || !decryptedResult.token || !decryptedResult.timeStamp) {
       return res.error(401006015002, 'Unauthorized: Invalid Token Structure');

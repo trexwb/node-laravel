@@ -94,6 +94,17 @@ export class SqliteDriver implements CacheDriver {
     });
   }
 
+  async forgetByPattern(pattern: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const sql = `DELETE FROM cache WHERE key LIKE ?`;
+      // % 是 SQLite 的通配符
+      this.db.run(sql, [`${this.prefix}${pattern}%`], (err) => {
+        if (err) return reject(err);
+        resolve(void 0);
+      });
+    });
+  }
+
   private clearExpired() {
     const sql = `DELETE FROM cache WHERE expire_at < ?`;
     this.db.run(sql, [Date.now()]);

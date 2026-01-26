@@ -1,4 +1,4 @@
-import { Jobs } from '#app/Models/Jobs';
+import { JobsModel } from '#app/Models/JobsModel';
 import { SendWelcomeEmail } from '#app/Jobs/SendWelcomeEmail';
 // 以后每增加一个 Job，手动在这里 import
 // import { GenerateInvoice } from '#app/Jobs/GenerateInvoice';
@@ -17,7 +17,7 @@ export class QueueWorker {
 
     while (true) {
       // 1. 使用 Eloquent ORM 获取任务
-      const jobRecord = await Jobs.getNextAvailable();
+      const jobRecord = await JobsModel.getNextAvailable();
       if (jobRecord) {
         try {
           // 锁定任务

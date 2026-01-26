@@ -22,7 +22,6 @@ export class FileDriver implements CacheDriver {
 
   async get(key: string) {
     try {
-      console.log(this.getFilePath(this.prefix + key));
       const data = JSON.parse(await fs.readFile(this.getFilePath(this.prefix + key), 'utf-8'));
       if (Date.now() > data.expire) {
         await this.forget(this.prefix + key);
@@ -44,5 +43,9 @@ export class FileDriver implements CacheDriver {
 
   async flush() {
     await fs.rm(this.cachePath, { recursive: true, force: true });
+  }
+
+  async forgetByPattern(pattern: string) {
+    console.log(`File mode cannot delete the specified [${pattern}] cache.`)
   }
 }
