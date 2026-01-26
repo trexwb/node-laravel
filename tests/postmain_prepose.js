@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-24 08:47:32
  * @LastEditors: trexwb
- * @LastEditTime: 2026-01-26 13:35:28
+ * @LastEditTime: 2026-01-26 15:52:23
  * @FilePath: /node-laravel/tests/postmain_prepose.js
  * @Description: 
  * @一花一世界，一叶一如来
@@ -78,19 +78,19 @@ const iv = eo.env.param.get("appIv");
 const resData = eo.json.encode(eo.http.body.parse());
 clearParsedBody(eo.http.bodyParseParam);
 const decryptStr = encrypt(resData, key, iv);
+eo.info(decrypt(decryptStr, key, iv));
 eo.info("加密结果：" + decryptStr);
-eo.info("解密结果：" + eo.json.encode(decrypt(decryptStr, key, iv)));
+// eo.info("解密结果：" + eo.json.encode(decrypt(decryptStr, key, iv)));
 eo.http.bodyParseParam['encryptData'] = decryptStr;
 // eo.info(eo.json.encode(eo.http.bodyParseParam) + eo.json.encode(eo.http.body.parse()));
 
 // 加密完才能做签名，否则签名会不正确
 const bodyJson = sortObjectDeep(eo.http.bodyParseParam || eo.http.body.parse());
-const bodyStr = eo.json.encode(bodyJson);
-eo.info("签名内容：" + bodyStr);
-const bodyStrSha = eo.crypt.sha256(bodyStr);
-const signStr = eo.crypt.md5(bodyStrSha + appSecret);
-eo.http.header.set("X-Sign", signStr);
+eo.info(bodyJson);
+const bodyStr = eo.crypt.sha256(eo.json.encode(bodyJson));
+const signStr = eo.crypt.md5(bodyStr + appSecret);
 eo.info("签名结果：" + signStr);
+eo.http.header.set("X-Sign", signStr);
 
 // 模拟token
 const api = {

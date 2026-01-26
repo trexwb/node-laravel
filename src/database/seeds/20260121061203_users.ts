@@ -53,7 +53,7 @@ export async function seed(knex: Knex): Promise<void> {
           {
             id: 1,
             nickname: 'root',
-            email: 'root@caa.edu.cn',
+            email: 'root@damei.com',
             mobile: '13735443052',
             avatar: '',
             password: Crypto.md5(Crypto.md5(accountData.root.password.toString()) + accountData.root.salt.toString()),
@@ -68,8 +68,8 @@ export async function seed(knex: Knex): Promise<void> {
           }, {
             id: 2,
             nickname: 'admin',
-            email: 'admin@caa.edu.cn',
-            mobile: '15268550825',
+            email: 'admin@damei.com',
+            mobile: '18088888888',
             avatar: '',
             password: Crypto.md5(Crypto.md5(accountData.admin.password.toString()) + accountData.admin.salt.toString()),
             salt: accountData.admin.salt,
@@ -83,8 +83,8 @@ export async function seed(knex: Knex): Promise<void> {
           }, {
             id: 3,
             nickname: 'editor',
-            email: 'editor@caa.edu.cn',
-            mobile: '15268550825',
+            email: 'editor@damei.com',
+            mobile: '18099999999',
             avatar: '',
             password: Crypto.md5(Crypto.md5(accountData.editor.password.toString()) + accountData.editor.salt.toString()),
             salt: accountData.editor.salt,

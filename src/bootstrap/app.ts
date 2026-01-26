@@ -3,7 +3,7 @@ import cors from 'cors';
 import { Model } from 'objection';
 import knex from 'knex';
 import knexConfig from '#database/knexfile';
-import EventEmitter from 'events';
+import { eventBus } from '#bootstrap/events';
 import multer from 'multer';
 import { AppServiceProvider } from '#app/Providers/AppServiceProvider';
 import { Handler } from '#app/Exceptions/Handler';
@@ -17,7 +17,6 @@ import { config } from '#bootstrap/configLoader';
 
 // 1. 基础实例化
 const db = knex(knexConfig[config('app.env') || 'development']);
-const eventBus = new EventEmitter();
 const app = express();
 app.set('trust proxy', true);
 Model.knex(db);

@@ -8,4 +8,5 @@ export interface CacheDriver {
   set(key: string, value: any, ttl?: number): Promise<void>; // ttl 单位：秒
   forget(key: string): Promise<void>;
   flush(): Promise<void>;
+  forgetByPattern(pattern: string): Promise<void>;
 }

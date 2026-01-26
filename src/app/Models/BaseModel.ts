@@ -4,6 +4,11 @@ import { nowInTz, formatDate } from '#app/Helpers/Format';
 import type { CastInterface } from '#app/Casts/CastInterface';
 import * as _ from 'lodash-es';
 
+// 定义ID过滤条件的类型
+type IdFilter = {
+  not?: number | number[];
+  eq?: number | number[];
+} | number | number[] | string[];
 
 export class BaseModel extends Model {
   protected static table: string;
@@ -13,12 +18,9 @@ export class BaseModel extends Model {
   protected static casts: Record<string, CastInterface | string> = {};
   protected static useTimestamps: boolean = true;
 
-  static buildQuery(
+  static buildIdQuery(
     qb: QueryBuilder<BaseModel> = this.query(),
-    filters: {
-      id?: number;
-      [key: string]: any; // 允许其他属性
-    } = {}
+    ids?: IdFilter
   ): QueryBuilder<BaseModel> {
     let query = qb;
     function applyWhereCondition(field: string, value: any) {
@@ -28,8 +30,22 @@ export class BaseModel extends Model {
         query.where(field, value);
       }
     }
-    if (filters.id != null) {
-      applyWhereCondition('id', filters.id);
+    if (ids != null) {
+      // 检查是否为对象形式的过滤条件
+      if (typeof ids === 'object' && ids !== null) {
+        if ('not' in ids && ids.not !== undefined) {
+          Array.isArray(ids.not)
+            ? query.whereNotIn('id', ids.not as number[])
+            : query.whereNot('id', ids.not as number);
+        }
+        if ('eq' in ids && ids.eq !== undefined) {
+          Array.isArray(ids.eq)
+            ? query.whereIn('id', ids.eq as number[])
+            : query.where('id', ids.eq as number);
+        }
+      } else {
+        applyWhereCondition('id', ids);
+      }
     }
     return query;
   }
@@ -148,9 +164,29 @@ export class BaseModel extends Model {
     return await this.query().findById(id);
   }
 
-  static async createMany<This extends typeof BaseModel>(
-    data: Array<Partial<InstanceType<This>>>
-  ): Promise<InstanceType<This>[]> {
+  static async create(
+    data: Partial<any>
+  ) {
+    // 1. 应用修改器和 casts（set）
+    let normalized = { ...data };
+    normalized = this.runMutators(normalized);
+    normalized = this.runCasts(normalized, 'set');
+
+    // 2. 插入数据库（Objection 会自动调用  $ beforeInsert）
+    const inserted = await this.query().insert(normalized) as Partial<any>;
+
+    // 3. 转为 plain object 并应用访问器和 casts（get）
+    let json = inserted.toJSON();
+    json = this.runAccessors(json);
+    json = this.runCasts(json, 'get');
+
+    // 4. 重新构造为模型实例（保留原型链）
+    return Object.assign(Object.create(this.prototype), json);
+  }
+
+  static async createMany(
+    data: Array<Partial<Partial<any>>>
+  ): Promise<Partial<any>[]> {
     if (data.length === 0) {
       return [];
     }
@@ -167,12 +203,12 @@ export class BaseModel extends Model {
     });
 
     // 2. 使用 Objection 的 insert 批量插入（会触发 $beforeInsert）
-    const inserted: InstanceType<This>[] = await this.query().insert(processedData) as unknown as InstanceType<This>[];
+    const inserted: Partial<any>[] = await this.query().insert(processedData) as unknown as Partial<any>[];
     // const inserted = await this.query().insert(processedData);
 
     // 3. 对返回结果应用访问器（getters）和 casts（get）
     // 注意：inserted 是模型实例数组，需转为 plain object 再处理
-    const result = inserted.map((instance: InstanceType<This>) => {
+    const result = inserted.map((instance: Partial<any>) => {
       let json = instance.toJSON(); // 转为 plain object（已 snake_case -> camelCase）
       // 应用访问器（如 getCreatedAtAttribute）
       json = this.runAccessors(json);
@@ -186,7 +222,7 @@ export class BaseModel extends Model {
   }
 
   // 更新任务
-  static async updateById(id: number, data: Partial<BaseModel>) {
+  static async updateById(id: number, data: Partial<any>) {
     return await this.query().patchAndFetchById(id, data);
   }
 

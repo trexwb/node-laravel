@@ -1,8 +1,8 @@
 import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
-import { BaseModel } from '#app/Models/Base';
+import { BaseModel } from '#app/Models/BaseModel';
 
-export class Secrets extends BaseModel {
+export class SecretsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
   id!: number;
   title!: string;
@@ -47,7 +47,7 @@ export class Secrets extends BaseModel {
 
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
-    qb: QueryBuilder<Secrets> = this.query(),
+    qb: QueryBuilder<SecretsModel> = this.query(),
     filters: {
       id?: number;
       title?: string;
@@ -55,7 +55,7 @@ export class Secrets extends BaseModel {
       status?: number;
     } = {},
     trashed: boolean = false
-  ): QueryBuilder<Secrets> {
+  ): QueryBuilder<SecretsModel> {
     let query = qb;
     function applyWhereCondition(field: string, value: any) {
       if (Array.isArray(value)) {
@@ -112,7 +112,7 @@ export class Secrets extends BaseModel {
   // 更新（带条件）
   static async updateByFilters(
     filters: Parameters<typeof this.buildQuery>[1],
-    data: Partial<Secrets>
+    data: Partial<SecretsModel>
   ) {
     const query = this.buildQuery(this.query(), filters);
     return await query.patch(data); // 返回受影响行数

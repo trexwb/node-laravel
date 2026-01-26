@@ -1,9 +1,9 @@
 import { QueryBuilder } from 'objection';
-import { BaseModel } from '#app/Models/Base';
+import { BaseModel } from '#app/Models/BaseModel';
 import { config } from '#bootstrap/configLoader';
 import { nowInTz, tzToUtc, formatDate } from '#app/Helpers/Format';
 
-export class Jobs extends BaseModel {
+export class JobsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
   id!: number;
   queue!: string;
@@ -54,7 +54,7 @@ export class Jobs extends BaseModel {
 
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
-    qb: QueryBuilder<Jobs> = this.query(),
+    qb: QueryBuilder<JobsModel> = this.query(),
     filters: {
       id?: number;
       name?: string;
@@ -64,7 +64,7 @@ export class Jobs extends BaseModel {
       reserved?: boolean; // true=已预留, false=未预留
       finished?: boolean;
     } = {}
-  ): QueryBuilder<Jobs> {
+  ): QueryBuilder<JobsModel> {
     let query = qb;
     function applyWhereCondition(field: string, value: any) {
       if (Array.isArray(value)) {
@@ -122,7 +122,7 @@ export class Jobs extends BaseModel {
   }
 
   // 创建任务
-  static async createJob(payload: Record<string, any>, availableAt?: Date | string): Promise<Jobs> {
+  static async createJob(payload: Record<string, any>, availableAt?: Date | string): Promise<JobsModel> {
     return await this.query().insert({
       queue: payload.queue || 'default', // 修正：使用 queue 而不是 name
       payload: JSON.parse(JSON.stringify(payload || {})), // 修正：payload 应该是字符串类型
@@ -134,7 +134,7 @@ export class Jobs extends BaseModel {
   // 更新（带条件）
   static async updateByFilters(
     filters: Parameters<typeof this.buildQuery>[1],
-    data: Partial<Jobs>
+    data: Partial<JobsModel>
   ) {
     const query = this.buildQuery(this.query(), filters);
     return await query.patch(data); // 返回受影响行数
