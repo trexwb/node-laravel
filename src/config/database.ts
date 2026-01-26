@@ -5,4 +5,5 @@ export default {
   user: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'node_laravel',
+  prefix: process.env.DB_PREFIX || '',
 };

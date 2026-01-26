@@ -1,7 +1,8 @@
 import type { Knex } from "knex";
+import { config } from '#bootstrap/configLoader';
 
 export async function up(knex: Knex): Promise<void> {
-  return knex.schema.createTableIfNotExists(`${process.env.DB_PREFIX}jobs`, (table) => {
+  return knex.schema.createTableIfNotExists(`${config('database.prefix')}jobs`, (table) => {
     table.bigIncrements('id').primary();
     table.string('queue').index().defaultTo('default').comment('队列名');
     table.json('payload').comment('存储 Job 类名和参数 (JSON)');
@@ -16,5 +17,5 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  return knex.schema.dropTableIfExists(`${process.env.DB_PREFIX}jobs`);
+  return knex.schema.dropTableIfExists(`${config('database.prefix')}jobs`);
 }

@@ -1,4 +1,5 @@
 import { QueryBuilder } from 'objection';
+import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/Base';
 
 export class Secrets extends BaseModel {
@@ -17,7 +18,7 @@ export class Secrets extends BaseModel {
   deletedAt!: Date | null;
 
   static get tableName() {
-    return `${process.env.DB_PREFIX || ''}secrets`;
+    return `${config('database.prefix')}secrets`;
   }
 
   static get jsonSchema() {

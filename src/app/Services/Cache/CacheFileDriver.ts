@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export class FileDriver implements CacheDriver {
-  private cachePath = path.resolve(__dirname, '../../', config('cache.path') || 'storage/cache');
+  private cachePath = path.resolve(__dirname, '../../../', config('cache.path') || 'storage/cache');
   private prefix: string;
 
   constructor() {
@@ -22,6 +22,7 @@ export class FileDriver implements CacheDriver {
 
   async get(key: string) {
     try {
+      console.log(this.getFilePath(this.prefix + key));
       const data = JSON.parse(await fs.readFile(this.getFilePath(this.prefix + key), 'utf-8'));
       if (Date.now() > data.expire) {
         await this.forget(this.prefix + key);

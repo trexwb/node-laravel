@@ -3,11 +3,12 @@ import path from 'path';
 import utils from '#utils/index';
 import type { Knex } from 'knex';
 import { fileURLToPath } from 'url';
+import { config } from '#bootstrap/configLoader';
 
 export async function seed(knex: Knex): Promise<void> {
   const __filename = fileURLToPath(import.meta.url);
   const seedFileName = path.basename(__filename, path.extname(__filename));
-  const prefix = process.env.DB_PREFIX || '';
+  const prefix = config('database.prefix');
 
   // 1. 检查是否已运行过
   const hasRun = await knex(`${prefix}seeds`).where({ name: seedFileName }).first();

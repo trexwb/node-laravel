@@ -1,10 +1,11 @@
 import { BaseModel } from '#app/Models/Base';
 import { Users } from '#app/Models/Users';
+import { config } from '#bootstrap/configLoader';
 import { Model } from 'objection';
 
 export class UsersLogs extends BaseModel {
   static get tableName() {
-    return `${process.env.DB_PREFIX || ''}users_logs`;
+    return `${config('database.prefix')}users_logs`;
   }
 
   // 对应 Laravel 的 $casts 和 $fillable

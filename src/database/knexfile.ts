@@ -19,6 +19,7 @@ const dbConfig: { [key: string]: Knex.Config } = {
       max: 10,
     },
     migrations: {
+      tableName: `${config('database.prefix')}migrations`,
       directory: './migrations',
       extension: 'ts',
     },

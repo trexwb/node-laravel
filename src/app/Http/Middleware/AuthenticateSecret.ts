@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { Crypto } from '#utils/crypto';
 import { config } from '#bootstrap/configLoader';
-import { SecretsService } from '#app/Services/SecretsService';
+import { SecretsService } from '#app/Services/Secrets/SecretsService';
 
 export const authenticateSecret = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   // 1. 获取 Headers

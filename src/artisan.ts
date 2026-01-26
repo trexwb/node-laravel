@@ -3,7 +3,8 @@ import 'dotenv/config';
 import { Command } from 'commander';
 import { container, bootstrap } from '#bootstrap/app';
 import { QueueWorker } from '#app/Console/Commands/QueueWorker';
-import { CacheService } from '#app/Services/CacheService';
+import { CacheService } from '#app/Services/Cache/CacheService';
+import { config } from '#bootstrap/configLoader';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'url';
@@ -49,7 +50,7 @@ program
   .description('创建存储目录符号链接')
   .action(async () => {
     const publicPath = path.resolve(__dirname, './public/uploads');
-    const storagePath = path.resolve(__dirname, process.env.UPLOAD_PATH || './storage/uploads');
+    const storagePath = path.resolve(__dirname, config('app.upload_path'));
 
     // === 安全删除已存在的软链接或文件/目录 ===
     try {

@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { config } from '#bootstrap/configLoader';
 
 interface PermissionObject {
   id: null;
@@ -16,12 +17,12 @@ interface PermissionObject {
 export async function seed(knex: Knex): Promise<void> {
   const __filename = fileURLToPath(import.meta.url);
   const seedFilePath = path.basename(__filename, path.extname(__filename));
-  return await knex(`${process.env.DB_PREFIX}seeds`)
+  return await knex(`${config('database.prefix')}seeds`)
     .where({ name: seedFilePath })
     .first()
     .then(async row => {
       if (row) return Promise.resolve(); // 如果已经执行过，则直接返回
-      const total = await knex.from(`${process.env.DB_PREFIX}permissions`)
+      const total = await knex.from(`${config('database.prefix')}permissions`)
         .count('id', { as: 'total' })
         .first()
         .then((row) => {
@@ -78,10 +79,10 @@ export async function seed(knex: Knex): Promise<void> {
           }
         });
         // Deletes ALL existing entries
-        // await knex(`${process.env.DB_PREFIX}secrets`).del()
-        await knex(`${process.env.DB_PREFIX}permissions`).insert(permissionObjects).then(async () => {
+        // await knex(`${config('database.prefix')}secrets`).del()
+        await knex(`${config('database.prefix')}permissions`).insert(permissionObjects).then(async () => {
           // 插入成功后，记录这次执行
-          return await knex(`${process.env.DB_PREFIX}seeds`).insert([{
+          return await knex(`${config('database.prefix')}seeds`).insert([{
             name: seedFilePath,
             batch: 1, // 根据实际情况调整批次号
             migration_time: knex.fn.now()

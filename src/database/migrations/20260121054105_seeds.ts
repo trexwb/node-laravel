@@ -1,8 +1,8 @@
 import type { Knex } from "knex";
-
+import { config } from '#bootstrap/configLoader';
 
 export async function up(knex: Knex): Promise<void> {
-  return knex.schema.createTableIfNotExists(`${process.env.DB_PREFIX}seeds`, (table) => {
+  return knex.schema.createTableIfNotExists(`${config('database.prefix')}seeds`, (table) => {
     table.increments('id').primary(); // 自增ID
     table.string('name').notNullable().comment('种子文件名或标识符');
     table.integer('batch').unsigned().comment('批次号');
@@ -13,5 +13,5 @@ export async function up(knex: Knex): Promise<void> {
 
 
 export async function down(knex: Knex): Promise<void> {
-  return knex.schema.dropTableIfExists(`${process.env.DB_PREFIX}seeds`);
+  return knex.schema.dropTableIfExists(`${config('database.prefix')}seeds`);
 }

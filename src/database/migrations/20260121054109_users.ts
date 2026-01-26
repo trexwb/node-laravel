@@ -1,8 +1,8 @@
 import type { Knex } from "knex";
-
+import { config } from '#bootstrap/configLoader';
 
 export async function up(knex: Knex): Promise<void> {
-  return knex.schema.createTableIfNotExists(`${process.env.DB_PREFIX}users`, (table) => {
+  return knex.schema.createTableIfNotExists(`${config('database.prefix')}users`, (table) => {
     table.increments('id');
     table.string('nickname', 40).notNullable().comment('昵称');
     table.string('email').notNullable().comment('账号邮箱');
@@ -23,5 +23,5 @@ export async function up(knex: Knex): Promise<void> {
 
 
 export async function down(knex: Knex): Promise<void> {
-  return knex.schema.dropTableIfExists(`${process.env.DB_PREFIX}users`);
+  return knex.schema.dropTableIfExists(`${config('database.prefix')}users`);
 }

@@ -4,6 +4,7 @@ import path from 'path';
 import utils from '#utils/index';
 import { Crypto } from '#utils/crypto';
 import { fileURLToPath } from 'url';
+import { config } from '#bootstrap/configLoader';
 
 export async function seed(knex: Knex): Promise<void> {
   const __filename = fileURLToPath(import.meta.url);
@@ -12,12 +13,12 @@ export async function seed(knex: Knex): Promise<void> {
   const rootPath = path.resolve(__dirname, '../../../../');
   const tempFilePath = path.join(rootPath, 'temp_install.json');
   const seedFilePath = path.basename(__filename, path.extname(__filename));
-  return await knex(`${process.env.DB_PREFIX}seeds`)
+  return await knex(`${config('database.prefix')}seeds`)
     .where({ name: seedFilePath })
     .first()
     .then(async row => {
       if (row) return Promise.resolve(); // 如果已经执行过，则直接返回
-      const total = await knex.from(`${process.env.DB_PREFIX}users`)
+      const total = await knex.from(`${config('database.prefix')}users`)
         .count('id', { as: 'total' })
         .first()
         .then((row) => {
@@ -47,8 +48,8 @@ export async function seed(knex: Knex): Promise<void> {
           }
         };
         // Deletes ALL existing entries
-        await knex(`${process.env.DB_PREFIX}users`).del();
-        await knex(`${process.env.DB_PREFIX}users`).insert([
+        await knex(`${config('database.prefix')}users`).del();
+        await knex(`${config('database.prefix')}users`).insert([
           {
             id: 1,
             nickname: 'root',
@@ -96,7 +97,7 @@ export async function seed(knex: Knex): Promise<void> {
             updated_at: knex.fn.now()
           }
         ]).then(async () => {
-          await knex(`${process.env.DB_PREFIX}users_roles`).insert([{
+          await knex(`${config('database.prefix')}users_roles`).insert([{
             user_id: 1,
             role_id: 1
           }, {
@@ -107,7 +108,7 @@ export async function seed(knex: Knex): Promise<void> {
             role_id: 3
           }]);
           // 插入成功后，记录这次执行
-          await knex(`${process.env.DB_PREFIX}seeds`).insert([{
+          await knex(`${config('database.prefix')}seeds`).insert([{
             name: seedFilePath,
             batch: 1, // 根据实际情况调整批次号
             migration_time: knex.fn.now()
