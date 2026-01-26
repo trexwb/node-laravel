@@ -1,14 +1,15 @@
-import { FileDriver } from '#app/Casts/CastFileDriver';
-import { RedisDriver } from '#app/Casts/CastRedisDriver';
-import { SqliteDriver } from '#app/Casts/CastSqliteDriver';
+import { FileDriver } from '#app/Services/Cache/CacheFileDriver';
+import { RedisDriver } from '#app/Services/Cache/CacheRedisDriver';
+import { SqliteDriver } from '#app/Services/Cache/CacheSqliteDriver';
 import type { CacheDriver } from '#app/Casts/CastInterface';
+import { config } from '#bootstrap/configLoader';
 
 export class CacheService {
   private static instance: CacheDriver;
 
   public static getDriver(): CacheDriver {
     if (this.instance) return this.instance;
-    const driverType = process.env.CACHE_DRIVER || 'file';
+    const driverType = config('cache.driver');
     switch (driverType) {
       case 'redis':
         this.instance = new RedisDriver();

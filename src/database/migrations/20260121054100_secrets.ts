@@ -1,7 +1,8 @@
 import type { Knex } from "knex";
+import { config } from '#bootstrap/configLoader';
 
 export async function up(knex: Knex): Promise<void> {
-  return knex.schema.createTableIfNotExists(`${process.env.DB_PREFIX}secrets`, (table) => {
+  return knex.schema.createTableIfNotExists(`${config('database.prefix')}secrets`, (table) => {
     table.increments('id').primary(); // 自增ID
     table.string('title').notNullable().comment('密钥主体');
     table.string('app_id', 40).notNullable().comment('appid');
@@ -20,6 +21,6 @@ export async function up(knex: Knex): Promise<void> {
 
 
 export async function down(knex: Knex): Promise<void> {
-  return knex.schema.dropTableIfExists(`${process.env.DB_PREFIX}secrets`);
+  return knex.schema.dropTableIfExists(`${config('database.prefix')}secrets`);
 }
 

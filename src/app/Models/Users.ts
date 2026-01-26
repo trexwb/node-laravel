@@ -1,4 +1,5 @@
 import { QueryBuilder } from 'objection';
+import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/Base';
 
 export class Users extends BaseModel {
@@ -19,7 +20,7 @@ export class Users extends BaseModel {
   createdAt!: Date;
   deletedAt!: Date | null;
   static get tableName() {
-    return `${process.env.DB_PREFIX || ''}users`;
+    return `${config('database.prefix')}users`;
   }
 
   static get jsonSchema() {
@@ -79,5 +80,60 @@ export class Users extends BaseModel {
   static async findOne(filters: Parameters<typeof this.buildQuery>[1]) {
     const query = this.buildQuery(this.query(), filters);
     return await query.first(); // 或 .limit(1).first()
+  }
+
+  // 多条查询（分页）
+  static async findMany(
+    filters: Parameters<typeof this.buildQuery>[1],
+    options: { page?: number; perPage?: number } = {}
+  ) {
+    const { page = 1, perPage = 10 } = options;
+    const offset = (page - 1) * perPage;
+    const baseQuery = this.buildQuery(this.query(), filters).orderBy('id', 'asc');
+    const totalCount = await baseQuery.resultSize();
+    const items = await baseQuery.clone().limit(perPage).offset(offset);
+    return {
+      data: items,
+      meta: {
+        total: totalCount,
+        page,
+        perPage,
+        totalPages: Math.ceil(totalCount / perPage),
+      },
+    };
+  }
+
+  // 创建任务
+  static async createUser(data: Record<string, any>): Promise<Users> {
+    return await this.query().insert({
+      nickname: data.nickname || '',
+      email: data.email || '',
+      mobile: data.mobile || '',
+      avatar: data.avatar || '',
+      password: data.password || '',
+      salt: data.salt || '',
+      rememberToken: data.rememberToken || '',
+      uuid: data.uuid || '',
+      secret: data.secret || '',
+      extension: data.extension || {},
+      status: data.status || 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).returning('*').first();
+  }
+
+  // 更新（带条件）
+  static async updateByFilters(
+    filters: Parameters<typeof this.buildQuery>[1],
+    data: Partial<Users>
+  ) {
+    const query = this.buildQuery(this.query(), filters);
+    return await query.patch(data); // 返回受影响行数
+  }
+
+  // 删除（带条件）
+  static async deleteByFilters(filters: Parameters<typeof this.buildQuery>[1]) {
+    const query = this.buildQuery(this.query(), filters);
+    return await query.delete(); // 返回受影响行数
   }
 }

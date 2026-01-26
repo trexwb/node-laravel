@@ -1,10 +1,12 @@
+
 export default {
   name: process.env.APP_NAME || 'NodeLaravel',
   env: process.env.APP_ENV || 'development',
+  debugger: process.env.APP_DEBUG === 'true',
+  timezone: process.env.TIME_ZONE || 'Asia/Shanghai',
   url: process.env.APP_URL || 'localhost',
   http_port: parseInt(process.env.HTTP_PORT || '80'),
   https_port: parseInt(process.env.HTTPS_PORT || '443'),
-  timezone: process.env.TIME_ZONE || 'Asia/Shanghai',
   upload_path: process.env.UPLOAD_PATH || 'storage/uploads',
   ws: {
     port: parseInt(process.env.WS_PORT || '8080'),
@@ -15,6 +17,9 @@ export default {
     key: process.env.SSL_KEY_PATH || '../certs/server.key',
     cert: process.env.SSL_CERT_PATH || '../certs/server.crt',
     enabled: process.env.SSL_ENABLED === 'true'
+  },
+  front: {
+    port: parseInt(process.env.FRONT_PORT || '3000'),
   },
   cluster: {
     enabled: process.env.CLUSTER_ENABLED === 'true',

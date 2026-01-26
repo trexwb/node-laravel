@@ -1,5 +1,6 @@
 import { QueryBuilder } from 'objection';
 import { BaseModel } from '#app/Models/Base';
+import { config } from '#bootstrap/configLoader';
 import { nowInTz, tzToUtc, formatDate } from '#app/Helpers/Format';
 
 export class Jobs extends BaseModel {
@@ -15,7 +16,7 @@ export class Jobs extends BaseModel {
   createdAt!: Date;
 
   static get tableName() {
-    return `${process.env.DB_PREFIX || ''}jobs`;
+    return `${config('database.prefix')}jobs`;
   }
 
   static get jsonSchema() {

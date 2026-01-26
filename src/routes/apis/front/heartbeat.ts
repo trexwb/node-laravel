@@ -5,7 +5,7 @@ import { decryptRequest } from '#app/Http/Middleware/DecryptRequest';
 import { nowInTz } from '#app/Helpers/Format';
 import { Crypto } from '#utils/crypto';
 import { config } from '#bootstrap/configLoader';
-import { UsersService } from '#app/Services/UsersService';
+import { UsersService } from '#app/Services/Users/UsersService';
 
 const router = Router();
 
@@ -16,7 +16,7 @@ router.post('/', decryptRequest, authenticateToken, async (_req, res) => {
   res.success();
 });
 
-if (process.env.APP_ENV == 'development') {
+if (config('app.env') == 'development') {
   router.post('/mockDate', decryptRequest, authenticateToken, async (req, res) => {
     if (req.query.action === 'create') {
       await SendWelcomeEmail.dispatch({ task: 'hello', timestamp: nowInTz() });

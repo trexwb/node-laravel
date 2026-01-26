@@ -16,7 +16,7 @@ import { responseWrapper } from '#app/Http/Middleware/ResponseWrapper';
 import { config } from '#bootstrap/configLoader';
 
 // 1. 基础实例化
-const db = knex(knexConfig[process.env.APP_ENV || 'development']);
+const db = knex(knexConfig[config('app.env') || 'development']);
 const eventBus = new EventEmitter();
 const app = express();
 app.set('trust proxy', true);
@@ -29,7 +29,7 @@ Model.knex(db);
 export async function bootstrap(app: express.Application) {
   // 确保任何请求进来先检查协议
   const appConfig = config('app');
-  if (appConfig?.ssl?.enabled && process.env.APP_ENV === 'production') {
+  if (appConfig?.ssl?.enabled && config('app.env') === 'production') {
     app.use(forceHttps);
   }
   // 基础中间件
@@ -38,6 +38,12 @@ export async function bootstrap(app: express.Application) {
   app.use(express.urlencoded({ extended: true }));
   app.use(multer().none());
   app.use(cors());
+  app.use((_req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+  });
   // 注册响应包装器
   app.use(responseWrapper);
   // 启动服务提供者 (初始化事件监听等)

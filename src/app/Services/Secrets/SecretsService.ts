@@ -1,4 +1,4 @@
-import { CacheService } from '#app/Services/CacheService';
+import { CacheService } from '#app/Services/Cache/CacheService';
 import { Secrets } from '#app/Models/Secrets';
 
 export class SecretsService {

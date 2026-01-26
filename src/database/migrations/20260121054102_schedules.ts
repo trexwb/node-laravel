@@ -1,8 +1,8 @@
 import type { Knex } from "knex";
-
+import { config } from '#bootstrap/configLoader';
 
 export async function up(knex: Knex): Promise<void> {
-  return knex.schema.createTableIfNotExists(`${process.env.DB_PREFIX}schedules`, (table) => {
+  return knex.schema.createTableIfNotExists(`${config('database.prefix')}schedules`, (table) => {
     table.increments('id').primary(); // 自增ID
     table.string('name').notNullable().comment('任务名称');
     table.string('time').notNullable().comment('执行时间');
@@ -17,6 +17,6 @@ export async function up(knex: Knex): Promise<void> {
 
 
 export async function down(knex: Knex): Promise<void> {
-  return knex.schema.dropTableIfExists(`${process.env.DB_PREFIX}schedules`);
+  return knex.schema.dropTableIfExists(`${config('database.prefix')}schedules`);
 }
 

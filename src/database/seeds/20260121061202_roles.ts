@@ -1,16 +1,17 @@
 import path from 'path';
 import type { Knex } from 'knex';
 import { fileURLToPath } from 'url';
+import { config } from '#bootstrap/configLoader';
 
 export async function seed(knex: Knex): Promise<void> {
   const __filename = fileURLToPath(import.meta.url);
   const seedFilePath = path.basename(__filename, path.extname(__filename));
-  return await knex(`${process.env.DB_PREFIX}seeds`)
+  return await knex(`${config('database.prefix')}seeds`)
     .where({ name: seedFilePath })
     .first()
     .then(async row => {
       if (row) return Promise.resolve(); // 如果已经执行过，则直接返回
-      const total = await knex.from(`${process.env.DB_PREFIX}roles`)
+      const total = await knex.from(`${config('database.prefix')}roles`)
         .count('id', { as: 'total' })
         .first()
         .then((row) => {
@@ -20,7 +21,7 @@ export async function seed(knex: Knex): Promise<void> {
         });
       if (total === 0) {
         const adminPermissions = ["systemsSecrets", "systemsConfigs", "systemsLanguages", "systemsCaches", "systemsServers", "systemsDatabases", "systemsClients"];
-        await knex(`${process.env.DB_PREFIX}roles`).insert([
+        await knex(`${config('database.prefix')}roles`).insert([
           {
             id: 1,
             name: '系统运维',
@@ -47,9 +48,9 @@ export async function seed(knex: Knex): Promise<void> {
             updated_at: knex.fn.now()
           }
         ]);
-        await knex(`${process.env.DB_PREFIX}roles_permissions`).del();
+        await knex(`${config('database.prefix')}roles_permissions`).del();
         // 修复：确保返回类型一致，并处理异步操作
-        const rows = await knex.from(`${process.env.DB_PREFIX}roles`)
+        const rows = await knex.from(`${config('database.prefix')}roles`)
           .then((rows) => {
             return Array.isArray(rows) ? rows : [];
           })
@@ -59,16 +60,16 @@ export async function seed(knex: Knex): Promise<void> {
 
         // 使用 Promise.all 处理并发的异步操作
         await Promise.all(rows.map(async (row) => {
-          const result = await knex(`${process.env.DB_PREFIX}permissions`).select('id').whereIn('key', row.permissions || []);
+          const result = await knex(`${config('database.prefix')}permissions`).select('id').whereIn('key', row.permissions || []);
           const data = result.map(item => ({
             role_id: row.id,
             permission_id: item.id,
           }));
           if (data.length > 0) {
-            await knex(`${process.env.DB_PREFIX}roles_permissions`).insert(data);
+            await knex(`${config('database.prefix')}roles_permissions`).insert(data);
           }
         }));
-        return await knex(`${process.env.DB_PREFIX}seeds`).insert([{
+        return await knex(`${config('database.prefix')}seeds`).insert([{
           name: seedFilePath,
           batch: 1, // 根据实际情况调整批次号
           migration_time: knex.fn.now()

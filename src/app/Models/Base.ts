@@ -149,7 +149,6 @@ export class BaseModel extends Model {
   }
 
   static async createMany<This extends typeof BaseModel>(
-    this: This,
     data: Array<Partial<InstanceType<This>>>
   ): Promise<InstanceType<This>[]> {
     if (data.length === 0) {
