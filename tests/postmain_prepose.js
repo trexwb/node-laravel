@@ -2,8 +2,8 @@
  * @Author: trexwb
  * @Date: 2026-01-24 08:47:32
  * @LastEditors: trexwb
- * @LastEditTime: 2026-01-24 10:18:17
- * @FilePath: /node-laravel/tests/postmain_prepose.js
+ * @LastEditTime: 2026-01-26 09:34:45
+ * @FilePath: /print/server/tests/postmain_prepose.js
  * @Description: 
  * @一花一世界，一叶一如来
  * @Copyright (c) 2026 by 杭州大美, All Rights Reserved. 
@@ -15,7 +15,7 @@ const baseUrl = eo.env.param.get("url") || "https://print-dev.lixitu.com";
 const appId = headers["App-Id"] || eo.env.param.get("appId");
 const appSecret = headers["App-Secret"] || eo.env.param.get("appSecret");
 const timeStamp = Math.floor(Date.now() / 1000).toString();
-const appStr = eo.crypt.md5(appId + timeStamp);
+const appStr = eo.crypt.sha256(appId + timeStamp);
 const appSecretStr = eo.crypt.md5(appStr + appSecret) + timeStamp;
 eo.http.header.set("App-Id", appId);
 eo.http.header.set("App-Secret", appSecretStr);
@@ -78,16 +78,18 @@ const resData = eo.json.encode(eo.http.body.parse());
 clearParsedBody(eo.http.bodyParseParam);
 const decryptStr = encrypt(resData, key, iv);
 eo.info("加密结果：" + decryptStr);
-eo.info("解密结果：" + decrypt(decryptStr, key, iv));
+eo.info("解密结果：" + eo.json.encode(decrypt(decryptStr, key, iv)));
 eo.http.bodyParseParam['encryptData'] = decryptStr;
 // eo.info(eo.json.encode(eo.http.bodyParseParam) + eo.json.encode(eo.http.body.parse()));
 
 // 加密完才能做签名，否则签名会不正确
 const bodyJson = sortObjectDeep(eo.http.bodyParseParam || eo.http.body.parse());
-eo.info("签名内容：" + eo.json.encode(bodyJson));
-const bodyStr = eo.crypt.md5(eo.json.encode(bodyJson));
-const signStr = eo.crypt.md5(bodyStr + appSecret);
+const bodyStr = eo.json.encode(bodyJson);
+eo.info("签名内容：" + bodyStr);
+const bodyStrSha = eo.crypt.sha256(bodyStr);
+const signStr = eo.crypt.md5(bodyStrSha + appSecret);
 eo.http.header.set("X-Sign", signStr);
+eo.info("签名结果：" + signStr);
 
 // 模拟token
 const api = {
@@ -98,7 +100,7 @@ const api = {
     "Content-Type": "application/x-www-form-urlencoded",
     "App-Id": appId,
     "App-Secret": appSecretStr
-  }, //[选填][object],请求头部
+  },
   "timelimit": 1000 //[选填],超时限制,单位为ms,超过时间则判断为请求失败，默认为1000ms
 };
 const authToken = headers["Auth-Token"] || eo.env.param.get("authToken");
@@ -114,7 +116,7 @@ if (authToken == 'auto') {
       } else if (response.encryptedData) {
         const decryptStr = decrypt(response.encryptedData, key, iv);
         eo.http.header.set("Authorization", 'Bearer ' + decryptStr);
-        eo.info("Authorization：" + decryptStr);
+        eo.info("Authorization【解密】：" + decryptStr);
       }
     }
   }

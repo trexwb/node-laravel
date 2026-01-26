@@ -30,7 +30,7 @@ export class Crypto {
       if (Buffer.byteLength(key) !== 32 || Buffer.byteLength(iv) !== 16) {
         throw new Error('Invalid key or iv length');
       }
-      const encryptedText = JSON.stringify(encryptedData);
+      const encryptedText = typeof encryptedData == 'string' ? encryptedData : JSON.stringify(encryptedData);
       const cipher = crypto.createCipheriv(this.algorithm, key, iv);
       let encrypted = cipher.update(encryptedText, 'utf8', 'hex');
       encrypted += cipher.final('hex');

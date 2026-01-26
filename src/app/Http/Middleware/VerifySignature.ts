@@ -38,8 +38,8 @@ export const verifySignature = (req: Request, res: Response, next: NextFunction)
   const sortedParams = sortObjectDeep(params);
   // const sortedParams = fromPairs(sortBy(toPairs(params), 0));
 
-  // 待签名字符串包含：时间戳 + 参数序列化
-  const serverSign = Crypto.md5(Crypto.md5(JSON.stringify(sortedParams)) + appKey);
+  // 待签名字符串包含：参数序列化 + 密钥
+  const serverSign = Crypto.md5(Crypto.sha256(JSON.stringify(sortedParams)) + appKey);
 
   if (sign !== serverSign) {
     return res.error(403006022002, 'Invalid signature');
