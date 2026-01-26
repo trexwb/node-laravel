@@ -24,19 +24,15 @@ if (config('app.env') == 'development') {
     res.success({ mockDate: 'create', task: 'hello', timestamp: nowInTz() });
   });
 
-  router.post('/mockToken', async (req, res) => {
+  router.post('/mockToken', async (_req, res) => {
     const tokenTime = config('app.security.token_time');
-    const appKey = (req as any).secretRow?.appSecret || config('app.security.app_key');
-    const appIv = (req as any).secretRow?.appIv || config('app.security.app_iv');
-    // const userRow = (req as any).user;
     const userRow = await UsersService.getId(1);
     const now = Math.floor(Date.now() / 1000);
     const newTokenData = {
-      token: userRow.rememberToken, // 根据你的业务 logic
+      token: userRow?.rememberToken, // 根据你的业务 logic
       timeStamp: now + tokenTime
     };
-    // const newToken = Crypto.generateToken(JSON.stringify(newTokenData));
-    const newToken = Crypto.encrypt(newTokenData, appKey, appIv);
+    const newToken = Crypto.generateToken(JSON.stringify(newTokenData));
     res.success(newToken);
   });
 }

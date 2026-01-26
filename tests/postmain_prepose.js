@@ -2,24 +2,13 @@
  * @Author: trexwb
  * @Date: 2026-01-24 08:47:32
  * @LastEditors: trexwb
- * @LastEditTime: 2026-01-26 11:14:38
+ * @LastEditTime: 2026-01-26 13:35:28
  * @FilePath: /node-laravel/tests/postmain_prepose.js
  * @Description: 
  * @一花一世界，一叶一如来
  * @Copyright (c) 2026 by 杭州大美, All Rights Reserved. 
  */
-// 前置脚本
-const headers = eo.http.header.parse();
-// eo.info("headers:" + eo.json.encode(headers))
-const baseUrl = eo.env.param.get("url") || "https://print-dev.lixitu.com";
-const appId = headers["App-Id"] || eo.env.param.get("appId");
-const appSecret = headers["App-Secret"] || eo.env.param.get("appSecret");
-const timeStamp = Math.floor(Date.now() / 1000).toString();
-const appStr = eo.crypt.sha256(appId + timeStamp);
-const appSecretStr = eo.crypt.md5(appStr + appSecret) + timeStamp;
-eo.http.header.set("App-Id", appId);
-eo.http.header.set("App-Secret", appSecretStr);
-
+// 递归排序对象
 const sortObjectDeep = (obj) => {
   if (Array.isArray(obj)) {
     return obj.map(sortObjectDeep); // 数组保持顺序，或可考虑排序
@@ -33,14 +22,13 @@ const sortObjectDeep = (obj) => {
     return obj;
   }
 };
-
-// 1. 生成随机的密钥和初始化向量
+// 生成随机的密钥和初始化向量
 const generateKeyAndIV = () => {
   const key = crypto.randomBytes(32); // 32字节密钥
   const iv = crypto.randomBytes(16);  // 16字节初始化向量
   return { key, iv };
 };
-// 2. 加密函数
+// 加密函数
 const encrypt = (text, key, iv) => {
   const encryptedText = typeof text == 'string' ? text : eo.json.encode(text);
   const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
@@ -48,7 +36,7 @@ const encrypt = (text, key, iv) => {
   encrypted += cipher.final('hex');
   return encrypted;
 };
-// 3. 解密函数
+// 解密函数
 const decrypt = (encryptedText, key, iv) => {
   const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
   let decrypted = decipher.update(encryptedText, 'hex', 'utf-8');
@@ -59,6 +47,7 @@ const decrypt = (encryptedText, key, iv) => {
     throw new Error('Invalid JSON format after decryption');
   }
 };
+// 清理解析后的body
 const clearParsedBody = (parsedBody) => {
   if (parsedBody !== null && typeof parsedBody === 'object' && !Array.isArray(parsedBody)) {
     // 方法1：使用 Object.keys() 获取所有键名，然后删除每个属性
@@ -71,7 +60,19 @@ const clearParsedBody = (parsedBody) => {
   return parsedBody;
 }
 
-// 优先做加密处理
+// headers加密处理
+const headers = eo.http.header.parse();
+// eo.info("headers:" + eo.json.encode(headers))
+const baseUrl = eo.env.param.get("url") || "https://print-dev.lixitu.com";
+const appId = (headers["App-Id"] || eo.env.param.get("appId")).toString();
+const appSecret = (headers["App-Secret"] || eo.env.param.get("appSecret")).toString();
+const timeStamp = Math.floor(Date.now() / 1000).toString();
+const appStr = eo.crypt.sha256(appId + timeStamp) + appSecret;
+const appSecretStr = eo.crypt.md5(appStr) + timeStamp;
+eo.http.header.set("App-Id", appId);
+eo.http.header.set("App-Secret", appSecretStr);
+
+// 数据加密
 const key = eo.env.param.get("appSecret");
 const iv = eo.env.param.get("appIv");
 const resData = eo.json.encode(eo.http.body.parse());
@@ -103,7 +104,7 @@ const api = {
   },
   "timelimit": 1000 //[选填],超时限制,单位为ms,超过时间则判断为请求失败，默认为1000ms
 };
-const authToken = headers["Auth-Token"] || eo.env.param.get("authToken");
+const authToken = headers["Auth-Token"] || '';
 if (authToken == 'auto') {
   const result = eo.execute(api);
   // eo.info("Token:" + eo.json.encode(result.response));

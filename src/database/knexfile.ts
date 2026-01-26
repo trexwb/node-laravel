@@ -2,8 +2,6 @@ import 'dotenv/config'; // 简写，自动加载根目录 .env
 import type { Knex } from 'knex';
 import { config } from '#bootstrap/configLoader';
 
-console.log('host:', config('database.host'));
-
 const dbConfig: { [key: string]: Knex.Config } = {
   development: {
     client: 'mysql2',
