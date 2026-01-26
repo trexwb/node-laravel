@@ -21,7 +21,7 @@ if (process.env.APP_ENV == 'development') {
     if (req.query.action === 'create') {
       await SendWelcomeEmail.dispatch({ task: 'hello', timestamp: nowInTz() });
     }
-    res.success();
+    res.success({ mockDate: 'create', task: 'hello', timestamp: nowInTz() });
   });
 
   router.post('/mockToken', async (req, res) => {

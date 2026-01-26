@@ -36,7 +36,7 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
   }
 
   // 5. 核心：校验签名算法
-  const expectedSecret = Crypto.md5(Crypto.md5(secretRow?.appId.toString() + timeStampStr) + secretRow?.appSecret.toString()) + timeStampStr;
+  const expectedSecret = Crypto.md5(Crypto.sha256(`${secretRow?.appId}${timeStampStr}`) + secretRow?.appSecret) + timeStampStr;
 
   if (appSecret !== expectedSecret) {
     return res.error(401006014004, 'appSecret verification failed');

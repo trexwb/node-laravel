@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-24 08:49:22
  * @LastEditors: trexwb
- * @LastEditTime: 2026-01-24 08:49:37
+ * @LastEditTime: 2026-01-26 09:10:10
  * @FilePath: /print/server/tests/postmain_postpose.js
  * @Description: 
  * @一花一世界，一叶一如来
@@ -13,7 +13,7 @@
 const key = eo.env.param.get("appSecret");
 const iv = eo.env.param.get("appIv");
 const responseData = eo.json.decode(eo.http.response.get('data') || '');
-const resData = responseData.data || {};
+eo.info('响应结果:' + eo.json.encode(responseData));
 
 // 1. 生成随机的密钥和初始化向量
 const generateKeyAndIV = () => {
@@ -36,11 +36,11 @@ const decrypt = (encryptedText, key, iv) => {
   return decrypted;
 };
 
-if (resData.encryptedData) {
-  // eo.info(resData.encryptedData);
-  const encryptStr = resData.encryptedData;
-  // const encryptStr = eo.base64.encode(resData.encryptedData);
-  // const encryptStr = eo.urlDecode(resData.encryptedData);
+if (responseData.encryptedData) {
+  // eo.info(responseData.encryptedData);
+  const encryptStr = responseData.encryptedData;
+  // const encryptStr = eo.base64.encode(responseData.encryptedData);
+  // const encryptStr = eo.urlDecode(responseData.encryptedData);
   // eo.info("encryptStr:" + encryptStr);
   const decryptStr = decrypt(encryptStr, key, iv);
   eo.info("解密结果：" + decryptStr);
