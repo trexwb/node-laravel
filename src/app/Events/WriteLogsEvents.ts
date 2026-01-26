@@ -1,4 +1,4 @@
-import { container } from '#bootstrap/app';
+import { eventBus } from '#bootstrap/events';
 import { UsersLogsModel } from '#app/Models/UsersLogsModel';
 
 export const UserLogHandle = {
@@ -19,7 +19,7 @@ export class WriteLogsEvents {
     },
     handle: H
   ): void {
-    container.events.emit(this.eventName, source, handle);
+    eventBus.emit(this.eventName, source, handle);
   }
 
   // 监听事件 (通常在 Provider 中注册)
@@ -28,7 +28,7 @@ export class WriteLogsEvents {
       'authorize_signIn': UsersLogsModel,
       'authorize_signOut': UsersLogsModel
     };
-    container.events.on(this.eventName, (source, handle) => {
+    eventBus.on(this.eventName, (source, handle) => {
       const safeSource = JSON.parse(JSON.stringify(source));
       if (handle in handleModel && handleModel[handle as keyof typeof handleModel]) {
         const model = handleModel[handle as keyof typeof handleModel];

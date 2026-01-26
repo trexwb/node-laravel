@@ -37,7 +37,8 @@ export async function bootstrap(app: express.Application) {
   app.use(express.urlencoded({ extended: true }));
   app.use(multer().none());
   app.use(cors());
-  app.use((_req, res, next) => {
+  app.use((req, res, next) => {
+    (req as any).eventEmitter = eventBus;
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
