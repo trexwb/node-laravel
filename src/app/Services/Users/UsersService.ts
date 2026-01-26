@@ -9,6 +9,16 @@ export class UsersService {
       return await UsersModel.findById(userId);
     });
   }
+  public static async getUuid(uuid: string) {
+    return await CacheService.remember(`[${this.cacheKey}]getUuid:${uuid}`, 0, async () => {
+      return await UsersModel.findOne({ uuid: uuid });
+    });
+  }
+  public static async getToken(token: string) {
+    return await CacheService.remember(`[${this.cacheKey}]getToken:${token}`, 0, async () => {
+      return await UsersModel.findOne({ rememberToken: token });
+    });
+  }
   public static async getAccount(account: string | number) {
     return CacheService.remember(`[${this.cacheKey}]getAccount:${account}`, 0, async () => {
       function isValidEmail(email: string) {
