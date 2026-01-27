@@ -55,7 +55,7 @@ export const encryptResponse = (
   const originalJson = res.json;
   const reqObj = (req as any);
   res.json = function (payload: any): Response {
-    if (!payload || typeof payload !== 'object') {
+    if (!payload || typeof payload !== 'object' || !payload.data) {
       return originalJson.call(this, payload);
     }
     const sourceData = payload.data ?? payload;

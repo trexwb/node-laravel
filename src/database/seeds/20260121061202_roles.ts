@@ -22,7 +22,7 @@ export async function seed(knex: Knex): Promise<void> {
       if (total === 0) {
         const rootPermissions: any[] = [
           "systemsSecrets", "systemsConfigs", "systemsCaches", "systemsDatabases", "systemsClients",
-          "accountsUsers", "accountsRoles", "accountsPermissions",
+          "accountsUsers", "accountsRoles", "accountsPermissions", "accountsTrash",
         ];
         const adminPermissions: any[] = [
           "accountsUsers", "accountsRoles", "accountsPermissions",

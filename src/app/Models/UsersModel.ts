@@ -85,35 +85,36 @@ export class UsersModel extends BaseModel {
       this.buildIdQuery(query, filters.id);
     }
     if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
-      applyWhereCondition('status', filters.status);
+      applyWhereCondition(`${this.tableName}.status`, filters.status);
     }
     if (filters.uuid) {
-      applyWhereCondition('uuid', filters.uuid);
+      applyWhereCondition(`${this.tableName}.uuid`, filters.uuid);
     }
     if (filters.keywords) {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+      const myTableName = this.tableName;
       keywords.forEach(keyword => {
         query.where(function () {
-          this.orWhereRaw('LOCATE(?, `nickname`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `truename`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `email`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `mobile`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `uuid`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `extension`) > 0', [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}.nickname\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.truename\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.email\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.mobile\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.uuid\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.extension\`) > 0`, [keyword])
         });
       });
     }
     if (filters.email) {
-      query.where('email', filters.email);
+      query.where(`${this.tableName}.email`, filters.email);
     }
     if (filters.mobile) {
-      query.where('mobile', filters.mobile);
+      query.where(`${this.tableName}.mobile`, filters.mobile);
     }
     if (filters.nickname) {
-      query.where('nickname', filters.nickname);
+      query.where(`${this.tableName}.nickname`, filters.nickname);
     }
     if (filters.rememberToken) {
-      query.where('remember_token', filters.rememberToken);
+      query.where(`${this.tableName}.remember_token`, filters.rememberToken);
     }
     function isValidCategoryId(variable: any) {
       // 检查是否为数组且非空
@@ -129,7 +130,7 @@ export class UsersModel extends BaseModel {
     }
     // 按角色搜索用户
     if (isValidCategoryId(filters.roleId)) {
-      query.whereIn('id', function (qb: any) {
+      query.whereIn(`${this.tableName}.id`, function (qb: any) {
         qb.select('user_id')
           .from(UsersRolesModel.tableName)
           .where('status', 1)
@@ -159,9 +160,9 @@ export class UsersModel extends BaseModel {
       // })
     }
     if (trashed) {
-      query.whereNotNull('deleted_at');
+      query.whereNotNull(`${this.tableName}.deleted_at`);
     } else {
-      query.whereNull('deleted_at');
+      query.whereNull(`${this.tableName}.deleted_at`);
     }
     return query;
   }
@@ -179,6 +180,49 @@ export class UsersModel extends BaseModel {
           },
           to: `${RolesModel.tableName}.id`, // ✅ roles.id
         },
+      },
+    };
+  }
+
+  // 查询单个任务
+  static async findByIdAndRoles(id: number) {
+    return await this.query().findById(id).withGraphJoined('roles.permissions');
+  }
+
+  // 单条查询（非 ID）
+  static async findOneAndRoles(filters: Parameters<typeof this.buildQuery>[1]) {
+    const query = this.buildQuery(this.query(), filters).withGraphJoined('roles.permissions');
+    return await query.first(); // 或 .limit(1).first()
+  }
+
+  // 多条查询（分页）
+  static async findManyAndRoles(
+    filters: Parameters<typeof this.buildQuery>[1],
+    options: {
+      page?: number;
+      pageSize?: number;
+      order?: Array<{ column: string; order?: string }> | { column: string; order?: string } | undefined;
+    } = {},
+    trashed: boolean = false
+  ) {
+    const { page = 1, pageSize = 10, order } = options;
+    const offset = (page - 1) * pageSize;
+    const baseQuery = this.buildQuery(this.query(), filters, trashed);
+    const countQuery = baseQuery.clone();
+    const dataQuery = baseQuery.clone();
+    const total = await countQuery.resultSize();
+    // 排序由 BaseModel 统一处理
+    if (order) {
+      (this as any).applyOrder(dataQuery, order);
+    }
+    const data = await dataQuery.withGraphJoined('roles').limit(pageSize).offset(offset);
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
       },
     };
   }

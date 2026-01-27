@@ -28,7 +28,7 @@ export class BaseModel extends Model {
   static buildQuery(
     query: QueryBuilder<any>,
     filters: any,
-    trashed?: boolean
+    trashed: boolean = false
   ): QueryBuilder<any> {
     // query.toKnexQuery().toSQL()
     console.log('buildQuery:', query.toKnexQuery().toSQL(), filters, trashed);
@@ -221,10 +221,10 @@ export class BaseModel extends Model {
 
   // 查询单条
   static async findOne<T extends typeof BaseModel>(
-    this: T,
-    filters: Parameters<T['buildQuery']>[1]
+    filters: Parameters<T['buildQuery']>[1],
+    trashed: boolean = false
   ): Promise<InstanceType<T> | undefined> {
-    const query = this.buildQuery(this.query(), filters);
+    const query = this.buildQuery(this.query(), filters, trashed);
     return await query.first();
   }
 
@@ -233,10 +233,11 @@ export class BaseModel extends Model {
     filters: Parameters<typeof this.buildQuery>[1],
     options: {
       order?: Array<{ column: string; order?: string }> | { column: string; order?: string };
-    } = {}
+    } = {},
+    trashed: boolean = false
   ) {
     const { order } = options;
-    const baseQuery = this.buildQuery(this.query(), filters);
+    const baseQuery = this.buildQuery(this.query(), filters, trashed);
     const dataQuery = baseQuery.clone();
     const totalCount = await baseQuery.resultSize();
     if (order) {
@@ -253,17 +254,17 @@ export class BaseModel extends Model {
 
   // 查询多条（分页）
   static async findMany<T extends typeof BaseModel>(
-    this: T,
     filters: Parameters<T['buildQuery']>[1],
     options: {
       page?: number;
       pageSize?: number;
       order?: Array<{ column: string; order?: string }> | { column: string; order?: string } | undefined;
-    } = {}
+    } = {},
+    trashed: boolean = false
   ) {
     const { page = 1, pageSize = 10, order } = options;
     const offset = (page - 1) * pageSize;
-    const baseQuery = this.buildQuery(this.query(), filters);
+    const baseQuery = this.buildQuery(this.query(), filters, trashed);
     const countQuery = baseQuery.clone();
     const dataQuery = baseQuery.clone();
     const total = await countQuery.resultSize();
@@ -292,7 +293,7 @@ export class BaseModel extends Model {
     normalized = this.runMutators(normalized);
     normalized = this.runCasts(normalized, 'set');
     // 2. 插入数据库（Objection 会自动调用  $ beforeInsert）
-    const inserted = await this.query().insert(normalized) as Partial<any>;
+    const inserted = await this.query().insertAndFetch(normalized) as Partial<any>;
     // 3. 转为 plain object 并应用访问器和 casts（get）
     let json = inserted.toJSON();
     json = this.runAccessors(json);
@@ -303,37 +304,32 @@ export class BaseModel extends Model {
 
   // 批量插入
   static async createMany(
-    data: Array<Partial<Partial<any>>>
-  ): Promise<Partial<any>[]> {
-    if (data.length === 0) {
-      return [];
-    }
-    // 1. 对每条数据应用修改器（setters）和 casts（set）
-    const processedData = data.map(item => {
-      let normalized = { ...item };
-      // 应用修改器（如 setEmailAttribute）
-      normalized = this.runMutators(normalized);
-      // 应用类型转换（如 cast: 'encrypted'）
-      normalized = this.runCasts(normalized, 'set');
-      // 如果启用时间戳，且未提供 createdAt/updatedAt，则由 $beforeInsert 处理
-      // （Objection 会在 insert 时调用 $beforeInsert，所以这里不用手动设）
-      return normalized;
+    data: Array<Partial<any>>
+  ) {
+    if (data.length === 0) return [];
+    const inserted: Array<InstanceType<any>> = [];
+    // 可以使用事务提高性能
+    await this.transaction(async trx => {
+      for (const item of data) {
+        // 1️⃣ 复制数据
+        let normalized = { ...item };
+        // 2️⃣ 应用修改器（set）
+        normalized = this.runMutators(normalized);
+        // 3️⃣ 应用类型转换（set）
+        normalized = this.runCasts(normalized, 'set');
+        // 4️⃣ 单条插入 + 获取完整模型
+        const insertedItem = await this.query(trx).insertAndFetch(normalized);
+        // 5️⃣ 转为 plain object
+        let json = insertedItem.toJSON();
+        // 6️⃣ 应用访问器（get）
+        json = this.runAccessors(json);
+        // 7️⃣ 应用类型转换（get）
+        json = this.runCasts(json, 'get');
+        // 8️⃣ 重新构造为模型实例，保留原型链
+        inserted.push(Object.assign(Object.create(this.prototype), json));
+      }
     });
-    // 2. 使用 Objection 的 insert 批量插入（会触发 $beforeInsert）
-    const inserted: Partial<any>[] = await this.query().insert(processedData) as unknown as Partial<any>[];
-    // const inserted = await this.query().insert(processedData);
-    // 3. 对返回结果应用访问器（getters）和 casts（get）
-    // 注意：inserted 是模型实例数组，需转为 plain object 再处理
-    const result = inserted.map((instance: Partial<any>) => {
-      let json = instance.toJSON(); // 转为 plain object（已 snake_case -> camelCase）
-      // 应用访问器（如 getCreatedAtAttribute）
-      json = this.runAccessors(json);
-      // 应用类型转换（get）
-      json = this.runCasts(json, 'get');
-      // 重新构造为模型实例（保留方法和关系）
-      return Object.assign(Object.create(this.prototype), json);
-    });
-    return result;
+    return inserted;
   }
 
   // 通过ID更新
@@ -343,7 +339,6 @@ export class BaseModel extends Model {
 
   // 通过过滤条件更新
   static async updateByFilters<T extends typeof BaseModel>(
-    this: T,
     filters: Parameters<T['buildQuery']>[1],
     data: Partial<InstanceType<T>>
   ) {
@@ -363,7 +358,6 @@ export class BaseModel extends Model {
 
   // 通过过滤条件删除
   static async deleteByFilters<T extends typeof BaseModel>(
-    this: T,
     filters: Parameters<T['buildQuery']>[1]
   ) {
     const query = this.buildQuery(this.query(), filters);

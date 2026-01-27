@@ -10,4 +10,16 @@ router.post('/list', [authenticateToken, decryptRequest, can('accountsUsers:read
 
 router.post('/detail', [authenticateToken, decryptRequest, can('accountsUsers:read')], UsersController.detail);
 
+router.post('/create', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.create);
+
+router.post('/update', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.update);
+
+router.post('/delete', [authenticateToken, decryptRequest, can('accountsUsers:delete')], UsersController.delete);
+
+router.post('/trashList', [authenticateToken, decryptRequest, can('accountsTrash:read')], UsersController.trashList);
+
+router.post('/restore', [authenticateToken, decryptRequest, can('accountsTrash:restore')], UsersController.restore);
+
+router.post('/forceDelete', [authenticateToken, decryptRequest, can('accountsTrash:delete')], UsersController.forceDelete);
+
 export default router;

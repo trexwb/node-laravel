@@ -38,6 +38,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     (req as any).tokenPayload = decryptedResult;
     next();
   } catch (error) {
+    console.error(error);
     res.error(401009014006, 'Unauthorized: Authentication Failed');
   }
 };

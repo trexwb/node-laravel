@@ -44,7 +44,6 @@ export const can = (permissionName: string) => {
       }
       next();
     } catch (error) {
-      console.error('[Auth Middleware Error]:', error);
       res.error(500009015001, 'Authorization check failed');
       return;
     }
