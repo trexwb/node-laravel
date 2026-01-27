@@ -10,7 +10,6 @@ import { Handler } from '#app/Exceptions/Handler';
 import apiRoutes from '#routes/api';
 import consoleRoutes from '#routes/console';
 import frontRoutes from '#routes/front';
-import { dataShaper } from '#app/Http/Middleware/DataShaper';
 import { forceHttps } from '#app/Http/Middleware/ForceHttps';
 import { responseWrapper } from '#app/Http/Middleware/ResponseWrapper';
 import { config } from '#bootstrap/configLoader';
@@ -49,7 +48,7 @@ export async function bootstrap(app: express.Application) {
   // 启动服务提供者 (初始化事件监听等)
   AppServiceProvider.boot();
   // 动态加载路由 (必须 await)
-  app.use('/api', dataShaper, apiRoutes);
+  app.use('/api', apiRoutes);
   app.use('/console', consoleRoutes);
   app.use('/', frontRoutes);
   // 注册异常处理器 (!!! 关键点：必须在路由之后)

@@ -19,6 +19,7 @@ export class UsersModel extends BaseModel {
   updatedAt!: Date;
   createdAt!: Date;
   deletedAt!: Date | null;
+
   static get tableName() {
     return `${config('database.prefix')}users`;
   }
@@ -26,6 +27,7 @@ export class UsersModel extends BaseModel {
   static get jsonSchema() {
     return {
       type: 'object',
+      required: ['nickname', 'email', 'mobile'], // 必填字段
       properties: {
         nickname: { type: 'string' },
         email: { type: 'string' },
@@ -159,20 +161,27 @@ export class UsersModel extends BaseModel {
   // 多条查询（分页）
   static async findMany(
     filters: Parameters<typeof this.buildQuery>[1],
-    options: { page?: number; perPage?: number } = {}
+    options: {
+      page?: number;
+      pageSize?: number;
+      order?: Array<{ column: string; order?: string }> | { column: string; order?: string } | undefined
+    } = {}
   ) {
-    const { page = 1, perPage = 10 } = options;
-    const offset = (page - 1) * perPage;
-    const baseQuery = this.buildQuery(this.query(), filters).orderBy('id', 'asc');
-    const totalCount = await baseQuery.resultSize();
-    const items = await baseQuery.clone().limit(perPage).offset(offset);
+    const { page = 1, pageSize = 10, order } = options;
+    const offset = (page - 1) * pageSize;
+    let baseQuery = this.buildQuery(this.query(), filters);
+    const countQuery = baseQuery.clone();
+    const dataQuery = baseQuery.clone();
+    const totalCount = await countQuery.resultSize();
+    this.applyOrder(dataQuery, order);
+    const items = await dataQuery.limit(pageSize).offset(offset);
     return {
       data: items,
       meta: {
         total: totalCount,
         page,
-        perPage,
-        totalPages: Math.ceil(totalCount / perPage),
+        pageSize,
+        totalPages: Math.ceil(totalCount / pageSize),
       },
     };
   }

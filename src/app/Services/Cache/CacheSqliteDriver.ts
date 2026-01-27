@@ -10,16 +10,13 @@ export class SqliteDriver implements CacheDriver {
 
   constructor() {
     this.prefix = config('cache.prefix') || '';
-
     // 获取缓存文件路径 (例如 storage/cache/cache.sqlite)
     const cacheDir = path.resolve(config('cache.path') || 'storage/cache');
     if (!fs.existsSync(cacheDir)) {
       fs.mkdirSync(cacheDir, { recursive: true });
     }
-
     const dbPath = path.join(cacheDir, 'cache.sqlite');
     this.db = new sqlite3.Database(dbPath);
-
     // 初始化缓存表
     this.initTable();
   }
@@ -45,13 +42,11 @@ export class SqliteDriver implements CacheDriver {
       this.db.get(sql, [this.prefix + key], (err, row: any) => {
         if (err) return reject(err);
         if (!row) return resolve(null);
-
         // 检查是否过期
         if (Date.now() > row.expire_at) {
           this.forget(key);
           return resolve(null);
         }
-
         try {
           resolve(JSON.parse(row.value));
         } catch {
@@ -66,7 +61,6 @@ export class SqliteDriver implements CacheDriver {
       const sql = `REPLACE INTO cache (key, value, expire_at) VALUES (?, ?, ?)`;
       const expireAt = Date.now() + ttl * 1000;
       const val = typeof value === 'object' ? JSON.stringify(value) : String(value);
-
       this.db.run(sql, [this.prefix + key, val, expireAt], (err) => {
         if (err) return reject(err);
         resolve(void 0);

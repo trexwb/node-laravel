@@ -5,22 +5,22 @@ import Utils from '#utils/index';
 export class UsersService {
   protected static cacheKey: string = 'users';
   public static async getId(userId: number) {
-    return await CacheService.remember(`[${this.cacheKey}]getId:${userId}`, 0, async () => {
+    return await CacheService.remember(`${this.cacheKey}[getId]:${userId}`, 0, async () => {
       return await UsersModel.findById(userId);
     });
   }
   public static async getUuid(uuid: string) {
-    return await CacheService.remember(`[${this.cacheKey}]getUuid:${uuid}`, 0, async () => {
+    return await CacheService.remember(`${this.cacheKey}[getUuid]:${uuid}`, 0, async () => {
       return await UsersModel.findOne({ uuid: uuid });
     });
   }
   public static async getToken(token: string) {
-    return await CacheService.remember(`[${this.cacheKey}]getToken:${token}`, 0, async () => {
+    return await CacheService.remember(`${this.cacheKey}[getToken]:${token}`, 0, async () => {
       return await UsersModel.findOne({ rememberToken: token });
     });
   }
   public static async getAccount(account: string | number) {
-    return CacheService.remember(`[${this.cacheKey}]getAccount:${account}`, 0, async () => {
+    return CacheService.remember(`${this.cacheKey}[getAccount]:${account}`, 0, async () => {
       function isValidEmail(email: string) {
         const regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return regex.test(String(email).toLowerCase());
@@ -47,11 +47,26 @@ export class UsersService {
     return newToken;
   }
   public static async clearUserCache(user: UsersModel) {
-    CacheService.forget(`[${this.cacheKey}]getId:${user.id}`);
-    CacheService.forget(`[${this.cacheKey}]getAccount:${user.nickname}`);
-    CacheService.forget(`[${this.cacheKey}]getAccount:${user.email}`);
-    CacheService.forget(`[${this.cacheKey}]getAccount:${user.mobile}`);
-    CacheService.forget(`[${this.cacheKey}]getToken:${user.rememberToken}`);
-    CacheService.forget(`[${this.cacheKey}]getUuid:${user.uuid}`);
+    CacheService.forget(`${this.cacheKey}[getId]:${user.id}`);
+    CacheService.forget(`${this.cacheKey}[getAccount]:${user.nickname}`);
+    CacheService.forget(`${this.cacheKey}[getAccount]:${user.email}`);
+    CacheService.forget(`${this.cacheKey}[getAccount]:${user.mobile}`);
+    CacheService.forget(`${this.cacheKey}[getToken]:${user.rememberToken}`);
+    CacheService.forget(`${this.cacheKey}[getUuid]:${user.uuid}`);
+  }
+  public static async getList(filter: object | undefined = undefined, page: number = 1, pageSize: number = 10, sort: string | undefined = undefined) {
+    page = Utils.safeCastToInteger(page ?? 1);
+    pageSize = Utils.safeCastToInteger(pageSize ?? 10);
+    let order: { column: string; order: string }[] | undefined = undefined;
+    const regex = /^([+-])(.*?)$/si;
+    const match = (sort || '').match(regex);
+    if (match) {
+      order = [{ column: match[2], order: match[1] === '-' ? 'DESC' : 'ASC' }];
+    }
+    const sorted = Utils.sortMultiDimensionalObject([filter, page, pageSize, sort]);
+    const cacheKey = `${this.cacheKey}[getList]:${JSON.stringify(sorted)}]`;
+    return await CacheService.remember(`${cacheKey}`, 0, async () => {
+      return await UsersModel.findMany(filter, { page, pageSize, order });
+    });
   }
 }

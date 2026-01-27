@@ -12,7 +12,6 @@ export class RedisDriver implements CacheDriver {
     const port = config('cache.port');
     const password = config('cache.passwd');
     this.prefix = config('cache.prefix') || '';
-
     /**
      * 构建 Redis 连接配置
      * 格式：redis[s]://[[username][:password]@][host][:port][/db-number]
@@ -28,11 +27,9 @@ export class RedisDriver implements CacheDriver {
         port,
       },
     });
-
     this.client.on('error', (err) => {
       console.error('Redis Client Error:', err);
     });
-
     // 连接
     this.client.connect().catch((err) => {
       console.error('Failed to connect to Redis:', err);
@@ -42,9 +39,7 @@ export class RedisDriver implements CacheDriver {
   async get(key: string) {
     // 自动处理前缀（建议在 Driver 层处理，保持外部 Key 简洁）
     const val = await this.client.get(this.prefix + key);
-
     if (!val) return null;
-
     try {
       return JSON.parse(val);
     } catch {
@@ -54,7 +49,6 @@ export class RedisDriver implements CacheDriver {
 
   async set(key: string, value: any, ttl: number = 3600) {
     const val = typeof value === 'object' ? JSON.stringify(value) : String(value);
-
     await this.client.set(this.prefix + key, val, {
       EX: ttl,
     });

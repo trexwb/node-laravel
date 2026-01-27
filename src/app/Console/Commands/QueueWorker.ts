@@ -14,7 +14,6 @@ const jobRegistry: Record<string, any> = {
 export class QueueWorker {
   public static async run() {
     console.log('[Queue] Worker is running...');
-
     while (true) {
       // 1. 使用 Eloquent ORM 获取任务
       const jobRecord = await JobsModel.getNextAvailable();
@@ -23,7 +22,6 @@ export class QueueWorker {
           // 锁定任务
           await jobRecord.$query().patch({ reserved_at: new Date() } as any);
           const payload = typeof jobRecord.payload === 'string' ? JSON.parse(jobRecord.payload as string) : jobRecord.payload;
-
           // 2. 从注册表中匹配 Job 类
           const JobClass = jobRegistry[payload.className];
           if (!JobClass) {
@@ -32,10 +30,9 @@ export class QueueWorker {
           // 实例化并执行
           const instance = new JobClass(payload.params);
           await instance.handle();
-
           // 3. 执行成功后删除任务
           await jobRecord.$query().delete();
-          console.log(`[Queue] Job ${payload.className} (ID: ${jobRecord.id}) processed.`);
+          // console.log(`[Queue] Job ${payload.className} (ID: ${jobRecord.id}) processed.`);
         } catch (e: any) {
           console.error(`[Queue Error] Job ID ${jobRecord.id} failed:`, e.message);
           // 4. 失败逻辑：增加重试次数并释放锁定

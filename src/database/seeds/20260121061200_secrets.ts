@@ -30,13 +30,10 @@ export async function seed(knex: Knex): Promise<void> {
       created_at: knex.fn.now(),
       updated_at: knex.fn.now()
     };
-
     await knex(`${prefix}secrets`).insert(secretsData);
-
     // 写入临时安装文件 (用于后续安装引导程序)
     const rootPath = path.resolve(path.dirname(__filename), '../../../../');
     const tempFilePath = path.join(rootPath, 'temp_install.json');
-
     const secretsJson = {
       'appId': secretsData.app_id,
       'appSecret': secretsData.app_secret,
@@ -53,9 +50,7 @@ export async function seed(knex: Knex): Promise<void> {
       secrets: secretsJson
     };
     fs.writeFileSync(tempFilePath, JSON.stringify(jsonData, null, 2), 'utf8');
-
     // ... 原有的文件写入逻辑 (建议使用 fs.promises 保持异步)
-
     // 3. 记录运行历史
     await knex(`${prefix}seeds`).insert({
       name: seedFileName,

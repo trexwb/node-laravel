@@ -1,7 +1,7 @@
 import { BaseModel } from '#app/Models/BaseModel';
 import { UsersModel } from '#app/Models/UsersModel';
 import { config } from '#bootstrap/configLoader';
-import { Model } from 'objection';
+import { Model, QueryBuilder } from 'objection';
 
 export class UsersLogsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
@@ -18,6 +18,7 @@ export class UsersLogsModel extends BaseModel {
   static get jsonSchema() {
     return {
       type: 'object',
+      required: ['userId', 'handle'], // 必填字段
       properties: {
         userId: { type: 'integer' },
         source: { type: 'object' },
