@@ -1,4 +1,4 @@
-import { Model, snakeCaseMappers, QueryBuilder } from 'objection';
+import knex, { Model, snakeCaseMappers, QueryBuilder, raw } from 'objection';
 import type { Pojo } from 'objection';
 import { nowInTz, formatDate } from '#app/Helpers/Format';
 import type { CastInterface } from '#app/Casts/CastInterface';
@@ -9,6 +9,11 @@ type IdFilter = {
   not?: number | number[];
   eq?: number | number[];
 } | number | number[] | string[];
+
+type SafeOrderItem = {
+  column: string | knex.Raw;
+  order: 'ASC' | 'DESC';
+};
 
 export class BaseModel extends Model {
   protected static table: string;
@@ -157,6 +162,45 @@ export class BaseModel extends Model {
   $beforeUpdate() {
     // (this as any).updatedAt = new Date().toISOString();
     (this as any).updatedAt = nowInTz();
+  }
+
+  // 排序任务
+  static applyOrder<T extends BaseModel>(
+    query: QueryBuilder<T>,
+    order?: Array<{ column: string; order?: string }> | { column: string; order?: string }
+  ): QueryBuilder<T> {
+    let safeOrder: any[] = [];
+    // 1. 格式化 order 参数
+    if (Array.isArray(order)) {
+      safeOrder = order.map(item => ({
+        column: item.column,
+        order: item.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
+      }));
+    } else if (order && typeof order === 'object') {
+      safeOrder = [{
+        column: order.column,
+        order: (order as any).order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
+      }];
+    }
+    // 2. 检查当前模型是否存在 'sort' 字段 (通过 jsonSchema 判断)
+    const hasSortField = this.jsonSchema &&
+      this.jsonSchema.properties &&
+      Object.keys(this.jsonSchema.properties).includes('sort');
+    if (hasSortField) {
+      // 存在 sort 字段时，插入权重排序：sort > 0 的排在前面，且按值升序
+      safeOrder.unshift(
+        { column: raw('CASE WHEN `sort` > 0 THEN 1 ELSE 0 END'), order: 'DESC' },
+        { column: 'sort', order: 'ASC' }
+      );
+    }
+    // 3. 应用排序
+    if (safeOrder.length > 0) {
+      query.orderBy(safeOrder);
+    } else {
+      // 默认排序
+      query.orderBy('id', 'asc');
+    }
+    return query;
   }
 
   // 查询单个任务

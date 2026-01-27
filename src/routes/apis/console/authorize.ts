@@ -1,14 +1,16 @@
 import { Router } from 'express';
 import { decryptRequest } from '#app/Http/Middleware/DecryptRequest';
 import { authenticateToken } from '#app/Http/Middleware/AuthenticateToken';
-import { UserController } from '#app/Http/Controllers/UserController';
+import { AuthorizeController } from '#app/Http/Controllers/AuthorizeController';
 
 const router = Router();
 
-router.post('/signIn', decryptRequest, UserController.signIn);
+router.post('/signIn', decryptRequest, AuthorizeController.signIn);
 
-router.get('/signOut', authenticateToken, UserController.signOut);
+router.post('/signSecret', decryptRequest, AuthorizeController.signSecret);
 
-router.get('/signInfo', authenticateToken, UserController.signInfo);
+router.post('/signOut', authenticateToken, AuthorizeController.signOut);
+
+router.post('/signInfo', authenticateToken, decryptRequest, AuthorizeController.signInfo);
 
 export default router;

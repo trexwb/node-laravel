@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-24 08:47:32
  * @LastEditors: trexwb
- * @LastEditTime: 2026-01-26 15:52:23
+ * @LastEditTime: 2026-01-27 08:57:40
  * @FilePath: /node-laravel/tests/postmain_prepose.js
  * @Description: 
  * @一花一世界，一叶一如来
@@ -104,7 +104,7 @@ const api = {
   },
   "timelimit": 1000 //[选填],超时限制,单位为ms,超过时间则判断为请求失败，默认为1000ms
 };
-const authToken = headers["Auth-Token"] || '';
+const authToken = headers["Authorization"] || '';
 if (authToken == 'auto') {
   const result = eo.execute(api);
   // eo.info("Token:" + eo.json.encode(result.response));

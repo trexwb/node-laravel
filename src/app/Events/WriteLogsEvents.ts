@@ -3,6 +3,7 @@ import { UsersLogsModel } from '#app/Models/UsersLogsModel';
 
 export const UserLogHandle = {
   AuthorizeSignIn: 'authorize_signIn',
+  AuthorizeSignSecret: 'authorize_signSecret',
   AuthorizeSignOut: 'authorize_signOut',
 } as const;
 
@@ -26,6 +27,7 @@ export class WriteLogsEvents {
   public static listen() {
     const handleModel = {
       'authorize_signIn': UsersLogsModel,
+      'authorize_signSecret': UsersLogsModel,
       'authorize_signOut': UsersLogsModel
     };
     eventBus.on(this.eventName, (source, handle) => {
