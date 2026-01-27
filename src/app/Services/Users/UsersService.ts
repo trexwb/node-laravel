@@ -20,7 +20,7 @@ export class UsersService {
     });
   }
   public static async getAccount(account: string | number) {
-    return CacheService.remember(`${this.cacheKey}[getAccount]:${account}`, 0, async () => {
+    return await CacheService.remember(`${this.cacheKey}[getAccount]:${account}`, 0, async () => {
       function isValidEmail(email: string) {
         const regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return regex.test(String(email).toLowerCase());

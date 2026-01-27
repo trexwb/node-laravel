@@ -1,7 +1,7 @@
 import { BaseModel } from '#app/Models/BaseModel';
 import { UsersModel } from '#app/Models/UsersModel';
 import { config } from '#bootstrap/configLoader';
-import { Model, QueryBuilder } from 'objection';
+import { Model } from 'objection';
 
 export class UsersLogsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
@@ -11,6 +11,8 @@ export class UsersLogsModel extends BaseModel {
   handle!: string;
   updatedAt!: Date;
   createdAt!: Date;
+  static softDelete = false;
+
   static get tableName() {
     return `${config('database.prefix')}users_logs`;
   }
@@ -25,6 +27,11 @@ export class UsersLogsModel extends BaseModel {
         handle: { type: 'string' },
       }
     };
+  }
+
+  // 定义 JSON 字段（Objection 会自动序列化/反序列化）
+  static get jsonAttributes() {
+    return ['source'];
   }
 
   static get relationMappings() {

@@ -14,6 +14,7 @@ export class JobsModel extends BaseModel {
   finishedAt!: Date | null;
   updatedAt!: Date;
   createdAt!: Date;
+  static softDelete = false;
 
   static get tableName() {
     return `${config('database.prefix')}jobs`;
@@ -29,8 +30,8 @@ export class JobsModel extends BaseModel {
         reservedAt: { type: ['string', 'null'] },
         availableAt: { type: 'string' },
         finishedAt: { type: ['string', 'null'] },
-        createdAt: { type: 'Date' },
-        updatedAt: { type: 'Date' },
+        createdAt: { type: 'string' },
+        updatedAt: { type: 'string' },
       }
     };
   }
@@ -54,7 +55,7 @@ export class JobsModel extends BaseModel {
 
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
-    qb: QueryBuilder<JobsModel> = this.query(),
+    query: QueryBuilder<JobsModel> = this.query(),
     filters: {
       id?: number;
       name?: string;
@@ -65,7 +66,6 @@ export class JobsModel extends BaseModel {
       finished?: boolean;
     } = {}
   ): QueryBuilder<JobsModel> {
-    let query = qb;
     function applyWhereCondition(field: string, value: any) {
       if (Array.isArray(value)) {
         if (value.length > 0) query.whereIn(field, value);
@@ -89,38 +89,6 @@ export class JobsModel extends BaseModel {
     return query;
   }
 
-  // 查询单个任务
-  static async findById(id: number) {
-    return await this.query().findById(id);
-  }
-
-  // 单条查询（非 ID）
-  static async findOne(filters: Parameters<typeof this.buildQuery>[1]) {
-    const query = this.buildQuery(this.query(), filters);
-    return await query.first(); // 或 .limit(1).first()
-  }
-
-  // 多条查询（分页）
-  static async findMany(
-    filters: Parameters<typeof this.buildQuery>[1],
-    options: { page?: number; perPage?: number } = {}
-  ) {
-    const { page = 1, perPage = 10 } = options;
-    const offset = (page - 1) * perPage;
-    const baseQuery = this.buildQuery(this.query(), filters).orderBy('id', 'asc');
-    const totalCount = await baseQuery.resultSize();
-    const items = await baseQuery.clone().limit(perPage).offset(offset);
-    return {
-      data: items,
-      meta: {
-        total: totalCount,
-        page,
-        perPage,
-        totalPages: Math.ceil(totalCount / perPage),
-      },
-    };
-  }
-
   // 创建任务
   static async createJob(payload: Record<string, any>, availableAt?: Date | string): Promise<JobsModel> {
     return await this.query().insert({
@@ -129,21 +97,6 @@ export class JobsModel extends BaseModel {
       attempts: 0,
       availableAt: tzToUtc(availableAt),
     }).returning('*').first(); // 添加 returning 以获取插入的记录
-  }
-
-  // 更新（带条件）
-  static async updateByFilters(
-    filters: Parameters<typeof this.buildQuery>[1],
-    data: Partial<JobsModel>
-  ) {
-    const query = this.buildQuery(this.query(), filters);
-    return await query.patch(data); // 返回受影响行数
-  }
-
-  // 删除（带条件）
-  static async deleteByFilters(filters: Parameters<typeof this.buildQuery>[1]) {
-    const query = this.buildQuery(this.query(), filters);
-    return await query.delete(); // 返回受影响行数
   }
 
   // 辅助方法：获取下一条待处理任务
