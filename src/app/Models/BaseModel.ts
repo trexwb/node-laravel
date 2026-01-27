@@ -1,4 +1,4 @@
-import knex, { Model, snakeCaseMappers, QueryBuilder, raw } from 'objection';
+import { Model, snakeCaseMappers, QueryBuilder, raw } from 'objection';
 import type { Pojo } from 'objection';
 import { nowInTz, formatDate } from '#app/Helpers/Format';
 import type { CastInterface } from '#app/Casts/CastInterface';
@@ -10,11 +10,6 @@ type IdFilter = {
   eq?: number | number[];
 } | number | number[] | string[];
 
-type SafeOrderItem = {
-  column: string | knex.Raw;
-  order: 'ASC' | 'DESC';
-};
-
 export class BaseModel extends Model {
   protected static table: string;
   protected static primaryKey: string = 'id';
@@ -22,12 +17,28 @@ export class BaseModel extends Model {
   protected static hidden: string[] = [];
   protected static casts: Record<string, CastInterface | string> = {};
   protected static useTimestamps: boolean = true;
+  // 👉 是否支持软删除（默认 false）
+  static softDelete = false;
+  // 👉 软删除字段名（可覆盖）
+  static softDeleteColumn = 'deleted_at';
+
+  /**
+ * 子类必须实现
+ */
+  static buildQuery(
+    query: QueryBuilder<any>,
+    filters: any,
+    trashed?: boolean
+  ): QueryBuilder<any> {
+    // query.toKnexQuery().toSQL()
+    console.log('buildQuery:', query.toKnexQuery().toSQL(), filters, trashed);
+    return query;
+  }
 
   static buildIdQuery(
-    qb: QueryBuilder<BaseModel> = this.query(),
+    query: QueryBuilder<BaseModel> = this.query(),
     ids?: IdFilter
   ): QueryBuilder<BaseModel> {
-    let query = qb;
     function applyWhereCondition(field: string, value: any) {
       if (Array.isArray(value)) {
         if (value.length > 0) query.whereIn(field, value);
@@ -208,6 +219,71 @@ export class BaseModel extends Model {
     return await this.query().findById(id);
   }
 
+  // 查询单条
+  static async findOne<T extends typeof BaseModel>(
+    this: T,
+    filters: Parameters<T['buildQuery']>[1]
+  ): Promise<InstanceType<T> | undefined> {
+    const query = this.buildQuery(this.query(), filters);
+    return await query.first();
+  }
+
+  // 多条查询（全部）
+  static async findAll(
+    filters: Parameters<typeof this.buildQuery>[1],
+    options: {
+      order?: Array<{ column: string; order?: string }> | { column: string; order?: string };
+    } = {}
+  ) {
+    const { order } = options;
+    const baseQuery = this.buildQuery(this.query(), filters);
+    const dataQuery = baseQuery.clone();
+    const totalCount = await baseQuery.resultSize();
+    if (order) {
+      (this as any).applyOrder(dataQuery, order);
+    }
+    const data = await dataQuery;
+    return {
+      data,
+      meta: {
+        total: totalCount
+      },
+    };
+  }
+
+  // 查询多条（分页）
+  static async findMany<T extends typeof BaseModel>(
+    this: T,
+    filters: Parameters<T['buildQuery']>[1],
+    options: {
+      page?: number;
+      pageSize?: number;
+      order?: Array<{ column: string; order?: string }> | { column: string; order?: string } | undefined;
+    } = {}
+  ) {
+    const { page = 1, pageSize = 10, order } = options;
+    const offset = (page - 1) * pageSize;
+    const baseQuery = this.buildQuery(this.query(), filters);
+    const countQuery = baseQuery.clone();
+    const dataQuery = baseQuery.clone();
+    const total = await countQuery.resultSize();
+    // 排序由 BaseModel 统一处理
+    if (order) {
+      (this as any).applyOrder(dataQuery, order);
+    }
+    const data = await dataQuery.limit(pageSize).offset(offset);
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
+  // 单条插入
   static async create(
     data: Partial<any>
   ) {
@@ -215,19 +291,17 @@ export class BaseModel extends Model {
     let normalized = { ...data };
     normalized = this.runMutators(normalized);
     normalized = this.runCasts(normalized, 'set');
-
     // 2. 插入数据库（Objection 会自动调用  $ beforeInsert）
     const inserted = await this.query().insert(normalized) as Partial<any>;
-
     // 3. 转为 plain object 并应用访问器和 casts（get）
     let json = inserted.toJSON();
     json = this.runAccessors(json);
     json = this.runCasts(json, 'get');
-
     // 4. 重新构造为模型实例（保留原型链）
     return Object.assign(Object.create(this.prototype), json);
   }
 
+  // 批量插入
   static async createMany(
     data: Array<Partial<Partial<any>>>
   ): Promise<Partial<any>[]> {
@@ -245,11 +319,9 @@ export class BaseModel extends Model {
       // （Objection 会在 insert 时调用 $beforeInsert，所以这里不用手动设）
       return normalized;
     });
-
     // 2. 使用 Objection 的 insert 批量插入（会触发 $beforeInsert）
     const inserted: Partial<any>[] = await this.query().insert(processedData) as unknown as Partial<any>[];
     // const inserted = await this.query().insert(processedData);
-
     // 3. 对返回结果应用访问器（getters）和 casts（get）
     // 注意：inserted 是模型实例数组，需转为 plain object 再处理
     const result = inserted.map((instance: Partial<any>) => {
@@ -261,17 +333,45 @@ export class BaseModel extends Model {
       // 重新构造为模型实例（保留方法和关系）
       return Object.assign(Object.create(this.prototype), json);
     });
-
     return result;
   }
 
-  // 更新任务
+  // 通过ID更新
   static async updateById(id: number, data: Partial<any>) {
     return await this.query().patchAndFetchById(id, data);
   }
 
-  // 删除任务（硬删除）
+  // 通过过滤条件更新
+  static async updateByFilters<T extends typeof BaseModel>(
+    this: T,
+    filters: Parameters<T['buildQuery']>[1],
+    data: Partial<InstanceType<T>>
+  ) {
+    const query = this.buildQuery(this.query(), filters);
+    return await query.patch(data);
+  }
+
+  // 通过ID删除
   static async deleteById(id: number) {
+    if (this.softDelete) { // 软删除
+      return await this.query()
+        .where('id', id)
+        .patch({ [this.softDeleteColumn]: nowInTz() });
+    }
     return await this.query().deleteById(id);
+  }
+
+  // 通过过滤条件删除
+  static async deleteByFilters<T extends typeof BaseModel>(
+    this: T,
+    filters: Parameters<T['buildQuery']>[1]
+  ) {
+    const query = this.buildQuery(this.query(), filters);
+    if (this.softDelete) { // 软删除
+      return await query.patch({
+        [this.softDeleteColumn]: new Date(),
+      });
+    }
+    return await query.delete();
   }
 }

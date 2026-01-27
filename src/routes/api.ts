@@ -21,7 +21,7 @@ router.use(refreshToken);
 async function initializeRoutes() {
   const apisDir = path.join(__dirname, 'apis');
   const dynamicApiRoutes = await loadDynamicRoutes(apisDir);
-  router.use('/', throttle(60, 1), authenticateSecret, verifySignature, encryptResponse, dynamicApiRoutes);
+  router.use('/', throttle(60, 1), [authenticateSecret, verifySignature, encryptResponse], dynamicApiRoutes);
   // 全局应用加密响应（放在所有 API 路由前）
   // router.use(encryptResponse);
 }

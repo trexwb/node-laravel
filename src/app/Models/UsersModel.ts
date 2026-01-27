@@ -19,6 +19,7 @@ export class UsersModel extends BaseModel {
   updatedAt!: Date;
   createdAt!: Date;
   deletedAt!: Date | null;
+  static softDelete = true;
 
   static get tableName() {
     return `${config('database.prefix')}users`;
@@ -40,14 +41,21 @@ export class UsersModel extends BaseModel {
         secret: { type: 'string' },
         extension: { type: 'object' },
         // isActive: { type: 'boolean' },
-        status: { type: 'integer' }
+        status: { type: 'integer' },
+        createdAt: { type: 'string' },
+        updatedAt: { type: 'string' },
       }
     };
   }
 
+  // 定义 JSON 字段（Objection 会自动序列化/反序列化）
+  static get jsonAttributes() {
+    return ['extension'];
+  }
+
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
-    qb: QueryBuilder<UsersModel> = this.query(),
+    query: QueryBuilder<UsersModel> = this.query(),
     filters: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       nickname?: string;
@@ -56,7 +64,7 @@ export class UsersModel extends BaseModel {
       emmobileail?: string;
       rememberToken?: string;
       uuid?: string;
-      status?: string | number;
+      status?: string | number | number[];
       keywords?: string;
       roleId?: number | number[];
     } = {},
@@ -69,8 +77,6 @@ export class UsersModel extends BaseModel {
         query.where(field, value);
       }
     }
-    let query = qb;
-    query.where('id', '>', 0);
     if (!filters) return query;
     if (filters.id != null) {
       this.buildIdQuery(query, filters.id);
@@ -150,73 +156,5 @@ export class UsersModel extends BaseModel {
       query.whereNull('deleted_at');
     }
     return query;
-  }
-
-  // 单条查询（非 ID）
-  static async findOne(filters: Parameters<typeof this.buildQuery>[1]) {
-    const query = this.buildQuery(this.query(), filters);
-    return await query.first(); // 或 .limit(1).first()
-  }
-
-  // 多条查询（分页）
-  static async findMany(
-    filters: Parameters<typeof this.buildQuery>[1],
-    options: {
-      page?: number;
-      pageSize?: number;
-      order?: Array<{ column: string; order?: string }> | { column: string; order?: string } | undefined
-    } = {}
-  ) {
-    const { page = 1, pageSize = 10, order } = options;
-    const offset = (page - 1) * pageSize;
-    let baseQuery = this.buildQuery(this.query(), filters);
-    const countQuery = baseQuery.clone();
-    const dataQuery = baseQuery.clone();
-    const totalCount = await countQuery.resultSize();
-    this.applyOrder(dataQuery, order);
-    const items = await dataQuery.limit(pageSize).offset(offset);
-    return {
-      data: items,
-      meta: {
-        total: totalCount,
-        page,
-        pageSize,
-        totalPages: Math.ceil(totalCount / pageSize),
-      },
-    };
-  }
-
-  // 创建任务
-  static async createUser(data: Record<string, any>): Promise<UsersModel> {
-    return await this.query().insert({
-      nickname: data.nickname || '',
-      email: data.email || '',
-      mobile: data.mobile || '',
-      avatar: data.avatar || '',
-      password: data.password || '',
-      salt: data.salt || '',
-      rememberToken: data.rememberToken || '',
-      uuid: data.uuid || '',
-      secret: data.secret || '',
-      extension: data.extension || {},
-      status: data.status || 1,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).returning('*').first();
-  }
-
-  // 更新（带条件）
-  static async updateByFilters(
-    filters: Parameters<typeof this.buildQuery>[1],
-    data: Partial<UsersModel>
-  ) {
-    const query = this.buildQuery(this.query(), filters);
-    return await query.patch(data); // 返回受影响行数
-  }
-
-  // 删除（带条件）
-  static async deleteByFilters(filters: Parameters<typeof this.buildQuery>[1]) {
-    const query = this.buildQuery(this.query(), filters);
-    return await query.delete(); // 返回受影响行数
   }
 }

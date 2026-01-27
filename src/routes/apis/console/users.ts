@@ -5,8 +5,8 @@ import { UsersController } from '#app/Http/Controllers/UsersController';
 
 const router = Router();
 
-router.post('/list', authenticateToken, decryptRequest, UsersController.list);
+router.post('/list', [authenticateToken, decryptRequest], UsersController.list);
 
-router.post('/detail', authenticateToken, decryptRequest, UsersController.detail);
+router.post('/detail', [authenticateToken, decryptRequest], UsersController.detail);
 
 export default router;
