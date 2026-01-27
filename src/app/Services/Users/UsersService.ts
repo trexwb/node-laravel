@@ -6,17 +6,17 @@ export class UsersService {
   protected static cacheKey: string = 'users';
   public static async getId(userId: number) {
     return await CacheService.remember(`${this.cacheKey}[getId]:${userId}`, 0, async () => {
-      return await UsersModel.findById(userId);
+      return await UsersModel.findByIdAndRoles(userId);
     });
   }
   public static async getUuid(uuid: string) {
     return await CacheService.remember(`${this.cacheKey}[getUuid]:${uuid}`, 0, async () => {
-      return await UsersModel.findOne({ uuid: uuid });
+      return await UsersModel.findOneAndRoles({ uuid: uuid });
     });
   }
   public static async getToken(token: string) {
     return await CacheService.remember(`${this.cacheKey}[getToken]:${token}`, 0, async () => {
-      return await UsersModel.findOne({ rememberToken: token });
+      return await UsersModel.findOneAndRoles({ rememberToken: token });
     });
   }
   public static async getAccount(account: string | number) {
@@ -37,7 +37,7 @@ export class UsersService {
       } else {
         filters.nickname = account;
       }
-      return await UsersModel.findOne(filters);
+      return await UsersModel.findOneAndRoles(filters);
     });
   }
   public static async updateToken(user: InstanceType<typeof UsersModel>) {
@@ -54,7 +54,13 @@ export class UsersService {
     CacheService.forget(`${this.cacheKey}[getToken]:${user.rememberToken}`);
     CacheService.forget(`${this.cacheKey}[getUuid]:${user.uuid}`);
   }
-  public static async getList(filter: object | undefined = undefined, page: number = 1, pageSize: number = 10, sort: string | undefined = undefined) {
+  public static async getList(
+    filter: object | undefined = undefined,
+    page: number = 1,
+    pageSize: number = 10,
+    sort: string | undefined = undefined,
+    trashed: boolean = false
+  ) {
     page = Utils.safeCastToInteger(page ?? 1);
     pageSize = Utils.safeCastToInteger(pageSize ?? 10);
     let order: { column: string; order: string }[] | undefined = undefined;
@@ -66,7 +72,7 @@ export class UsersService {
     const sorted = Utils.sortMultiDimensionalObject([filter, page, pageSize, sort]);
     const cacheKey = `${this.cacheKey}[getList]:${JSON.stringify(sorted)}]`;
     return await CacheService.remember(`${cacheKey}`, 0, async () => {
-      return await UsersModel.findMany(filter, { page, pageSize, order });
+      return await UsersModel.findManyAndRoles(filter, { page, pageSize, order }, trashed);
     });
   }
 }

@@ -1,6 +1,8 @@
 import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
+import { RolesModel } from '#app/Models/RolesModel';
+import { UsersRolesModel } from '#app/Models/UsersRolesModel';
 
 export class UsersModel extends BaseModel {
   // 显式声明属性，对应数据库字段
@@ -44,6 +46,7 @@ export class UsersModel extends BaseModel {
         status: { type: 'integer' },
         createdAt: { type: 'string' },
         updatedAt: { type: 'string' },
+        deletedAt: { type: ['string', 'null'] },
       }
     };
   }
@@ -82,35 +85,36 @@ export class UsersModel extends BaseModel {
       this.buildIdQuery(query, filters.id);
     }
     if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
-      applyWhereCondition('status', filters.status);
+      applyWhereCondition(`${this.tableName}.status`, filters.status);
     }
     if (filters.uuid) {
-      applyWhereCondition('uuid', filters.uuid);
+      applyWhereCondition(`${this.tableName}.uuid`, filters.uuid);
     }
     if (filters.keywords) {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+      const myTableName = this.tableName;
       keywords.forEach(keyword => {
         query.where(function () {
-          this.orWhereRaw('LOCATE(?, `nickname`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `truename`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `email`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `mobile`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `uuid`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `extension`) > 0', [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}.nickname\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.truename\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.email\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.mobile\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.uuid\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.extension\`) > 0`, [keyword])
         });
       });
     }
     if (filters.email) {
-      query.where('email', filters.email);
+      query.where(`${this.tableName}.email`, filters.email);
     }
     if (filters.mobile) {
-      query.where('mobile', filters.mobile);
+      query.where(`${this.tableName}.mobile`, filters.mobile);
     }
     if (filters.nickname) {
-      query.where('nickname', filters.nickname);
+      query.where(`${this.tableName}.nickname`, filters.nickname);
     }
     if (filters.rememberToken) {
-      query.where('remember_token', filters.rememberToken);
+      query.where(`${this.tableName}.remember_token`, filters.rememberToken);
     }
     function isValidCategoryId(variable: any) {
       // 检查是否为数组且非空
@@ -126,35 +130,100 @@ export class UsersModel extends BaseModel {
     }
     // 按角色搜索用户
     if (isValidCategoryId(filters.roleId)) {
-      // query.whereIn('id', function () {
-      //   if (Array.isArray(filters.roleId)) {
-      //     if (filters.roleId.length > 0) this.select('user_id').from(usersRolesModel.$table).whereIn('roleId', where.roleId);
-      //   } else {
-      //     this.select('user_id').from(usersRolesModel.$table).where('roleId', where.roleId);
-      //   }
-      // });
+      query.whereIn(`${this.tableName}.id`, function (qb: any) {
+        qb.select('user_id')
+          .from(UsersRolesModel.tableName)
+          .where('status', 1)
+          .where(function (qb1: any) {
+            if (Array.isArray(filters.roleId)) {
+              qb1.whereIn('role_id', filters.roleId);
+            } else {
+              qb1.where('role_id', filters.roleId);
+            }
+          });
+      });
       // 效率低下时请更换成whereExists
       // query.whereExists(function () {
       //   if (Array.isArray(where.roleId)) {
       //     if (where.roleId.length > 0) {
       //       this.select('user_id')
-      //         .from(usersRolesModel.$table)
-      //         .whereRaw(`${usersRolesModel.$table}.user_id = ${query.$table}.id`)
+      //         .from(UsersRolesModel.tableName)
+      //         .whereRaw(`${UsersRolesModel.tableName}.user_id = ${query.$table}.id`)
       //         .whereIn('roleId', where.roleId)
       //     }
       //   } else {
       //     this.select('user_id')
-      //       .from(usersRolesModel.$table)
-      //       .whereRaw(`${usersRolesModel.$table}.user_id = ${query.$table}.id`)
+      //       .from(UsersRolesModel.tableName)
+      //       .whereRaw(`${UsersRolesModel.tableName}.user_id = ${query.$table}.id`)
       //       .where('roleId', where.roleId)
       //   }
       // })
     }
     if (trashed) {
-      query.whereNotNull('deleted_at');
+      query.whereNotNull(`${this.tableName}.deleted_at`);
     } else {
-      query.whereNull('deleted_at');
+      query.whereNull(`${this.tableName}.deleted_at`);
     }
     return query;
+  }
+
+  static get relationMappings() {
+    return {
+      roles: {
+        relation: BaseModel.ManyToManyRelation,
+        modelClass: RolesModel, // ✅ 目标模型
+        join: {
+          from: `${this.tableName}.id`, // users.id
+          through: {
+            from: `${UsersRolesModel.tableName}.user_id`, // users_roles.user_id
+            to: `${UsersRolesModel.tableName}.role_id`,   // users_roles.role_id
+          },
+          to: `${RolesModel.tableName}.id`, // ✅ roles.id
+        },
+      },
+    };
+  }
+
+  // 查询单个任务
+  static async findByIdAndRoles(id: number) {
+    return await this.query().findById(id).withGraphJoined('roles.permissions');
+  }
+
+  // 单条查询（非 ID）
+  static async findOneAndRoles(filters: Parameters<typeof this.buildQuery>[1]) {
+    const query = this.buildQuery(this.query(), filters).withGraphJoined('roles.permissions');
+    return await query.first(); // 或 .limit(1).first()
+  }
+
+  // 多条查询（分页）
+  static async findManyAndRoles(
+    filters: Parameters<typeof this.buildQuery>[1],
+    options: {
+      page?: number;
+      pageSize?: number;
+      order?: Array<{ column: string; order?: string }> | { column: string; order?: string } | undefined;
+    } = {},
+    trashed: boolean = false
+  ) {
+    const { page = 1, pageSize = 10, order } = options;
+    const offset = (page - 1) * pageSize;
+    const baseQuery = this.buildQuery(this.query(), filters, trashed);
+    const countQuery = baseQuery.clone();
+    const dataQuery = baseQuery.clone();
+    const total = await countQuery.resultSize();
+    // 排序由 BaseModel 统一处理
+    if (order) {
+      (this as any).applyOrder(dataQuery, order);
+    }
+    const data = await dataQuery.withGraphJoined('roles').limit(pageSize).offset(offset);
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
   }
 }

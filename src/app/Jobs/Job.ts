@@ -12,9 +12,7 @@ export abstract class Job {
       className: this.name,
       params: params
     };
-
     const availableAt = new Date(Date.now() + delay * 1000);
-
     await JobsModel.createJob(payload, availableAt);
   }
 }

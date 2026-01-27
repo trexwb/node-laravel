@@ -25,6 +25,8 @@ export class UsersLogsModel extends BaseModel {
         userId: { type: 'integer' },
         source: { type: 'object' },
         handle: { type: 'string' },
+        createdAt: { type: 'string' },
+        updatedAt: { type: 'string' },
       }
     };
   }

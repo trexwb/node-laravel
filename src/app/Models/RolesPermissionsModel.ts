@@ -2,25 +2,23 @@ import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
 
-export class UsersRolesModel extends BaseModel {
+export class RolesPermissionsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
-  userId!: number;
-  roleId!: number;
-  status!: number;
+  permissionId!: number;
+  roleId!: string;
   static softDelete = false;
 
   static get tableName() {
-    return `${config('database.prefix')}users_roles`;
+    return `${config('database.prefix')}roles_permissions`;
   }
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['userId', 'roleId'], // 必填字段
+      required: ['permissionId', 'roleId'], // 必填字段
       properties: {
-        userId: { type: 'integer' },
+        permissionId: { type: 'integer' },
         roleId: { type: 'integer' },
-        status: { type: 'integer', minimum: 0, maximum: 1 },
       }
     };
   }
@@ -32,13 +30,12 @@ export class UsersRolesModel extends BaseModel {
 
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
-    query: QueryBuilder<UsersRolesModel> = this.query(),
+    query: QueryBuilder<RolesPermissionsModel> = this.query(),
     filters: {
-      userId?: string | number | number[];
+      permissionId?: string | number | number[];
       roleId?: string | number | number[];
-      status?: string | number | number[];
     } = {}
-  ): QueryBuilder<UsersRolesModel> {
+  ): QueryBuilder<RolesPermissionsModel> {
     function applyWhereCondition(field: string, value: any) {
       if (Array.isArray(value)) {
         if (value.length > 0) query.whereIn(field, value);
@@ -47,11 +44,8 @@ export class UsersRolesModel extends BaseModel {
       }
     }
     if (!filters) return query;
-    if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
-      applyWhereCondition('status', filters.status);
-    }
-    if (Object.hasOwn(filters, 'userId') && filters.userId != '' && filters.userId != null) {
-      applyWhereCondition('user_id', filters.userId);
+    if (Object.hasOwn(filters, 'permissionId') && filters.permissionId != '' && filters.permissionId != null) {
+      applyWhereCondition('user_id', filters.permissionId);
     }
     if (Object.hasOwn(filters, 'roleId') && filters.roleId != '' && filters.roleId != null) {
       applyWhereCondition('role_id', filters.roleId);

@@ -24,7 +24,6 @@ export const responseWrapper = (_req: Request, res: Response, next: NextFunction
     if (data) dataObj.data = data;
     return res.status(Number((code || 400).toString().substring(0, 3) || 200)).json(dataObj);
   };
-
   // 失败响应的快捷方法
   res.error = function (code: string | number = 400, msg: string = 'fail') {
     const dataObj: ApiResponse = {
@@ -33,6 +32,5 @@ export const responseWrapper = (_req: Request, res: Response, next: NextFunction
     };
     return res.status(Number((code || 400).toString().substring(0, 3) || 400)).json(dataObj);
   };
-
   next();
 };

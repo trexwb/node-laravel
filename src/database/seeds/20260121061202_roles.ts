@@ -20,12 +20,19 @@ export async function seed(knex: Knex): Promise<void> {
           return 0;
         });
       if (total === 0) {
-        const adminPermissions = ["systemsSecrets", "systemsConfigs", "systemsLanguages", "systemsCaches", "systemsServers", "systemsDatabases", "systemsClients"];
+        const rootPermissions: any[] = [
+          "systemsSecrets", "systemsConfigs", "systemsCaches", "systemsDatabases", "systemsClients",
+          "accountsUsers", "accountsRoles", "accountsPermissions", "accountsTrash",
+        ];
+        const adminPermissions: any[] = [
+          "accountsUsers", "accountsRoles", "accountsPermissions",
+        ];
+        const editorPermissions: any[] = [];
         await knex(`${config('database.prefix')}roles`).insert([
           {
             id: 1,
             name: '系统运维',
-            permissions: JSON.stringify(adminPermissions) || '[]',
+            permissions: JSON.stringify(rootPermissions) || '[]',
             extension: null,
             status: 1,
             created_at: knex.fn.now(),
@@ -33,7 +40,7 @@ export async function seed(knex: Knex): Promise<void> {
           }, {
             id: 2,
             name: '管理员',
-            permissions: '[]',
+            permissions: JSON.stringify(adminPermissions) || '[]',
             extension: null,
             status: 1,
             created_at: knex.fn.now(),
@@ -41,7 +48,7 @@ export async function seed(knex: Knex): Promise<void> {
           }, {
             id: 3,
             name: '编辑人员',
-            permissions: '[]',
+            permissions: JSON.stringify(editorPermissions) || '[]',
             extension: null,
             status: 1,
             created_at: knex.fn.now(),
