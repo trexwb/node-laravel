@@ -31,7 +31,10 @@ export async function seed(knex: Knex): Promise<void> {
           return 0;
         });
       if (total === 0) {
-        const permissions = ["systemsSecrets", "systemsConfigs", "systemsCaches", "systemsDatabases", "systemsClients"];
+        const permissions = [
+          "systemsSecrets", "systemsConfigs", "systemsCaches", "systemsDatabases", "systemsClients",
+          "accountsUsers", "accountsRoles", "accountsPermissions",
+        ];
         const permissionObjects: PermissionObject[] = [];
         permissions.forEach(permission => {
           if (permission.includes('Trash')) {

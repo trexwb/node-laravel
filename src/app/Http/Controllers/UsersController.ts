@@ -26,7 +26,7 @@ export class UsersController {
         userRow = await UsersService.getAccount(account);
       }
       if (!userRow) {
-        res.error(404005013001, 'User not found');
+        res.error(404008012001, 'User not found');
         return;
       }
       res.success(userRow);

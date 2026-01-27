@@ -23,6 +23,7 @@ export class JobsModel extends BaseModel {
   static get jsonSchema() {
     return {
       type: 'object',
+      required: ['queue', 'payload'], // 必填字段
       properties: {
         queue: { type: 'string' },
         payload: { type: 'object' },

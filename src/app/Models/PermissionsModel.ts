@@ -2,15 +2,11 @@ import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
 
-export class SecretsModel extends BaseModel {
+export class PermissionsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
   id!: number;
-  title!: string;
-  appId!: number;
-  appSecret!: string;
-  appIv!: string;
+  name!: string;
   permissions!: object;
-  timesExpire!: Date | null;
   extension!: object;
   status!: number;
   updatedAt!: Date;
@@ -19,22 +15,18 @@ export class SecretsModel extends BaseModel {
   static softDelete = true;
 
   static get tableName() {
-    return `${config('database.prefix')}secrets`;
+    return `${config('database.prefix')}permissions`;
   }
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['title', 'appId'], // 必填字段
+      required: ['name', 'permissions'], // 必填字段
       properties: {
-        title: { type: 'string' },
-        appId: { type: 'string', maxLength: 40 },
-        appSecret: { type: 'string', maxLength: 40 },
-        appIv: { type: 'string', maxLength: 40 },
+        name: { type: 'string' },
         permissions: { type: 'object' },
-        timesExpire: { type: ['string', 'null'] },
         extension: { type: 'object' },
-        status: { type: 'integer', minimum: 0, maximum: 1 },
+        status: { type: 'integer' },
         createdAt: { type: 'string' },
         updatedAt: { type: 'string' },
         deletedAt: { type: ['string', 'null'] },
@@ -49,15 +41,15 @@ export class SecretsModel extends BaseModel {
 
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
-    query: QueryBuilder<SecretsModel> = this.query(),
+    query: QueryBuilder<PermissionsModel> = this.query(),
     filters: {
-      id?: number;
-      title?: string;
-      appId?: number;
-      status?: number;
+      id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
+      name?: string;
+      status?: string | number | number[];
+      keywords?: string;
     } = {},
     trashed: boolean = false
-  ): QueryBuilder<SecretsModel> {
+  ): QueryBuilder<PermissionsModel> {
     function applyWhereCondition(field: string, value: any) {
       if (Array.isArray(value)) {
         if (value.length > 0) query.whereIn(field, value);
@@ -65,8 +57,25 @@ export class SecretsModel extends BaseModel {
         query.where(field, value);
       }
     }
+    if (!filters) return query;
     if (filters.id != null) {
-      applyWhereCondition('id', filters.id);
+      this.buildIdQuery(query, filters.id);
+    }
+    if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
+      applyWhereCondition('status', filters.status);
+    }
+    if (filters.keywords) {
+      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+      keywords.forEach(keyword => {
+        query.where(function () {
+          this.orWhereRaw('LOCATE(?, `name`) > 0', [keyword])
+            .orWhereRaw('LOCATE(?, `permissions`) > 0', [keyword])
+            .orWhereRaw('LOCATE(?, `extension`) > 0', [keyword])
+        });
+      });
+    }
+    if (filters.name) {
+      query.where('name', filters.name);
     }
     if (trashed) {
       query.whereNotNull('deleted_at');
@@ -74,11 +83,5 @@ export class SecretsModel extends BaseModel {
       query.whereNull('deleted_at');
     }
     return query;
-  }
-
-  // 查询单个appId
-  static async findAppId(appId: number) {
-    const query = this.buildQuery(this.query(), { appId: appId });
-    return await query.first(); // 或 .limit(1).first()
   }
 }

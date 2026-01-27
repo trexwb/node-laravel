@@ -1,6 +1,8 @@
 import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
+import { RolesModel } from '#app/Models/RolesModel';
+import { UsersRolesModel } from '#app/Models/UsersRolesModel';
 
 export class UsersModel extends BaseModel {
   // 显式声明属性，对应数据库字段
@@ -44,6 +46,7 @@ export class UsersModel extends BaseModel {
         status: { type: 'integer' },
         createdAt: { type: 'string' },
         updatedAt: { type: 'string' },
+        deletedAt: { type: ['string', 'null'] },
       }
     };
   }
@@ -126,26 +129,31 @@ export class UsersModel extends BaseModel {
     }
     // 按角色搜索用户
     if (isValidCategoryId(filters.roleId)) {
-      // query.whereIn('id', function () {
-      //   if (Array.isArray(filters.roleId)) {
-      //     if (filters.roleId.length > 0) this.select('user_id').from(usersRolesModel.$table).whereIn('roleId', where.roleId);
-      //   } else {
-      //     this.select('user_id').from(usersRolesModel.$table).where('roleId', where.roleId);
-      //   }
-      // });
+      query.whereIn('id', function (qb: any) {
+        qb.select('user_id')
+          .from(UsersRolesModel.tableName)
+          .where('status', 1)
+          .where(function (qb1: any) {
+            if (Array.isArray(filters.roleId)) {
+              qb1.whereIn('role_id', filters.roleId);
+            } else {
+              qb1.where('role_id', filters.roleId);
+            }
+          });
+      });
       // 效率低下时请更换成whereExists
       // query.whereExists(function () {
       //   if (Array.isArray(where.roleId)) {
       //     if (where.roleId.length > 0) {
       //       this.select('user_id')
-      //         .from(usersRolesModel.$table)
-      //         .whereRaw(`${usersRolesModel.$table}.user_id = ${query.$table}.id`)
+      //         .from(UsersRolesModel.tableName)
+      //         .whereRaw(`${UsersRolesModel.tableName}.user_id = ${query.$table}.id`)
       //         .whereIn('roleId', where.roleId)
       //     }
       //   } else {
       //     this.select('user_id')
-      //       .from(usersRolesModel.$table)
-      //       .whereRaw(`${usersRolesModel.$table}.user_id = ${query.$table}.id`)
+      //       .from(UsersRolesModel.tableName)
+      //       .whereRaw(`${UsersRolesModel.tableName}.user_id = ${query.$table}.id`)
       //       .where('roleId', where.roleId)
       //   }
       // })
@@ -156,5 +164,22 @@ export class UsersModel extends BaseModel {
       query.whereNull('deleted_at');
     }
     return query;
+  }
+
+  static get relationMappings() {
+    return {
+      roles: {
+        relation: BaseModel.ManyToManyRelation,
+        modelClass: RolesModel, // ✅ 目标模型
+        join: {
+          from: `${this.tableName}.id`, // users.id
+          through: {
+            from: `${UsersRolesModel.tableName}.user_id`, // users_roles.user_id
+            to: `${UsersRolesModel.tableName}.role_id`,   // users_roles.role_id
+          },
+          to: `${RolesModel.tableName}.id`, // ✅ roles.id
+        },
+      },
+    };
   }
 }

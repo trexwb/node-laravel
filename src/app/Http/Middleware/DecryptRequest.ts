@@ -19,6 +19,6 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
     next();
   } catch (error) {
     console.error(error);
-    return res.error(401006017001, 'Data decryption failed. Invalid format or key.');
+    return res.error(401009016001, 'Data decryption failed. Invalid format or key.');
   }
 };
