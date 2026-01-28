@@ -32,6 +32,7 @@ export class UsersModel extends BaseModel {
       type: 'object',
       required: ['nickname', 'email', 'mobile'], // 必填字段
       properties: {
+        id: { type: 'integer' },
         nickname: { type: 'string' },
         email: { type: 'string' },
         mobile: { type: 'string' },

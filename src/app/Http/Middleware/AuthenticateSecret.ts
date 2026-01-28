@@ -25,7 +25,7 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
 
   // 4. 从数据库/缓存获取原始 Secret
   // 假设你已经定义了 secretsHelper 或者直接使用 Model
-  const secretRow = await SecretsService.getAppId(parseInt(appId));
+  const secretRow = await SecretsService.findByAppId(parseInt(appId));
 
   if (!secretRow || !secretRow.appId || !secretRow.appSecret) {
     return res.error(401009013003, 'appId/appSecret error');

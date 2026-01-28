@@ -40,4 +40,5 @@ export class CacheService {
     await this.set(key, freshData, expire);
     return freshData;
   }
+  static async flush() { return await this.getDriver().flush(); }
 }

@@ -27,6 +27,7 @@ export class SecretsModel extends BaseModel {
       type: 'object',
       required: ['title', 'appId'], // 必填字段
       properties: {
+        id: { type: 'integer' },
         title: { type: 'string' },
         appId: { type: 'string', maxLength: 40 },
         appSecret: { type: 'string', maxLength: 40 },
@@ -70,7 +71,8 @@ export class SecretsModel extends BaseModel {
       id?: number;
       title?: string;
       appId?: number;
-      status?: number;
+      status?: string | number | number[];
+      keywords?: string;
     } = {},
     trashed: boolean = false
   ): QueryBuilder<SecretsModel> {
@@ -81,8 +83,26 @@ export class SecretsModel extends BaseModel {
         query.where(field, value);
       }
     }
+    if (!filters) return query;
     if (filters.id != null) {
-      applyWhereCondition('id', filters.id);
+      this.buildIdQuery(query, filters.id);
+    }
+    if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
+      applyWhereCondition(`${this.tableName}.status`, filters.status);
+    }
+    if (filters.keywords) {
+      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+      keywords.forEach(keyword => {
+        query.where(function () {
+          this.orWhereRaw('LOCATE(?, `title`) > 0', [keyword])
+            .orWhereRaw('LOCATE(?, `app_id`) > 0', [keyword])
+            .orWhereRaw('LOCATE(?, `permissions`) > 0', [keyword])
+            .orWhereRaw('LOCATE(?, `extension`) > 0', [keyword])
+        });
+      });
+    }
+    if (filters.title) {
+      query.where('title', filters.title);
     }
     if (trashed) {
       query.whereNotNull('deleted_at');
@@ -93,8 +113,8 @@ export class SecretsModel extends BaseModel {
   }
 
   // 查询单个appId
-  static async findAppId(appId: number) {
-    const query = this.buildQuery(this.query(), { appId: appId });
+  static async findByAppId(appId: number) {
+    const query = this.buildQuery(this.query(), { appId });
     return await query.first(); // 或 .limit(1).first()
   }
 }

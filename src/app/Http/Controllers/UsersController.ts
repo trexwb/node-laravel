@@ -6,7 +6,7 @@ export class UsersController {
     try {
       const reqObj = (req as any);
       const { filter, page, pageSize, sort } = reqObj.body;
-      const list = await UsersService.getList(filter, page, pageSize, sort, false);
+      const list = await UsersService.findMany(filter, page, pageSize, sort, false);
       res.success(list);
     } catch (error) {
       next(error);
@@ -19,7 +19,7 @@ export class UsersController {
       const { id, uuid, account } = reqObj.body;
       let userRow = null;
       if (id) {
-        userRow = await UsersService.getId(id);
+        userRow = await UsersService.findById(id);
       } else if (uuid) {
         userRow = await UsersService.getUuid(uuid);
       } else if (account) {
@@ -52,7 +52,7 @@ export class UsersController {
     try {
       const reqObj = (req as any);
       const { filter, page, pageSize, sort } = reqObj.body;
-      const list = await UsersService.getList(filter, page, pageSize, sort, true);
+      const list = await UsersService.findMany(filter, page, pageSize, sort, true);
       res.success(list);
     } catch (error) {
       next(error);
