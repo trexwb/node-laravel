@@ -85,7 +85,7 @@ export class UsersController {
   public static async disable(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008012005, 'filters Not Empty');
+        res.error(400008012006, 'filters Not Empty');
         return;
       }
       const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
@@ -98,7 +98,7 @@ export class UsersController {
   public static async sort(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008012005, 'filters Not Empty');
+        res.error(400008012007, 'filters Not Empty');
         return;
       }
       const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
@@ -109,7 +109,16 @@ export class UsersController {
   }
 
   public static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
-    console.log(req, res, next)
+    try {
+      if (!req.body.filters) {
+        res.error(400008012008, 'filters Not Empty');
+        return;
+      }
+      const result = await UsersService.deleteByFilters(req.body.filters);
+      res.success(result);
+    } catch (error) {
+      next(error);
+    }
   }
 
   public static async trashList(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -123,10 +132,15 @@ export class UsersController {
   }
 
   public static async restore(req: Request, res: Response, next: NextFunction): Promise<void> {
-    console.log(req, res, next)
-  }
-
-  public static async forceDelete(req: Request, res: Response, next: NextFunction): Promise<void> {
-    console.log(req, res, next)
+    try {
+      if (!req.body.filters) {
+        res.error(400008012009, 'filters Not Empty');
+        return;
+      }
+      const result = await UsersService.restoreByFilters(req.body.filters);
+      res.success(result);
+    } catch (error) {
+      next(error);
+    }
   }
 }

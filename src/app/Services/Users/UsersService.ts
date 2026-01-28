@@ -150,7 +150,7 @@ export class UsersService {
     return affects;
   }
 
-  public static async deleteById(id: number) {
+  public static async deleteById(id: number): Promise<number | null> {
     // 清除所有缓存
     const affects = await UsersModel.deleteById(id);
     await this.flushallCache();
@@ -158,9 +158,26 @@ export class UsersService {
     return affects;
   }
 
-  public static async deleteByFilters(filters: object | undefined = undefined,) {
+  public static async deleteByFilters(filters: object | undefined = undefined): Promise<number | null> {
     // 清除所有缓存
     const affects = await UsersModel.deleteByFilters(filters);
+    await this.flushallCache();
+    // 类型断言确保返回正确类型
+    return affects;
+  }
+
+
+  public static async restoreById(id: number): Promise<number | null> {
+    // 清除所有缓存
+    const affects = await UsersModel.restoreById(id);
+    await this.flushallCache();
+    // 类型断言确保返回正确类型
+    return affects;
+  }
+
+  public static async restoreByFilters(filters: object | undefined = undefined): Promise<number | null> {
+    // 清除所有缓存
+    const affects = await UsersModel.restoreByFilters(filters);
     await this.flushallCache();
     // 类型断言确保返回正确类型
     return affects;
