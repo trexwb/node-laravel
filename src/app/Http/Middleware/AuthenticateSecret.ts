@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { Crypto } from '#utils/crypto';
+import { Crypto } from '#utils/Crypto';
 import { config } from '#bootstrap/configLoader';
 import { SecretsService } from '#app/Services/Secrets/SecretsService';
 

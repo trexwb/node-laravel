@@ -49,7 +49,7 @@ export class UsersRolesModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<UsersRolesModel> = this.query(),
-    filters: {
+    filterss: {
       userId?: string | number | number[];
       roleId?: string | number | number[];
       status?: string | number | number[];
@@ -62,15 +62,15 @@ export class UsersRolesModel extends BaseModel {
         query.where(field, value);
       }
     }
-    if (!filters) return query;
-    if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
-      applyWhereCondition('status', filters.status);
+    if (!filterss) return query;
+    if (Object.hasOwn(filterss, 'status') && filterss.status != '' && filterss.status != null) {
+      applyWhereCondition('status', filterss.status);
     }
-    if (Object.hasOwn(filters, 'userId') && filters.userId != '' && filters.userId != null) {
-      applyWhereCondition('user_id', filters.userId);
+    if (Object.hasOwn(filterss, 'userId') && filterss.userId != '' && filterss.userId != null) {
+      applyWhereCondition('user_id', filterss.userId);
     }
-    if (Object.hasOwn(filters, 'roleId') && filters.roleId != '' && filters.roleId != null) {
-      applyWhereCondition('role_id', filters.roleId);
+    if (Object.hasOwn(filterss, 'roleId') && filterss.roleId != '' && filterss.roleId != null) {
+      applyWhereCondition('role_id', filterss.roleId);
     }
     return query;
   }

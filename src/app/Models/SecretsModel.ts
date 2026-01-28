@@ -67,7 +67,7 @@ export class SecretsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<SecretsModel> = this.query(),
-    filters: {
+    filterss: {
       id?: number;
       title?: string;
       appId?: number;
@@ -83,15 +83,15 @@ export class SecretsModel extends BaseModel {
         query.where(field, value);
       }
     }
-    if (!filters) return query;
-    if (filters.id != null) {
-      this.buildIdQuery(query, filters.id);
+    if (!filterss) return query;
+    if (filterss.id != null) {
+      this.buildIdQuery(query, filterss.id);
     }
-    if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
-      applyWhereCondition(`${this.tableName}.status`, filters.status);
+    if (Object.hasOwn(filterss, 'status') && filterss.status != '' && filterss.status != null) {
+      applyWhereCondition(`${this.tableName}.status`, filterss.status);
     }
-    if (filters.keywords) {
-      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+    if (filterss.keywords) {
+      const keywords = filterss.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
           this.orWhereRaw('LOCATE(?, `title`) > 0', [keyword])
@@ -101,8 +101,8 @@ export class SecretsModel extends BaseModel {
         });
       });
     }
-    if (filters.title) {
-      query.where('title', filters.title);
+    if (filterss.title) {
+      query.where('title', filterss.title);
     }
     if (trashed) {
       query.whereNotNull('deleted_at');

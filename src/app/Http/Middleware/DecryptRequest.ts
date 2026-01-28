@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { config } from '#bootstrap/configLoader';
-import { Crypto } from '#utils/crypto';
+import { Crypto } from '#utils/Crypto';
 
 export const decryptRequest = (req: Request, res: Response, next: NextFunction) => {
   // 1. 检查环境变量

@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 import fs from 'fs';
 import path from 'path';
 import utils from '#utils/index';
-import { Crypto } from '#utils/crypto';
+import { Crypto } from '#utils/Crypto';
 import { fileURLToPath } from 'url';
 import { config } from '#bootstrap/configLoader';
 

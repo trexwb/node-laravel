@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { config } from '#bootstrap/configLoader';
-import { Crypto } from '#utils/crypto'
+import { Crypto } from '#utils/Crypto'
 // import { toPairs, sortBy, fromPairs } from 'lodash-es';
 
 function sortObjectDeep(obj: any): any {

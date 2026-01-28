@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { UsersService } from '#app/Services/Users/UsersService';
-import { Crypto } from '#utils/crypto';
+import { Crypto } from '#utils/Crypto';
 
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers.authorization;

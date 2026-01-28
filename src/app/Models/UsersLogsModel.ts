@@ -56,7 +56,7 @@ export class UsersLogsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<UsersLogsModel> = this.query(),
-    filters: {
+    filterss: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       userId?: string | number | number[];
       handle?: string;
@@ -70,15 +70,15 @@ export class UsersLogsModel extends BaseModel {
         query.where(field, value);
       }
     }
-    if (!filters) return query;
-    if (filters.id != null) {
-      this.buildIdQuery(query, filters.id);
+    if (!filterss) return query;
+    if (filterss.id != null) {
+      this.buildIdQuery(query, filterss.id);
     }
-    if (Object.hasOwn(filters, 'user_id') && filters.userId != '' && filters.userId != null) {
-      applyWhereCondition(`${this.tableName}.status`, filters.userId);
+    if (Object.hasOwn(filterss, 'user_id') && filterss.userId != '' && filterss.userId != null) {
+      applyWhereCondition(`${this.tableName}.status`, filterss.userId);
     }
-    if (filters.keywords) {
-      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+    if (filterss.keywords) {
+      const keywords = filterss.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         const myTableName = this.tableName;
         query.where(function () {
@@ -95,8 +95,8 @@ export class UsersLogsModel extends BaseModel {
         });
       });
     }
-    if (filters.handle) {
-      query.where(`${this.tableName}.handle`, filters.handle);
+    if (filterss.handle) {
+      query.where(`${this.tableName}.handle`, filterss.handle);
     }
     return query;
   }
@@ -120,14 +120,14 @@ export class UsersLogsModel extends BaseModel {
   }
 
   // 单条查询（非 ID）
-  static async findOneAndUsers(filters: Parameters<typeof this.buildQuery>[1]) {
-    const query = this.buildQuery(this.query(), filters).withGraphJoined('user');
+  static async findOneAndUsers(filterss: Parameters<typeof this.buildQuery>[1]) {
+    const query = this.buildQuery(this.query(), filterss).withGraphJoined('user');
     return await query.first(); // 或 .limit(1).first()
   }
 
   // 多条查询（分页）
   static async findManyAndUsers(
-    filters: Parameters<typeof this.buildQuery>[1],
+    filterss: Parameters<typeof this.buildQuery>[1],
     options: {
       page?: number;
       pageSize?: number;
@@ -136,7 +136,7 @@ export class UsersLogsModel extends BaseModel {
   ) {
     const { page = 1, pageSize = 10, order } = options;
     const offset = (page - 1) * pageSize;
-    const baseQuery = this.buildQuery(this.query(), filters);
+    const baseQuery = this.buildQuery(this.query(), filterss);
     const countQuery = baseQuery.clone();
     const dataQuery = baseQuery.clone();
     const total = await countQuery.resultSize();
