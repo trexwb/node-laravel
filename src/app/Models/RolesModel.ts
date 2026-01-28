@@ -41,6 +41,22 @@ export class RolesModel extends BaseModel {
     return ['permissions', 'extension'];
   }
 
+  static getSchemaColumns(): string[] {
+    return Object.keys(this.jsonSchema?.properties ?? {});
+  }
+
+  static getSchemaDbColumns() {
+    const props = Object.keys(this.jsonSchema?.properties ?? {});
+    const mapper = this.columnNameMappers;
+    if (!mapper?.format) {
+      return props;
+    }
+    return props.map((prop) => {
+      const mapped = mapper.format({ [prop]: null });
+      return Object.keys(mapped)[0];
+    });
+  }
+
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<RolesModel> = this.query(),
@@ -64,25 +80,26 @@ export class RolesModel extends BaseModel {
       this.buildIdQuery(query, filters.id);
     }
     if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
-      applyWhereCondition('status', filters.status);
+      applyWhereCondition(`${this.tableName}.status`, filters.status);
     }
     if (filters.keywords) {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
+        const myTableName = this.tableName;
         query.where(function () {
-          this.orWhereRaw('LOCATE(?, `name`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `permissions`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `extension`) > 0', [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}.name\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.permissions\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.extension\`) > 0`, [keyword])
         });
       });
     }
     if (filters.name) {
-      query.where('name', filters.name);
+      query.where(`${this.tableName}.name`, filters.name);
     }
     if (trashed) {
-      query.whereNotNull('deleted_at');
+      query.whereNotNull(`${this.tableName}.deleted_at`);
     } else {
-      query.whereNull('deleted_at');
+      query.whereNull(`${this.tableName}.deleted_at`);
     }
     return query;
   }

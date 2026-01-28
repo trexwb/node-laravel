@@ -1,7 +1,7 @@
+import { QueryBuilder } from 'objection';
 import { BaseModel } from '#app/Models/BaseModel';
 import { UsersModel } from '#app/Models/UsersModel';
 import { config } from '#bootstrap/configLoader';
-import { Model } from 'objection';
 
 export class UsersLogsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
@@ -36,16 +36,122 @@ export class UsersLogsModel extends BaseModel {
     return ['source'];
   }
 
+  static getSchemaColumns(): string[] {
+    return Object.keys(this.jsonSchema?.properties ?? {});
+  }
+
+  static getSchemaDbColumns() {
+    const props = Object.keys(this.jsonSchema?.properties ?? {});
+    const mapper = this.columnNameMappers;
+    if (!mapper?.format) {
+      return props;
+    }
+    return props.map((prop) => {
+      const mapped = mapper.format({ [prop]: null });
+      return Object.keys(mapped)[0];
+    });
+  }
+
+  // 👇 核心：通用查询构建器（返回 QueryBuilder）
+  static buildQuery(
+    query: QueryBuilder<UsersLogsModel> = this.query(),
+    filters: {
+      id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
+      userId?: string | number | number[];
+      handle?: string;
+      keywords?: string;
+    } = {}
+  ): QueryBuilder<UsersLogsModel> {
+    function applyWhereCondition(field: string, value: any) {
+      if (Array.isArray(value)) {
+        if (value.length > 0) query.whereIn(field, value);
+      } else if (value) {
+        query.where(field, value);
+      }
+    }
+    if (!filters) return query;
+    if (filters.id != null) {
+      this.buildIdQuery(query, filters.id);
+    }
+    if (Object.hasOwn(filters, 'user_id') && filters.userId != '' && filters.userId != null) {
+      applyWhereCondition(`${this.tableName}.status`, filters.userId);
+    }
+    if (filters.keywords) {
+      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+      keywords.forEach(keyword => {
+        const myTableName = this.tableName;
+        query.where(function () {
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}.source\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.handle\`) > 0`, [keyword])
+            .orWhereIn(`${myTableName}.user_id`, function () {
+              this.select('id').from(UsersModel.tableName).where(function () {
+                this.orWhereRaw('LOCATE(?, `nickname`) > 0', [keyword])
+                  .orWhereRaw('LOCATE(?, `email`) > 0', [keyword])
+                  .orWhereRaw('LOCATE(?, `mobile`) > 0', [keyword])
+                  .orWhereRaw('LOCATE(?, `uuid`) > 0', [keyword])
+              });
+            })
+        });
+      });
+    }
+    if (filters.handle) {
+      query.where(`${this.tableName}.handle`, filters.handle);
+    }
+    return query;
+  }
+
   static get relationMappings() {
     return {
       user: {
-        relation: Model.BelongsToOneRelation,
+        relation: BaseModel.BelongsToOneRelation,
         modelClass: UsersModel,
         join: {
           from: `${this.tableName}}.user_id`,
           to: `${UsersModel.tableName}.id`
         }
       }
+    };
+  }
+
+  // 查询单个任务
+  static async findByIdAndUsers(id: number) {
+    return await this.query().findById(id).withGraphJoined('user');
+  }
+
+  // 单条查询（非 ID）
+  static async findOneAndUsers(filters: Parameters<typeof this.buildQuery>[1]) {
+    const query = this.buildQuery(this.query(), filters).withGraphJoined('user');
+    return await query.first(); // 或 .limit(1).first()
+  }
+
+  // 多条查询（分页）
+  static async findManyAndUsers(
+    filters: Parameters<typeof this.buildQuery>[1],
+    options: {
+      page?: number;
+      pageSize?: number;
+      order?: Array<{ column: string; order?: string }> | { column: string; order?: string } | undefined;
+    } = {}
+  ) {
+    const { page = 1, pageSize = 10, order } = options;
+    const offset = (page - 1) * pageSize;
+    const baseQuery = this.buildQuery(this.query(), filters);
+    const countQuery = baseQuery.clone();
+    const dataQuery = baseQuery.clone();
+    const total = await countQuery.resultSize();
+    // 排序由 BaseModel 统一处理
+    if (order) {
+      (this as any).applyOrder(dataQuery, order);
+    }
+    const data = await dataQuery.withGraphJoined('user').limit(pageSize).offset(offset);
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
     };
   }
 

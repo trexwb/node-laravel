@@ -18,6 +18,6 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
     req.body = Crypto.decrypt(encryptedData, appKey, appIv);
     next();
   } catch (error) {
-    return res.error(401009016001, 'Data decryption failed. Invalid format or key.');
+    next(error);
   }
 };

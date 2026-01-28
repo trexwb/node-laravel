@@ -30,6 +30,22 @@ export class UsersRolesModel extends BaseModel {
     return [];
   }
 
+  static getSchemaColumns(): string[] {
+    return Object.keys(this.jsonSchema?.properties ?? {});
+  }
+
+  static getSchemaDbColumns() {
+    const props = Object.keys(this.jsonSchema?.properties ?? {});
+    const mapper = this.columnNameMappers;
+    if (!mapper?.format) {
+      return props;
+    }
+    return props.map((prop) => {
+      const mapped = mapper.format({ [prop]: null });
+      return Object.keys(mapped)[0];
+    });
+  }
+
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<UsersRolesModel> = this.query(),
