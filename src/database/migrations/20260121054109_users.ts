@@ -18,6 +18,7 @@ export async function up(knex: Knex): Promise<void> {
     table.specificType('updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('deleted_at').nullable();
+    table.comment('用户表');
   });
 }
 
