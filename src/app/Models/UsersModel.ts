@@ -201,7 +201,7 @@ export class UsersModel extends BaseModel {
     };
   }
 
-  // 查询单个任务
+  // 查询单个用户及其角色
   static async findByIdAndRoles(id: number) {
     return await this.query().findById(id).withGraphJoined('roles.permissions');
   }

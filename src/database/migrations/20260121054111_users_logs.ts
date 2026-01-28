@@ -10,6 +10,7 @@ export async function up(knex: Knex): Promise<void> {
     table.text('handle').notNullable().comment('操作处理');
     table.specificType('updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
     table.timestamp('created_at').defaultTo(knex.fn.now());
+    table.comment('用户更新日志');
   });
 }
 
