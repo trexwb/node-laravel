@@ -1,12 +1,12 @@
 import type { Request, Response, NextFunction } from 'express';
-import { UsersService } from '#app/Services/Users/UsersService';
-import { UserSaveRequest } from '#app/Http/Requests/UserSaveRequest';
+import { SecretsService } from '#app/Services/Secrets/SecretsService';
+import { SecretSaveRequest } from '#app/Http/Requests/SecretSaveRequest';
 
-export class UsersController {
+export class SecretsController {
   public static async list(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { filters, page, pageSize, sort } = req.body;
-      const list = await UsersService.findMany(filters, page, pageSize, sort, false);
+      const list = await SecretsService.findMany(filters, page, pageSize, sort, false);
       res.success(list);
     } catch (error) {
       next(error);
@@ -15,21 +15,18 @@ export class UsersController {
 
   public static async detail(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id, uuid, account } = req.body;
-      let userRow = null;
+      const { id, appId } = req.body;
+      let secretRow = null;
       if (id) {
-        userRow = await UsersService.findById(id);
-      } else if (uuid) {
-        userRow = await UsersService.findByUuid(uuid);
-      } else if (account) {
-        userRow = await UsersService.findByAccount(account);
+        secretRow = await SecretsService.findById(id);
+      } else if (appId) {
+        secretRow = await SecretsService.findByAppId(appId);
       }
-      // console.log('userRow:', userRow.withGraphJoined('roles.permissions'));
-      if (!userRow) {
-        res.error(404008003001, 'User not found');
+      if (!secretRow) {
+        res.error(404008002001, 'User not found');
         return;
       }
-      res.success(userRow);
+      res.success(secretRow);
     } catch (error) {
       next(error);
     }
@@ -37,13 +34,13 @@ export class UsersController {
 
   public static async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const form = new UserSaveRequest(req);
+      const form = new SecretSaveRequest(req);
       const data = await form.validate();
       if (!data) {
-        res.error(400008003002, 'User Error');
+        res.error(400008002001, 'User Error');
         return;
       }
-      const result = await UsersService.create(data);
+      const result = await SecretsService.create(data);
       res.success(result);
     } catch (error) {
       next(error);
@@ -53,16 +50,16 @@ export class UsersController {
   public static async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.id) {
-        res.error(400008003003, 'id Not Empty');
+        res.error(400008002002, 'id Not Empty');
         return;
       }
-      const form = new UserSaveRequest(req);
+      const form = new SecretSaveRequest(req);
       const data = await form.validate();
       if (!data) {
-        res.error(400008003004, 'User Error');
+        res.error(400008002003, 'User Error');
         return;
       }
-      const result = await UsersService.updateById(req.body.id, data);
+      const result = await SecretsService.updateById(req.body.id, data);
       res.success(result);
     } catch (error) {
       next(error);
@@ -72,10 +69,10 @@ export class UsersController {
   public static async enable(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003005, 'filters Not Empty');
+        res.error(400008002004, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.updateByFilters(req.body.filters, { status: 1 });
+      const result = await SecretsService.updateByFilters(req.body.filters, { status: 1 });
       res.success(result);
     } catch (error) {
       next(error);
@@ -85,10 +82,10 @@ export class UsersController {
   public static async disable(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003006, 'filters Not Empty');
+        res.error(400008002005, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
+      const result = await SecretsService.updateByFilters(req.body.filters, { status: 0 });
       res.success(result);
     } catch (error) {
       next(error);
@@ -98,10 +95,10 @@ export class UsersController {
   // public static async sort(req: Request, res: Response, next: NextFunction): Promise<void> {
   //   try {
   //     if (!req.body.filters) {
-  //       res.error(400008003007, 'filters Not Empty');
+  //       res.error(400008002007, 'filters Not Empty');
   //       return;
   //     }
-  //     const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
+  //     const result = await SecretsService.updateByFilters(req.body.filters, { status: 0 });
   //     res.success(result);
   //   } catch (error) {
   //     next(error);
@@ -111,10 +108,10 @@ export class UsersController {
   public static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003007, 'filters Not Empty');
+        res.error(400008002006, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.deleteByFilters(req.body.filters);
+      const result = await SecretsService.deleteByFilters(req.body.filters);
       res.success(result);
     } catch (error) {
       next(error);
@@ -124,7 +121,7 @@ export class UsersController {
   public static async trashList(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { filters, page, pageSize, sort } = req.body;
-      const list = await UsersService.findMany(filters, page, pageSize, sort, true);
+      const list = await SecretsService.findMany(filters, page, pageSize, sort, true);
       res.success(list);
     } catch (error) {
       next(error);
@@ -134,10 +131,10 @@ export class UsersController {
   public static async restore(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003008, 'filters Not Empty');
+        res.error(400008002007, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.restoreByFilters(req.body.filters);
+      const result = await SecretsService.restoreByFilters(req.body.filters);
       res.success(result);
     } catch (error) {
       next(error);
@@ -147,10 +144,10 @@ export class UsersController {
   public static async forceDelete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003009, 'filters Not Empty');
+        res.error(400008002008, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.forceDelete(req.body.filters);
+      const result = await SecretsService.forceDelete(req.body.filters);
       res.success(result);
     } catch (error) {
       next(error);

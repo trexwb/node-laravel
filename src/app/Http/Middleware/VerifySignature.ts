@@ -26,7 +26,7 @@ export const verifySignature = (req: Request, res: Response, next: NextFunction)
   // 从 Headers 获取签名和时间戳
   const sign = req.headers['x-sign'] as string;
   if (!sign) {
-    return res.error(403009022001, 'Signature missing');
+    return res.error(403009010001, 'Signature missing');
   }
   // 签名算法：参数排序 -> 加上时间戳 -> 拼接 -> HMAC
   const appKey = (req as any).secretRow?.appSecret || config('app.security.app_key');
@@ -36,7 +36,7 @@ export const verifySignature = (req: Request, res: Response, next: NextFunction)
   // 待签名字符串包含：参数序列化 + 密钥
   const serverSign = Crypto.md5(Crypto.sha256(JSON.stringify(sortedParams)) + appKey);
   if (sign !== serverSign) {
-    return res.error(403009022002, 'Invalid signature');
+    return res.error(403009010002, 'Invalid signature');
   }
   next();
 };

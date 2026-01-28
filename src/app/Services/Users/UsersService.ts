@@ -10,19 +10,19 @@ export class UsersService {
     });
   }
 
-  public static async getUuid(uuid: string) {
+  public static async findByUuid(uuid: string) {
     return await CacheService.remember(`${this.cacheKey}[uuid:${uuid}]`, 0, async () => {
       return await UsersModel.findOneAndRoles({ uuid: uuid });
     });
   }
 
-  public static async getToken(token: string) {
+  public static async findByToken(token: string) {
     return await CacheService.remember(`${this.cacheKey}[token:${token}]`, 0, async () => {
       return await UsersModel.findOneAndRoles({ rememberToken: token });
     });
   }
 
-  public static async getAccount(account: string | number) {
+  public static async findByAccount(account: string | number) {
     return await CacheService.remember(`${this.cacheKey}[account:${account}]`, 0, async () => {
       function isValidEmail(email: string) {
         const regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -75,7 +75,6 @@ export class UsersService {
 
   public static async create(
     data: {
-      id?: number;
       nickname?: string;
       email?: string;
       mobile?: string;
@@ -181,6 +180,11 @@ export class UsersService {
     await this.flushallCache();
     // 类型断言确保返回正确类型
     return affects;
+  }
+
+  public static async forceDelete(filters: object | undefined = undefined): Promise<number | null> {
+    // 清除所有缓存
+    return await UsersModel.forceDelete(filters);
   }
 
   public static async clearUserCache(user: UsersModel) {
