@@ -391,4 +391,11 @@ export class BaseModel extends Model {
     }
     return await query.delete();
   }
+
+  static async forceDelete<T extends typeof BaseModel>(
+    filterss: Parameters<T['buildQuery']>[1]
+  ) {
+    const query = this.buildQuery(this.query(), filterss);
+    return await query.delete();
+  }
 }

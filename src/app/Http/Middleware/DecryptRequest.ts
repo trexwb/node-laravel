@@ -17,7 +17,7 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
     // 3. 执行解密
     const decryptData = Crypto.decrypt(encryptedData, appKey, appIv);
     if (!decryptData) {
-      return res.error(401009016001, 'Data decryption failed. Invalid format or key.');
+      return res.error(401009004001, 'Data decryption failed. Invalid format or key.');
     }
     req.body = { ...decryptData, ...req.body };
     next();

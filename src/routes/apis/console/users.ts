@@ -18,12 +18,14 @@ router.post('/enable', [authenticateToken, decryptRequest, can('accountsUsers:wr
 
 router.post('/disable', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.disable);
 
-router.post('/sort', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.sort);
+// router.post('/sort', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.sort);
 
 router.post('/delete', [authenticateToken, decryptRequest, can('accountsUsers:delete')], UsersController.delete);
 
-router.post('/trashList', [authenticateToken, decryptRequest, can('accountsTrash:read')], UsersController.trashList);
+router.post('/trashList', [authenticateToken, decryptRequest, can('systemsTrash:read')], UsersController.trashList);
 
-router.post('/restore', [authenticateToken, decryptRequest, can('accountsTrash:restore')], UsersController.restore);
+router.post('/restore', [authenticateToken, decryptRequest, can('systemsTrash:restore')], UsersController.restore);
+
+router.post('/forceDelete', [authenticateToken, decryptRequest, can('systemsTrash:delete')], UsersController.forceDelete);
 
 export default router;
