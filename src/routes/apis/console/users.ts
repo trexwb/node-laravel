@@ -26,6 +26,4 @@ router.post('/trashList', [authenticateToken, decryptRequest, can('accountsTrash
 
 router.post('/restore', [authenticateToken, decryptRequest, can('accountsTrash:restore')], UsersController.restore);
 
-router.post('/forceDelete', [authenticateToken, decryptRequest, can('accountsTrash:delete')], UsersController.forceDelete);
-
 export default router;

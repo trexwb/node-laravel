@@ -346,6 +346,29 @@ export class BaseModel extends Model {
     return await query.patch(data);
   }
 
+  // 通过ID恢复
+  static async restoreById(id: number) {
+    if (this.softDelete) { // 软删除
+      return await this.query()
+        .where('id', id)
+        .patch({ [this.softDeleteColumn]: null });
+    }
+    return null;
+  }
+
+  // 通过过滤条件恢复
+  static async restoreByFilters<T extends typeof BaseModel>(
+    filterss: Parameters<T['buildQuery']>[1]
+  ) {
+    const query = this.buildQuery(this.query(), filterss);
+    if (this.softDelete) { // 软删除
+      return await query.patch({
+        [this.softDeleteColumn]: null,
+      });
+    }
+    return null;
+  }
+
   // 通过ID删除
   static async deleteById(id: number) {
     if (this.softDelete) { // 软删除
@@ -363,7 +386,7 @@ export class BaseModel extends Model {
     const query = this.buildQuery(this.query(), filterss);
     if (this.softDelete) { // 软删除
       return await query.patch({
-        [this.softDeleteColumn]: new Date(),
+        [this.softDeleteColumn]: nowInTz(),
       });
     }
     return await query.delete();
