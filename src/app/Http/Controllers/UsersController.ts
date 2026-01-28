@@ -1,12 +1,12 @@
 import type { Request, Response, NextFunction } from 'express';
 import { UsersService } from '#app/Services/Users/UsersService';
+import { UserSaveRequest } from '#app/Http/Requests/UserSaveRequest';
 
 export class UsersController {
   public static async list(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const reqObj = (req as any);
-      const { filter, page, pageSize, sort } = reqObj.body;
-      const list = await UsersService.findMany(filter, page, pageSize, sort, false);
+      const { filters, page, pageSize, sort } = req.body;
+      const list = await UsersService.findMany(filters, page, pageSize, sort, false);
       res.success(list);
     } catch (error) {
       next(error);
@@ -15,8 +15,7 @@ export class UsersController {
 
   public static async detail(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const reqObj = (req as any);
-      const { id, uuid, account } = reqObj.body;
+      const { id, uuid, account } = req.body;
       let userRow = null;
       if (id) {
         userRow = await UsersService.findById(id);
@@ -37,11 +36,76 @@ export class UsersController {
   }
 
   public static async create(req: Request, res: Response, next: NextFunction): Promise<void> {
-    console.log(req, res, next)
+    try {
+      const form = new UserSaveRequest(req);
+      const data = await form.validate();
+      if (!data) {
+        res.error(400008012002, 'User Error');
+        return;
+      }
+      const result = await UsersService.create(data);
+      res.success(result);
+    } catch (error) {
+      next(error);
+    }
   }
 
   public static async update(req: Request, res: Response, next: NextFunction): Promise<void> {
-    console.log(req, res, next)
+    try {
+      if (!req.body.id) {
+        res.error(400008012003, 'id Not Empty');
+        return;
+      }
+      const form = new UserSaveRequest(req);
+      const data = await form.validate();
+      if (!data) {
+        res.error(400008012004, 'User Error');
+        return;
+      }
+      const result = await UsersService.updateById(req.body.id, data);
+      res.success(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async enable(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.body.filters) {
+        res.error(400008012005, 'filters Not Empty');
+        return;
+      }
+      const result = await UsersService.updateByFilters(req.body.filters, { status: 1 });
+      res.success(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async disable(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.body.filters) {
+        res.error(400008012005, 'filters Not Empty');
+        return;
+      }
+      const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
+      res.success(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async sort(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.body.filters) {
+        res.error(400008012005, 'filters Not Empty');
+        return;
+      }
+      const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
+      res.success(result);
+    } catch (error) {
+      next(error);
+    }
   }
 
   public static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -50,9 +114,8 @@ export class UsersController {
 
   public static async trashList(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const reqObj = (req as any);
-      const { filter, page, pageSize, sort } = reqObj.body;
-      const list = await UsersService.findMany(filter, page, pageSize, sort, true);
+      const { filters, page, pageSize, sort } = req.body;
+      const list = await UsersService.findMany(filters, page, pageSize, sort, true);
       res.success(list);
     } catch (error) {
       next(error);

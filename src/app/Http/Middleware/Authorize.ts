@@ -2,8 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 
 export const can = (permissionName: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const reqObj = (req as any);
-    const userRow = reqObj.currentUser;
+    const userRow = (req as any).currentUser;
     if (!userRow) {
       res.error(401009015001, 'Unauthorized');
       return;

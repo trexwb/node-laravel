@@ -27,11 +27,11 @@ export class BaseModel extends Model {
  */
   static buildQuery(
     query: QueryBuilder<any>,
-    filters: any,
+    filterss: any,
     trashed: boolean = false
   ): QueryBuilder<any> {
     // query.toKnexQuery().toSQL()
-    console.log('buildQuery:', query.toKnexQuery().toSQL(), filters, trashed);
+    console.log('buildQuery:', query.toKnexQuery().toSQL(), filterss, trashed);
     return query;
   }
 
@@ -221,23 +221,23 @@ export class BaseModel extends Model {
 
   // 查询单条
   static async findOne<T extends typeof BaseModel>(
-    filters: Parameters<T['buildQuery']>[1],
+    filterss: Parameters<T['buildQuery']>[1],
     trashed: boolean = false
   ): Promise<InstanceType<T> | undefined> {
-    const query = this.buildQuery(this.query(), filters, trashed);
+    const query = this.buildQuery(this.query(), filterss, trashed);
     return await query.first();
   }
 
   // 多条查询（全部）
   static async findAll(
-    filters: Parameters<typeof this.buildQuery>[1],
+    filterss: Parameters<typeof this.buildQuery>[1],
     options: {
       order?: Array<{ column: string; order?: string }> | { column: string; order?: string };
     } = {},
     trashed: boolean = false
   ) {
     const { order } = options;
-    const baseQuery = this.buildQuery(this.query(), filters, trashed);
+    const baseQuery = this.buildQuery(this.query(), filterss, trashed);
     const dataQuery = baseQuery.clone();
     const totalCount = await baseQuery.resultSize();
     if (order) {
@@ -254,7 +254,7 @@ export class BaseModel extends Model {
 
   // 查询多条（分页）
   static async findMany<T extends typeof BaseModel>(
-    filters: Parameters<T['buildQuery']>[1],
+    filterss: Parameters<T['buildQuery']>[1],
     options: {
       page?: number;
       pageSize?: number;
@@ -264,7 +264,7 @@ export class BaseModel extends Model {
   ) {
     const { page = 1, pageSize = 10, order } = options;
     const offset = (page - 1) * pageSize;
-    const baseQuery = this.buildQuery(this.query(), filters, trashed);
+    const baseQuery = this.buildQuery(this.query(), filterss, trashed);
     const countQuery = baseQuery.clone();
     const dataQuery = baseQuery.clone();
     const total = await countQuery.resultSize();
@@ -339,10 +339,10 @@ export class BaseModel extends Model {
 
   // 通过过滤条件更新
   static async updateByFilters<T extends typeof BaseModel>(
-    filters: Parameters<T['buildQuery']>[1],
+    filterss: Parameters<T['buildQuery']>[1],
     data: Partial<InstanceType<T>>
   ) {
-    const query = this.buildQuery(this.query(), filters);
+    const query = this.buildQuery(this.query(), filterss);
     return await query.patch(data);
   }
 
@@ -358,9 +358,9 @@ export class BaseModel extends Model {
 
   // 通过过滤条件删除
   static async deleteByFilters<T extends typeof BaseModel>(
-    filters: Parameters<T['buildQuery']>[1]
+    filterss: Parameters<T['buildQuery']>[1]
   ) {
-    const query = this.buildQuery(this.query(), filters);
+    const query = this.buildQuery(this.query(), filterss);
     if (this.softDelete) { // 软删除
       return await query.patch({
         [this.softDeleteColumn]: new Date(),

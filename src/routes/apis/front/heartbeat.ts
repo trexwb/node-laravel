@@ -4,7 +4,7 @@ import { SendWelcomeEmail } from '#app/Jobs/SendWelcomeEmail';
 import { authenticateToken } from '#app/Http/Middleware/AuthenticateToken';
 import { decryptRequest } from '#app/Http/Middleware/DecryptRequest';
 import { nowInTz } from '#app/Helpers/Format';
-import { Crypto } from '#utils/crypto';
+import { Crypto } from '#utils/Crypto';
 import { config } from '#bootstrap/configLoader';
 import { UsersService } from '#app/Services/Users/UsersService';
 

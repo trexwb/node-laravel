@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { config } from '#bootstrap/configLoader';
-import { Crypto } from '#utils/crypto';
+import { Crypto } from '#utils/Crypto';
 import * as _ from 'lodash-es';
 
 const SENSITIVE_PATHS = [
@@ -53,7 +53,6 @@ export const encryptResponse = (
   const fieldsParam = req.query.fields as string | undefined;
   const requestedFields = fieldsParam?.split(',').map(f => f.trim()).filter(Boolean);
   const originalJson = res.json;
-  const reqObj = (req as any);
   res.json = function (payload: any): Response {
     if (!payload || typeof payload !== 'object' || !payload.data) {
       return originalJson.call(this, payload);
@@ -67,8 +66,8 @@ export const encryptResponse = (
       return originalJson.call(this, payload);
     }
     // 3️⃣ 加密
-    const appKey = reqObj.secretRow?.appSecret || config('app.security.app_key');
-    const appIv = reqObj.secretRow?.appIv || config('app.security.app_iv');
+    const appKey = (req as any).secretRow?.appSecret || config('app.security.app_key');
+    const appIv = (req as any).secretRow?.appIv || config('app.security.app_iv');
     payload.encryptedData = Crypto.encrypt(
       JSON.stringify(shapedData),
       appKey,

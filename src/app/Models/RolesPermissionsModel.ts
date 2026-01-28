@@ -47,7 +47,7 @@ export class RolesPermissionsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<RolesPermissionsModel> = this.query(),
-    filters: {
+    filterss: {
       permissionId?: string | number | number[];
       roleId?: string | number | number[];
     } = {}
@@ -59,12 +59,12 @@ export class RolesPermissionsModel extends BaseModel {
         query.where(field, value);
       }
     }
-    if (!filters) return query;
-    if (Object.hasOwn(filters, 'permissionId') && filters.permissionId != '' && filters.permissionId != null) {
-      applyWhereCondition('user_id', filters.permissionId);
+    if (!filterss) return query;
+    if (Object.hasOwn(filterss, 'permissionId') && filterss.permissionId != '' && filterss.permissionId != null) {
+      applyWhereCondition('user_id', filterss.permissionId);
     }
-    if (Object.hasOwn(filters, 'roleId') && filters.roleId != '' && filters.roleId != null) {
-      applyWhereCondition('role_id', filters.roleId);
+    if (Object.hasOwn(filterss, 'roleId') && filterss.roleId != '' && filterss.roleId != null) {
+      applyWhereCondition('role_id', filterss.roleId);
     }
     return query;
   }

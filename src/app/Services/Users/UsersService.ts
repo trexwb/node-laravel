@@ -52,7 +52,7 @@ export class UsersService {
   }
 
   public static async findMany(
-    filter: object | undefined = undefined,
+    filters: object | undefined = undefined,
     page: number = 1,
     pageSize: number = 10,
     sort: string | undefined = undefined,
@@ -67,10 +67,103 @@ export class UsersService {
     if (match) {
       if (schemaColumns.includes(match[2])) order = [{ column: match[2], order: match[1] === '-' ? 'DESC' : 'ASC' }];
     }
-    const cacheKey = `${this.cacheKey}[list:${JSON.stringify(Utils.sortMultiDimensionalObject([filter, page, pageSize, order]))}]`;
+    const cacheKey = `${this.cacheKey}[list:${JSON.stringify(Utils.sortMultiDimensionalObject([filters, page, pageSize, order]))}]`;
     return await CacheService.remember(`${cacheKey}`, 0, async () => {
-      return await UsersModel.findManyAndRoles(filter, { page, pageSize, order }, trashed);
+      return await UsersModel.findManyAndRoles(filters, { page, pageSize, order }, trashed);
     });
+  }
+
+  public static async create(
+    data: {
+      id?: number;
+      nickname?: string;
+      email?: string;
+      mobile?: string;
+      avatar?: string;
+      password?: string;
+      salt?: string;
+      uuid?: string;
+      extension?: object;
+      status?: number;
+    } = {}
+  ): Promise<InstanceType<typeof UsersModel> | null> {
+    // 1. 创建用户
+    const newUser = await UsersModel.create(data);
+    if (!newUser) {
+      throw new Error('Failed to create user');
+    }
+    // 2. 清除相关缓存（建议只清列表，或按需）
+    await this.flushallCache(); // 或更精细地只清除列表缓存
+    // 3. 返回新用户
+    return newUser;
+  }
+
+  public static async updateById(
+    id?: number,
+    data: {
+      nickname?: string;
+      email?: string;
+      mobile?: string;
+      avatar?: string;
+      password?: string;
+      salt?: string;
+      uuid?: string;
+      extension?: object;
+      status?: number;
+    } = {}
+  ): Promise<InstanceType<typeof UsersModel> | null> {
+    // 检查 id 是否存在
+    if (id === undefined) {
+      throw new Error('User ID is required for update operation');
+    }
+    // 更新用户
+    const updatedUser = await UsersModel.updateById(id, data);
+    if (!updatedUser) {
+      throw new Error('Failed to update user');
+    }
+    // 清除相关缓存
+    await this.flushallCache();
+    // 类型断言确保返回正确类型
+    return updatedUser as InstanceType<typeof UsersModel>;
+  }
+
+  public static async updateByFilters(
+    filters: object | undefined = undefined,
+    data: {
+      nickname?: string;
+      email?: string;
+      mobile?: string;
+      avatar?: string;
+      password?: string;
+      salt?: string;
+      uuid?: string;
+      extension?: object;
+      status?: number;
+    } = {}
+  ): Promise<number | null> {
+    // 更新用户
+    const processedData = { ...data } as Partial<InstanceType<typeof UsersModel>>;
+    const affects = await UsersModel.updateByFilters(filters, processedData);
+    // 清除相关缓存
+    await this.flushallCache();
+    // 类型断言确保返回正确类型
+    return affects;
+  }
+
+  public static async deleteById(id: number) {
+    // 清除所有缓存
+    const affects = await UsersModel.deleteById(id);
+    await this.flushallCache();
+    // 类型断言确保返回正确类型
+    return affects;
+  }
+
+  public static async deleteByFilters(filters: object | undefined = undefined,) {
+    // 清除所有缓存
+    const affects = await UsersModel.deleteByFilters(filters);
+    await this.flushallCache();
+    // 类型断言确保返回正确类型
+    return affects;
   }
 
   public static async clearUserCache(user: UsersModel) {

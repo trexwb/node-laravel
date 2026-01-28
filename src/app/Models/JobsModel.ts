@@ -74,7 +74,7 @@ export class JobsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<JobsModel> = this.query(),
-    filters: {
+    filterss: {
       id?: number;
       name?: string;
       status?: string; // 假设有 status 字段
@@ -91,17 +91,17 @@ export class JobsModel extends BaseModel {
         query.where(field, value);
       }
     }
-    if (filters.id != null) {
-      applyWhereCondition('id', filters.id);
+    if (filterss.id != null) {
+      applyWhereCondition('id', filterss.id);
     }
-    if (filters.reserved === true) {
+    if (filterss.reserved === true) {
       query = query.whereNotNull('reserved_at');
-    } else if (filters.reserved === false) {
+    } else if (filterss.reserved === false) {
       query = query.whereNull('reserved_at');
     }
-    if (filters.finished === true) {
+    if (filterss.finished === true) {
       query = query.whereNotNull('finished_at');
-    } else if (filters.finished === false) {
+    } else if (filterss.finished === false) {
       query = query.whereNull('finished_at');
     }
     return query;

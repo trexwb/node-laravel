@@ -59,7 +59,7 @@ export class PermissionsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<PermissionsModel> = this.query(),
-    filters: {
+    filterss: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       name?: string;
       status?: string | number | number[];
@@ -74,15 +74,15 @@ export class PermissionsModel extends BaseModel {
         query.where(field, value);
       }
     }
-    if (!filters) return query;
-    if (filters.id != null) {
-      this.buildIdQuery(query, filters.id);
+    if (!filterss) return query;
+    if (filterss.id != null) {
+      this.buildIdQuery(query, filterss.id);
     }
-    if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
-      applyWhereCondition('status', filters.status);
+    if (Object.hasOwn(filterss, 'status') && filterss.status != '' && filterss.status != null) {
+      applyWhereCondition('status', filterss.status);
     }
-    if (filters.keywords) {
-      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+    if (filterss.keywords) {
+      const keywords = filterss.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
           this.orWhereRaw('LOCATE(?, `name`) > 0', [keyword])
@@ -91,8 +91,8 @@ export class PermissionsModel extends BaseModel {
         });
       });
     }
-    if (filters.name) {
-      query.where('name', filters.name);
+    if (filterss.name) {
+      query.where('name', filterss.name);
     }
     if (trashed) {
       query.whereNotNull('deleted_at');
