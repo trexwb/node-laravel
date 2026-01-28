@@ -42,6 +42,22 @@ export class JobsModel extends BaseModel {
     return ['payload'];
   }
 
+  static getSchemaColumns(): string[] {
+    return Object.keys(this.jsonSchema?.properties ?? {});
+  }
+
+  static getSchemaDbColumns() {
+    const props = Object.keys(this.jsonSchema?.properties ?? {});
+    const mapper = this.columnNameMappers;
+    if (!mapper?.format) {
+      return props;
+    }
+    return props.map((prop) => {
+      const mapped = mapper.format({ [prop]: null });
+      return Object.keys(mapped)[0];
+    });
+  }
+
   getReservedAtAttribute(value: string | Date) {
     return formatDate(value);
   }

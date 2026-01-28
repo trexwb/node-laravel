@@ -63,15 +63,16 @@ export class UsersService {
   ) {
     page = Utils.safeCastToInteger(page ?? 1);
     pageSize = Utils.safeCastToInteger(pageSize ?? 10);
-    let order: { column: string; order: string }[] | undefined = undefined;
-    const regex = /^([+-])(.*?)$/si;
-    const match = (sort || '').match(regex);
-    if (match) {
-      order = [{ column: match[2], order: match[1] === '-' ? 'DESC' : 'ASC' }];
-    }
     const sorted = Utils.sortMultiDimensionalObject([filter, page, pageSize, sort]);
     const cacheKey = `${this.cacheKey}[getList]:${JSON.stringify(sorted)}]`;
     return await CacheService.remember(`${cacheKey}`, 0, async () => {
+      let order: { column: string; order: string }[] | undefined = undefined;
+      const regex = /^([+-])(.*?)$/si;
+      const match = (sort || '').match(regex);
+      const schemaColumns = UsersModel.getSchemaDbColumns();
+      if (match) {
+        if (schemaColumns.includes(match[2])) order = [{ column: match[2], order: match[1] === '-' ? 'DESC' : 'ASC' }];
+      }
       return await UsersModel.findManyAndRoles(filter, { page, pageSize, order }, trashed);
     });
   }
