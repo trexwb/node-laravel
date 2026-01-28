@@ -23,6 +23,7 @@ export class PermissionsModel extends BaseModel {
       type: 'object',
       required: ['name', 'permissions'], // 必填字段
       properties: {
+        id: { type: 'integer' },
         name: { type: 'string' },
         permissions: { type: 'object' },
         extension: { type: 'object' },

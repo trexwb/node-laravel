@@ -3,12 +3,12 @@ import type { Request, Response, NextFunction } from 'express';
 export const can = (permissionName: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const reqObj = (req as any);
-    const user = reqObj.currentUser;
-    if (!user) {
+    const userRow = reqObj.currentUser;
+    if (!userRow) {
       res.error(401009015001, 'Unauthorized');
       return;
     }
-    const roles = user.roles || [];
+    const roles = userRow.roles || [];
     if (!roles || !roles.length) {
       res.error(401009015002, 'Unauthorized');
       return;
@@ -20,7 +20,6 @@ export const can = (permissionName: string) => {
       res.error(401009015003, 'Unauthorized');
       return;
     }
-    // console.log('user:', JSON.stringify(permissions), permissionName)
     try {
       // 校验权限
       if (!permissions.includes(permissionName)) {

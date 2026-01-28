@@ -22,6 +22,7 @@ export class UsersLogsModel extends BaseModel {
       type: 'object',
       required: ['userId', 'handle'], // 必填字段
       properties: {
+        id: { type: 'integer' },
         userId: { type: 'integer' },
         source: { type: 'object' },
         handle: { type: 'string' },

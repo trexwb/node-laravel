@@ -25,6 +25,7 @@ export class JobsModel extends BaseModel {
       type: 'object',
       required: ['queue', 'payload'], // 必填字段
       properties: {
+        id: { type: 'integer' },
         queue: { type: 'string' },
         payload: { type: 'object' },
         attempts: { type: 'integer' },

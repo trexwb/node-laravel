@@ -40,5 +40,6 @@ export class FileDriver implements CacheDriver {
   }
   async forgetByPattern(pattern: string) {
     console.log(`File mode cannot delete the specified [${pattern}] cache.`)
+    await this.flush();
   }
 }

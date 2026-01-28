@@ -28,13 +28,16 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       res.error(401009014004, 'Unauthorized: Token Expired');
       return;
     }
-    const user = await UsersService.getToken(decryptedResult.token);
-    if (!user) {
+    const userRow = await UsersService.getToken(decryptedResult.token);
+    if (!userRow) {
       res.error(401009014005, 'Unauthorized: Invalid Token');
       return;
     }
+    if (userRow.status === 0) {
+      res.error(400008012002, 'User is disabled');
+    }
     // 5. 将解析后的信息挂载到 req 对象
-    (req as any).currentUser = user;
+    (req as any).currentUser = userRow;
     (req as any).tokenPayload = decryptedResult;
     next();
   } catch (error) {

@@ -27,7 +27,7 @@ if (config('app.env') == 'development') {
 
   router.post('/mockToken', async (_req: Request, res: Response, _next: NextFunction) => {
     const tokenTime = config('app.security.token_time');
-    const userRow = await UsersService.getId(1);
+    const userRow = await UsersService.findById(1);
     const now = Math.floor(Date.now() / 1000);
     const newTokenData = {
       token: userRow?.rememberToken, // 根据你的业务 logic

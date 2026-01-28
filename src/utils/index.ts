@@ -437,6 +437,26 @@ class Utils {
   }
 
   /**
+   * 获取一个安全的整数值，用于数据库查询。
+   *
+   * @param value 需要转换的值
+   */
+  public static normalizeSort(
+    sort: string | undefined,
+    allowedColumns: string[]
+  ): { column: string; order: 'ASC' | 'DESC' } | undefined {
+    if (!sort) return undefined;
+    const match = sort.match(/^([+-])(.*?)$/);
+    if (!match) return undefined;
+    const column = match[2];
+    if (!allowedColumns.includes(column)) return undefined;
+    return {
+      column,
+      order: match[1] === '-' ? 'DESC' : 'ASC',
+    };
+  }
+
+  /**
    * 工具函数：数组/对象排序
    * @param obj 需要排序的对象或数组
    */
