@@ -214,7 +214,7 @@ export class BaseModel extends Model {
     return query;
   }
 
-  // 查询单个任务
+  // 根据id取数据
   static async findById(id: number) {
     return await this.query().findById(id);
   }

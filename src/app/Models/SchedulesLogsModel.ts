@@ -1,31 +1,33 @@
 import { QueryBuilder } from 'objection';
 import { BaseModel } from '#app/Models/BaseModel';
-import { UsersModel } from '#app/Models/UsersModel';
+import { SchedulesModel } from '#app/Models/SchedulesModel';
 import { config } from '#bootstrap/configLoader';
 
-export class UsersLogsModel extends BaseModel {
+export class SchedulesLogsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
   id!: number;
-  userId!: number;
-  source!: object;
-  handle!: string;
+  scheduleId!: number;
+  name!: string;
+  time!: string;
+  handler!: object;
   updatedAt!: Date;
   createdAt!: Date;
   static softDelete = false;
 
   static get tableName() {
-    return `${config('database.prefix')}users_logs`;
+    return `${config('database.prefix')}schedules_logs`;
   }
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['userId', 'handle'], // 必填字段
+      required: ['scheduleId', 'name', 'time', 'handler'], // 必填字段
       properties: {
         id: { type: 'integer' },
-        userId: { type: 'integer' },
-        source: { type: 'object' },
-        handle: { type: 'string' },
+        scheduleId: { type: 'integer' },
+        name: { type: 'string' },
+        time: { type: 'string' },
+        handler: { type: 'object' },
         createdAt: { type: 'string' },
         updatedAt: { type: 'string' },
       }
@@ -34,7 +36,7 @@ export class UsersLogsModel extends BaseModel {
 
   // 定义 JSON 字段（Objection 会自动序列化/反序列化）
   static get jsonAttributes() {
-    return ['source'];
+    return ['handler'];
   }
 
   static getSchemaColumns(): string[] {
@@ -55,14 +57,14 @@ export class UsersLogsModel extends BaseModel {
 
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
-    query: QueryBuilder<UsersLogsModel> = this.query(),
+    query: QueryBuilder<SchedulesLogsModel> = this.query(),
     filterss: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
-      userId?: string | number | number[];
+      scheduleId?: string | number | number[];
       handle?: string;
       keywords?: string;
     } = {}
-  ): QueryBuilder<UsersLogsModel> {
+  ): QueryBuilder<SchedulesLogsModel> {
     function applyWhereCondition(field: string, value: any) {
       if (Array.isArray(value)) {
         if (value.length > 0) query.whereIn(field, value);
@@ -74,22 +76,20 @@ export class UsersLogsModel extends BaseModel {
     if (filterss.id != null) {
       this.buildIdQuery(query, filterss.id);
     }
-    if (Object.hasOwn(filterss, 'user_id') && filterss.userId != '' && filterss.userId != null) {
-      applyWhereCondition(`${this.tableName}.status`, filterss.userId);
+    if (Object.hasOwn(filterss, 'schedule_id') && filterss.scheduleId != '' && filterss.scheduleId != null) {
+      applyWhereCondition(`${this.tableName}.status`, filterss.scheduleId);
     }
     if (filterss.keywords) {
       const keywords = filterss.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         const myTableName = this.tableName;
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${myTableName}.source\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}.name\`) > 0`, [keyword])
             .orWhereRaw(`LOCATE(?, \`${myTableName}.handle\`) > 0`, [keyword])
-            .orWhereIn(`${myTableName}.user_id`, function () {
-              this.select('id').from(UsersModel.tableName).where(function () {
-                this.orWhereRaw('LOCATE(?, `nickname`) > 0', [keyword])
-                  .orWhereRaw('LOCATE(?, `email`) > 0', [keyword])
-                  .orWhereRaw('LOCATE(?, `mobile`) > 0', [keyword])
-                  .orWhereRaw('LOCATE(?, `uuid`) > 0', [keyword])
+            .orWhereIn(`${myTableName}.schedule_id`, function () {
+              this.select('id').from(SchedulesModel.tableName).where(function () {
+                this.orWhereRaw('LOCATE(?, `name`) > 0', [keyword])
+                  .orWhereRaw('LOCATE(?, `handler`) > 0', [keyword])
               });
             })
         });
@@ -103,30 +103,30 @@ export class UsersLogsModel extends BaseModel {
 
   static get relationMappings() {
     return {
-      user: {
+      schedule: {
         relation: BaseModel.BelongsToOneRelation,
-        modelClass: UsersModel,
+        modelClass: SchedulesModel,
         join: {
-          from: `${this.tableName}}.user_id`,
-          to: `${UsersModel.tableName}.id`
+          from: `${this.tableName}}.schedule_id`,
+          to: `${SchedulesModel.tableName}.id`
         }
       }
     };
   }
 
   // 查询单个日志并关联用户
-  static async findByIdAndUser(id: number) {
-    return await this.query().findById(id).withGraphJoined('user');
+  static async findByIdAndSchedule(id: number) {
+    return await this.query().findById(id).withGraphJoined('schedule');
   }
 
   // 单条查询（非 ID）
-  static async findOneAndUser(filterss: Parameters<typeof this.buildQuery>[1]) {
-    const query = this.buildQuery(this.query(), filterss).withGraphJoined('user');
+  static async findOneAndSchedule(filterss: Parameters<typeof this.buildQuery>[1]) {
+    const query = this.buildQuery(this.query(), filterss).withGraphJoined('schedule');
     return await query.first(); // 或 .limit(1).first()
   }
 
   // 多条查询（分页）
-  static async findManyAndUser(
+  static async findManyAndSchedule(
     filterss: Parameters<typeof this.buildQuery>[1],
     options: {
       page?: number;
@@ -144,7 +144,7 @@ export class UsersLogsModel extends BaseModel {
     if (order) {
       (this as any).applyOrder(dataQuery, order);
     }
-    const data = await dataQuery.withGraphJoined('user').limit(pageSize).offset(offset);
+    const data = await dataQuery.withGraphJoined('schedule').limit(pageSize).offset(offset);
     return {
       data,
       meta: {

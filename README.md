@@ -45,18 +45,28 @@
 
 ## 📦 技术栈
 
-| 技术         | 说明            |
-| ---------- | ------------- |
-| Node.js    | 运行环境          |
-| TypeScript | 语言            |
-| Express    | HTTP 框架       |
-| Knex.js    | SQL 查询构建 & 迁移 |
-| MySQL2     | 数据库驱动         |
-| ws         | WebSocket     |
-| dotenv     | 环境变量          |
-| sharp      | 图片处理          |
-| lodash-es  | 工具函数          |
-| dayjs      | 时间处理          |
+| 技术                   | 说明 |
+| ----------            | ------------- |
+| Node.js               | 运行环境 |
+| TypeScript            | 语言 |
+| cors                  | 跨域 |
+| dayjs                 | 时间处理 |
+| dotenv                | 环境变量
+| express               | 框架 |
+| express-rate-limit    | 请求限制 |
+| helmet                | 安全
+| http-proxy-middleware | 代理
+| knex                  | ORM |
+| lodash-es             | 函数式 |
+| multer                | 文件上传 |
+| mysql2                | 数据库
+| node-schedule         | 定时任务 |
+| objection             | ORM |
+| redis                 | 缓存 / 队列 |
+| sharp                 | 图片处理 |
+| sqlite3               | 缓存 / 队列 / 数据库 ｜
+| validatorjs           | 表单验证 |
+| ws                    | WebSocket |
 
 ---
 
@@ -66,16 +76,22 @@
 .
 ├── src/
 │   ├── app/                    # 核心业务逻辑
-│   │   ├── Console/            # 命令行任务
+│   │   ├── Casts/              # 数据转换
+│   │   ├── Console/            
+│   │   ├── Console/Commands/   # 命令行任务
 │   │   ├── Events/             # 事件系统
 │   │   ├── Exceptions/         # 异常处理
+│   │   ├── Helpers/            # 助手函数
 │   │   ├── Http/
 │   │   │   ├── Controllers/    # 控制器
 │   │   │   ├── Middleware/     # 中间件
 │   │   │   └── Requests/       # 请求校验
+│   │   ├── Jobs/               # 异步任务
+│   │   ├── Listeners/          # 监听器
 │   │   ├── Models/             # 数据模型（Knex）
 │   │   ├── Providers/          # 服务提供者
 │   │   ├── Services/           # 业务服务层
+│   │   ├── Traits/             # trait
 │   │   └── WebSockets/         # WebSocket 逻辑
 │   ├── bootstrap/              # 启动引导（Cluster）
 │   ├── config/                 # 配置文件
@@ -88,10 +104,16 @@
 │   │   └── uploads/            # 图片上传目录
 │   ├── resources/              # 原始资源
 │   ├── routes/
+│   │   ├── apis/               # API 子路由
+│   │   ├── apis/console/       # 控制台
+│   │   ├── apis/front/         # 前台
 │   │   ├── api.ts              # API 路由
 │   │   └── channels.ts         # WS 频道
-│   ├── storage/                # 日志 / 缓存
+│   ├── storage/                
+│   │   ├── cache/              # 缓存
+│   │   └── uploads/            # 文件上传
 │   └── utils/                  # 工具类
+├── tests/                      # 测试
 ├── .env
 ├── tsconfig.json
 ├── package.json
@@ -324,14 +346,18 @@ npm run start
 | 001 | app/Jobs/Job.ts |
 | 002 | app/Jobs/SendWelcomeEmail.ts |
 | 001 | app/Models/BaseModel.ts |
-| 002 | app/Models/JobsModel.ts |
-| 003 | app/Models/PermissionsModel.ts |
-| 004 | app/Models/RolesModel.ts |
-| 005 | app/Models/RolesPermissionsModel.ts |
-| 006 | app/Models/SecretsModel.ts |
-| 007 | app/Models/UsersLogsModel.ts |
-| 008 | app/Models/UsersModel.ts |
-| 009 | app/Models/UsersRolesModel.ts |
+| 002 | app/Models/ConfigsModel.ts |
+| 003 | app/Models/JobsModel.ts |
+| 004 | app/Models/PermissionsModel.ts |
+| 005 | app/Models/RolesModel.ts |
+| 006 | app/Models/RolesPermissionsModel.ts |
+| 007 | app/Models/SchedulesLogsModel.ts |
+| 008 | app/Models/SchedulesModel.ts |
+| 009 | app/Models/SecretsLogsModel.ts |
+| 010 | app/Models/SecretsModel.ts |
+| 011 | app/Models/UsersLogsModel.ts |
+| 012 | app/Models/UsersModel.ts |
+| 013 | app/Models/UsersRolesModel.ts |
 | 001 | app/Providers/AppServiceProvider.ts |
 | 001 | app/Services/Cache/CacheFileDriver.ts |
 | 002 | app/Services/Cache/CacheRedisDriver.ts |
