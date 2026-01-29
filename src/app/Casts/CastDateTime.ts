@@ -14,25 +14,18 @@ export class CastDateTime implements CastInterface {
 
   get(value: any) {
     if (!value) return null;
-
     const tz = this.options.timezone;
     const date = tz ? dayjs.tz(value, tz) : dayjs(value);
-
-    return this.options.format
-      ? date.format(this.options.format)
-      : date; // 默认返回 dayjs 实例
+    return this.options.format ? date.format(this.options.format) : date; // 默认返回 dayjs 实例
   }
 
   set(value: any) {
     if (!value) return null;
-
     const date = dayjs(value);
-
     // 存 UTC（推荐）
     if (this.options.storeAsUtc !== false) {
       return date.utc().format('YYYY-MM-DD HH:mm:ss');
     }
-
     // 原样存（极少用）
     return date.format('YYYY-MM-DD HH:mm:ss');
   }

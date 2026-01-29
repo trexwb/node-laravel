@@ -32,7 +32,7 @@ export class SecretsService {
     if (match) {
       if (schemaColumns.includes(match[2])) order = [{ column: match[2], order: match[1] === '-' ? 'DESC' : 'ASC' }];
     }
-    const cacheKey = `${this.cacheKey}[list:${JSON.stringify(Utils.sortMultiDimensionalObject([filters, page, pageSize, order]))}]`;
+    const cacheKey = `${this.cacheKey}[list:${JSON.stringify(Utils.sortMultiDimensionalObject([filters, page, pageSize, order, trashed]))}]`;
     return await CacheService.remember(`${cacheKey}`, 0, async () => {
       return await SecretsModel.findMany(filters, { page, pageSize, order }, trashed);
     });

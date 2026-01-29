@@ -2,7 +2,13 @@ import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
 
+export type RolePermissionInsert = {
+  permissionId?: number;
+  roleId?: string;
+};
+
 export class RolesPermissionsModel extends BaseModel {
+  static InsertType: RolePermissionInsert;
   // 显式声明属性，对应数据库字段
   permissionId!: number;
   roleId!: string;

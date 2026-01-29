@@ -4,7 +4,15 @@ import { BaseModel } from '#app/Models/BaseModel';
 import { PermissionsModel } from '#app/Models/PermissionsModel';
 import { RolesPermissionsModel } from '#app/Models/RolesPermissionsModel';
 
+export type RoleInsert = {
+  name?: string;
+  permissions?: object;
+  extension?: object;
+  status?: number;
+};
+
 export class RolesModel extends BaseModel {
+  static InsertType: RoleInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   name!: string;

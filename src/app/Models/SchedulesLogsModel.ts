@@ -3,7 +3,14 @@ import { BaseModel } from '#app/Models/BaseModel';
 import { SchedulesModel } from '#app/Models/SchedulesModel';
 import { config } from '#bootstrap/configLoader';
 
+export type ScheduleLogInsert = {
+  scheduleId?: number;
+  source?: object;
+  handle?: object;
+};
+
 export class SchedulesLogsModel extends BaseModel {
+  static InsertType: ScheduleLogInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   scheduleId!: number;
