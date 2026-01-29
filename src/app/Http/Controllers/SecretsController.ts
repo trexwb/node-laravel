@@ -23,7 +23,7 @@ export class SecretsController {
         secretRow = await SecretsService.findByAppId(appId);
       }
       if (!secretRow) {
-        res.error(404008002001, 'User not found');
+        res.error(404009002001, 'User not found');
         return;
       }
       res.success(secretRow);
@@ -37,7 +37,7 @@ export class SecretsController {
       const form = new SecretSaveRequest(req);
       const data = await form.validate();
       if (!data) {
-        res.error(400008002001, 'User Error');
+        res.error(400009002001, 'User Error');
         return;
       }
       const result = await SecretsService.create(data);
@@ -50,13 +50,13 @@ export class SecretsController {
   public static async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.id) {
-        res.error(400008002002, 'id Not Empty');
+        res.error(400009002002, 'id Not Empty');
         return;
       }
       const form = new SecretSaveRequest(req);
       const data = await form.validate();
       if (!data) {
-        res.error(400008002003, 'User Error');
+        res.error(400009002003, 'User Error');
         return;
       }
       const result = await SecretsService.updateById(req.body.id, data);
@@ -69,7 +69,7 @@ export class SecretsController {
   public static async enable(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008002004, 'filters Not Empty');
+        res.error(400009002004, 'filters Not Empty');
         return;
       }
       const result = await SecretsService.updateByFilters(req.body.filters, { status: 1 });
@@ -82,7 +82,7 @@ export class SecretsController {
   public static async disable(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008002005, 'filters Not Empty');
+        res.error(400009002005, 'filters Not Empty');
         return;
       }
       const result = await SecretsService.updateByFilters(req.body.filters, { status: 0 });
@@ -95,7 +95,7 @@ export class SecretsController {
   // public static async sort(req: Request, res: Response, next: NextFunction): Promise<void> {
   //   try {
   //     if (!req.body.filters) {
-  //       res.error(400008002007, 'filters Not Empty');
+  //       res.error(400009002007, 'filters Not Empty');
   //       return;
   //     }
   //     const result = await SecretsService.updateByFilters(req.body.filters, { status: 0 });
@@ -108,7 +108,7 @@ export class SecretsController {
   public static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008002006, 'filters Not Empty');
+        res.error(400009002006, 'filters Not Empty');
         return;
       }
       const result = await SecretsService.deleteByFilters(req.body.filters);
@@ -131,7 +131,7 @@ export class SecretsController {
   public static async restore(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008002007, 'filters Not Empty');
+        res.error(400009002007, 'filters Not Empty');
         return;
       }
       const result = await SecretsService.restoreByFilters(req.body.filters);
@@ -144,7 +144,7 @@ export class SecretsController {
   public static async forceDelete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008002008, 'filters Not Empty');
+        res.error(400009002008, 'filters Not Empty');
         return;
       }
       const result = await SecretsService.forceDelete(req.body.filters);

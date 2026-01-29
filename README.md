@@ -292,24 +292,26 @@ npm run start
 | 001 | app/Casts |
 | 002 | app/Console |
 | 003 | app/Console/Commands |
-| 004 | app/Events |
-| 005 | app/Exceptions |
-| 006 | app/Helpers |
-| 007 | app/Http |
-| 008 | app/Http/Controllers |
-| 009 | app/Http/Middleware |
-| 010 | app/Http/Requests |
-| 011 | app/Jobs |
-| 012 | app/Listeners |
-| 013 | app/Models |
-| 014 | app/Providers |
-| 015 | app/Services |
-| 016 | app/Services/Cache |
-| 017 | app/Services/Image |
-| 018 | app/Services/Secrets |
-| 019 | app/Services/Users |
-| 020 | app/Traits |
-| 021 | app/WebSockets |
+| 004 | app/Console/Schedules |
+| 005 | app/Events |
+| 006 | app/Exceptions |
+| 007 | app/Helpers |
+| 008 | app/Http |
+| 009 | app/Http/Controllers |
+| 010 | app/Http/Middleware |
+| 011 | app/Http/Requests |
+| 012 | app/Jobs |
+| 013 | app/Listeners |
+| 014 | app/Models |
+| 015 | app/Providers |
+| 016 | app/Services |
+| 017 | app/Services/Cache |
+| 018 | app/Services/Image |
+| 019 | app/Services/Schedules |
+| 020 | app/Services/Secrets |
+| 021 | app/Services/Users |
+| 022 | app/Traits |
+| 023 | app/WebSockets |
 
 ---
 
@@ -323,6 +325,8 @@ npm run start
 | 004 | app/Casts/CastJson.ts |
 | 001 | app/Console/Kernel.ts |
 | 001 | app/Console/Commands/QueueWorker.ts |
+| 002 | app/Console/Commands/TaskRunner.ts |
+| 001 | app/Console/Schedules/CacheTask.ts |
 | 001 | app/Events/WriteLogsEvents.ts |
 | 001 | app/Exceptions/Handler.ts |
 | 001 | app/Helpers/Format.ts |
@@ -364,6 +368,7 @@ npm run start
 | 003 | app/Services/Cache/CacheService.ts |
 | 004 | app/Services/Cache/CacheSqliteDriver.ts |
 | 001 | app/Services/Image/ImageService.ts |
+| 001 | app/Services/Schedules/SchedulesService.ts |
 | 001 | app/Services/Secrets/SecretsService.ts |
 | 001 | app/Services/Users/UsersService.ts |
 | 001 | app/Traits/HashPasswordTrait.ts |

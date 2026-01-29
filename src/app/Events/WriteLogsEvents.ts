@@ -45,7 +45,7 @@ const logRules: Record<WriteLogHandle, LogRule> = {
   },
 };
 
-type LogPayload = Record<string, unknown>;
+type LogHandle = { [key: string]: unknown; };;
 
 const clone = <T>(data: T): T => structuredClone ? structuredClone(data) : JSON.parse(JSON.stringify(data));
 
@@ -54,10 +54,10 @@ export class WriteLogsEvents {
   private static listening = false;
   static dispatch(
     source: LogSource,
-    payload: LogPayload,
+    handle: LogHandle,
     action: WriteLogHandle,
   ) {
-    eventBus.emit(this.eventName, source, payload, action);
+    eventBus.emit(this.eventName, source, handle, action);
   }
 
   static listen() {
@@ -65,14 +65,13 @@ export class WriteLogsEvents {
     this.listening = true;
     eventBus.on(
       this.eventName,
-      async (source: LogSource, payload: LogPayload, action: WriteLogHandle) => { // 明确指定action类型
+      async (source: LogSource, handle: LogHandle, action: WriteLogHandle) => {
         const rule = logRules[action];
         if (!rule) return;
         const { model, foreignKey } = rule;
         await model.insert({
-          action,
           source: clone(source),
-          payload: clone(payload),
+          handle: { ...clone(handle), action },
           [foreignKey]: Number(source.id),
         });
       }

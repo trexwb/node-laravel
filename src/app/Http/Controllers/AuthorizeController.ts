@@ -9,16 +9,16 @@ export class AuthorizeController {
     try {
       const { account, password } = req.body;
       if (!account || !password) {
-        res.error(400008001001, 'Account Or Password is required');
+        res.error(400009001001, 'Account Or Password is required');
         return;
       }
       const userRow = await UsersService.findByAccount(account);
       if (!userRow) {
-        res.error(400008001002, 'Account number does not exist');
+        res.error(400009001002, 'Account number does not exist');
         return;
       }
       if (Crypto.md5(password + userRow.salt.toString()) !== userRow.password) {
-        res.error(400008001003, 'Wrong password');
+        res.error(400009001003, 'Wrong password');
         return;
       }
       // 触发 Event (异步解耦，操作日志)
@@ -41,16 +41,16 @@ export class AuthorizeController {
     try {
       const { uuid, secret } = req.body;
       if (!uuid || !secret) {
-        res.error(400008001004, 'Account Or Password is required');
+        res.error(400009001004, 'Account Or Password is required');
         return;
       }
       const userRow = await UsersService.findByUuid(uuid);
       if (!userRow) {
-        res.error(400008001005, 'Account number does not exist');
+        res.error(400009001005, 'Account number does not exist');
         return;
       }
       if (secret !== Crypto.md5(userRow.secret)) {
-        res.error(400008001006, 'Wrong password');
+        res.error(400009001006, 'Wrong password');
         return;
       }
       // 触发 Event (异步解耦，操作日志)
@@ -72,7 +72,7 @@ export class AuthorizeController {
   public static async signInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!(req as any).currentUser) {
-        res.error(401008001007, 'User Error');
+        res.error(401009001007, 'User Error');
         return;
       }
       res.success((req as any).currentUser);
@@ -84,7 +84,7 @@ export class AuthorizeController {
   public static async signOut(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!(req as any).currentUser) {
-        res.error(401008001008, 'User Error');
+        res.error(401009001008, 'User Error');
         return;
       }
       // 触发 Event (异步解耦，操作日志)
