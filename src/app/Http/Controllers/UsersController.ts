@@ -26,7 +26,7 @@ export class UsersController {
       }
       // console.log('userRow:', userRow.withGraphJoined('roles.permissions'));
       if (!userRow) {
-        res.error(404008003001, 'User not found');
+        res.error(404009003001, 'User not found');
         return;
       }
       res.success(userRow);
@@ -40,7 +40,7 @@ export class UsersController {
       const form = new UserSaveRequest(req);
       const data = await form.validate();
       if (!data) {
-        res.error(400008003002, 'User Error');
+        res.error(400009003002, 'User Error');
         return;
       }
       const result = await UsersService.create(data);
@@ -53,13 +53,13 @@ export class UsersController {
   public static async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.id) {
-        res.error(400008003003, 'id Not Empty');
+        res.error(400009003003, 'id Not Empty');
         return;
       }
       const form = new UserSaveRequest(req);
       const data = await form.validate();
       if (!data) {
-        res.error(400008003004, 'User Error');
+        res.error(400009003004, 'User Error');
         return;
       }
       const result = await UsersService.updateById(req.body.id, data);
@@ -72,7 +72,7 @@ export class UsersController {
   public static async enable(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003005, 'filters Not Empty');
+        res.error(400009003005, 'filters Not Empty');
         return;
       }
       const result = await UsersService.updateByFilters(req.body.filters, { status: 1 });
@@ -85,7 +85,7 @@ export class UsersController {
   public static async disable(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003006, 'filters Not Empty');
+        res.error(400009003006, 'filters Not Empty');
         return;
       }
       const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
@@ -98,7 +98,7 @@ export class UsersController {
   // public static async sort(req: Request, res: Response, next: NextFunction): Promise<void> {
   //   try {
   //     if (!req.body.filters) {
-  //       res.error(400008003007, 'filters Not Empty');
+  //       res.error(400009003007, 'filters Not Empty');
   //       return;
   //     }
   //     const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
@@ -111,7 +111,7 @@ export class UsersController {
   public static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003007, 'filters Not Empty');
+        res.error(400009003007, 'filters Not Empty');
         return;
       }
       const result = await UsersService.deleteByFilters(req.body.filters);
@@ -134,7 +134,7 @@ export class UsersController {
   public static async restore(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003008, 'filters Not Empty');
+        res.error(400009003008, 'filters Not Empty');
         return;
       }
       const result = await UsersService.restoreByFilters(req.body.filters);
@@ -147,7 +147,7 @@ export class UsersController {
   public static async forceDelete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400008003009, 'filters Not Empty');
+        res.error(400009003009, 'filters Not Empty');
         return;
       }
       const result = await UsersService.forceDelete(req.body.filters);
