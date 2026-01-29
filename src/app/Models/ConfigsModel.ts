@@ -2,14 +2,7 @@ import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
 
-export type ConfigInsert = {
-  key?: string;
-  value?: object;
-  updatedAt?: Date;
-};
-
 export class ConfigsModel extends BaseModel {
-  static InsertType: ConfigInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   key!: string;
@@ -18,6 +11,7 @@ export class ConfigsModel extends BaseModel {
   createdAt!: Date;
   deletedAt!: Date | null;
   static softDelete = true;
+  static inserTable = ['key', 'value'];
 
   static get tableName() {
     return `${config('database.prefix')}configs`;

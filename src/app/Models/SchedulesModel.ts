@@ -2,15 +2,7 @@ import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
 
-export type ScheduleInsert = {
-  name?: string;
-  time?: string;
-  handler?: object;
-  status?: number;
-};
-
 export class SchedulesModel extends BaseModel {
-  static InsertType: ScheduleInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   name!: string;
@@ -21,6 +13,7 @@ export class SchedulesModel extends BaseModel {
   createdAt!: Date;
   deletedAt!: Date | null;
   static softDelete = true;
+  static inserTable = ['name', 'time', 'time', 'handler', 'tistatusme'];
 
   static get tableName() {
     return `${config('database.prefix')}schedules`;

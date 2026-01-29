@@ -30,7 +30,7 @@ export class TaskRunner {
       } else if (handler.require) {
         // 2. 使用 path.resolve 确保路径绝对正确
         // 注意：localRequire.resolve 是相对于当前文件路径解析的
-        const modulePath = path.resolve(__dirname, 'src/app/Console/Schedules', handler.require);
+        const modulePath = path.resolve(__dirname, '../Schedules', handler.require);
         // const modulePath = localRequire.resolve(path.join(process.cwd(), 'src/app/Console/Schedules', handler.require));
         // console.log(`[Task Info] Loading module: ${modulePath}`);
         let taskModule: any;

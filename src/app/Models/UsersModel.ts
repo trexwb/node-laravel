@@ -4,22 +4,7 @@ import { BaseModel } from '#app/Models/BaseModel';
 import { RolesModel } from '#app/Models/RolesModel';
 import { UsersRolesModel } from '#app/Models/UsersRolesModel';
 
-export type UserInsert = {
-  nickname?: string;
-  email?: string;
-  mobile?: string;
-  avatar?: string;
-  password?: string;
-  salt?: string;
-  rememberToken?: string;
-  uuid?: string;
-  secret?: string;
-  extension?: object;
-  status?: number;
-};
-
 export class UsersModel extends BaseModel {
-  static InsertType: UserInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   nickname!: string;
@@ -37,6 +22,7 @@ export class UsersModel extends BaseModel {
   createdAt!: Date;
   deletedAt!: Date | null;
   static softDelete = true;
+  static inserTable = ['nickname', 'email', 'mobile', 'avatar', 'password', 'salt', 'rememberToken', 'uuid', 'secret', 'extension', 'status'];
 
   static get tableName() {
     return `${config('database.prefix')}users`;
