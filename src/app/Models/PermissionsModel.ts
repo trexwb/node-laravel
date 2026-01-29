@@ -2,15 +2,7 @@ import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
 
-export type PermissionInsert = {
-  name?: string;
-  permissions?: object;
-  extension?: object;
-  status?: number;
-};
-
 export class PermissionsModel extends BaseModel {
-  static InsertType: PermissionInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   name!: string;
@@ -21,6 +13,7 @@ export class PermissionsModel extends BaseModel {
   createdAt!: Date;
   deletedAt!: Date | null;
   static softDelete = true;
+  static inserTable = ['name', 'permissions', 'extension', 'status'];
 
   static get tableName() {
     return `${config('database.prefix')}permissions`;

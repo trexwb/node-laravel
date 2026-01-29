@@ -2,19 +2,13 @@ import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
 
-export type UserRoleInsert = {
-  userId?: number;
-  roleId?: number;
-  status?: number;
-};
-
 export class UsersRolesModel extends BaseModel {
-  static InsertType: UserRoleInsert;
   // 显式声明属性，对应数据库字段
   userId!: number;
   roleId!: number;
   status!: number;
   static softDelete = false;
+  static inserTable = ['userId', 'roleId', 'status'];
 
   static get tableName() {
     return `${config('database.prefix')}users_roles`;

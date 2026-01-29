@@ -4,15 +4,7 @@ import { BaseModel } from '#app/Models/BaseModel';
 import { PermissionsModel } from '#app/Models/PermissionsModel';
 import { RolesPermissionsModel } from '#app/Models/RolesPermissionsModel';
 
-export type RoleInsert = {
-  name?: string;
-  permissions?: object;
-  extension?: object;
-  status?: number;
-};
-
 export class RolesModel extends BaseModel {
-  static InsertType: RoleInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   name!: string;
@@ -23,6 +15,7 @@ export class RolesModel extends BaseModel {
   createdAt!: Date;
   deletedAt!: Date | null;
   static softDelete = true;
+  static inserTable = ['name', 'permissions', 'extension', 'status'];
 
   static get tableName() {
     return `${config('database.prefix')}roles`;

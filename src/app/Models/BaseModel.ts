@@ -17,10 +17,11 @@ export class BaseModel extends Model {
   protected static hidden: string[] = [];
   protected static casts: Record<string, CastInterface | string> = {};
   protected static useTimestamps: boolean = true;
-  declare static InsertType: Record<string, any>;
-  // 👉 是否支持软删除（默认 false）
+  // 👇 子类声明允许 insert 的字段
+  static inserTable: readonly string[] = [];
+  // 👇 是否支持软删除（默认 false）
   static softDelete = false;
-  // 👉 软删除字段名（可覆盖）
+  // 👇 软删除字段名（可覆盖）
   static softDeleteColumn = 'deleted_at';
 
   $parseDatabaseJson(json: Pojo): Pojo {
@@ -160,12 +161,12 @@ export class BaseModel extends Model {
     return snakeCaseMappers();
   }
 
-  // 启用自动时间戳（createdAt, updatedAt）
+  // 启用自动时间戳（createdAt）
   static get createdAtColumn() {
     return 'createdAt';
   }
 
-  // 启用自动时间戳（createdAt, updatedAt）
+  // 启用自动时间戳（updatedAt）
   static get updatedAtColumn() {
     return 'updatedAt';
   }
@@ -189,9 +190,7 @@ export class BaseModel extends Model {
       }];
     }
     // 2. 检查当前模型是否存在 'sort' 字段 (通过 jsonSchema 判断)
-    const hasSortField = this.jsonSchema &&
-      this.jsonSchema.properties &&
-      Object.keys(this.jsonSchema.properties).includes('sort');
+    const hasSortField = this.jsonSchema && this.jsonSchema.properties && Object.keys(this.jsonSchema.properties).includes('sort');
     if (hasSortField) {
       // 存在 sort 字段时，插入权重排序：sort > 0 的排在前面，且按值升序
       safeOrder.unshift(
@@ -285,10 +284,10 @@ export class BaseModel extends Model {
   // 单条插入
   static async insert<T extends typeof BaseModel>(
     this: T,
-    data: Partial<any>
+    data: Record<string, any>
   ) {
     // 1. 应用修改器和 casts（set）
-    let normalized = { ...data };
+    let normalized = this.inserTable.length ? Object.fromEntries(Object.entries(data).filter(([key]) => this.inserTable.includes(key))) : { ...data };
     normalized = this.runMutators(normalized);
     normalized = this.runCasts(normalized, 'set');
     // 2. 插入数据库（Objection 会自动调用  $ beforeInsert）
@@ -304,7 +303,7 @@ export class BaseModel extends Model {
   // 批量插入
   static async insertMany<T extends typeof BaseModel>(
     this: T,
-    data: Array<Partial<any>>
+    data: Array<Record<string, any>>
   ) {
     if (data.length === 0) return [];
     const inserted: Array<InstanceType<any>> = [];
@@ -312,7 +311,7 @@ export class BaseModel extends Model {
     await this.transaction(async trx => {
       for (const item of data) {
         // 1️⃣ 复制数据
-        let normalized = { ...item };
+        let normalized = this.inserTable.length ? Object.fromEntries(Object.entries(item).filter(([key]) => this.inserTable.includes(key))) : { ...item };
         // 2️⃣ 应用修改器（set）
         normalized = this.runMutators(normalized);
         // 3️⃣ 应用类型转换（set）
