@@ -22,7 +22,7 @@ export class AuthorizeController {
         return;
       }
       // 触发 Event (异步解耦，操作日志)
-      (req as any).eventEmitter.emit('writeLogs', { ...userRow, post: { account, password } }, 'authorize_signIn');
+      (req as any).eventEmitter.emit('writeLogs', { ...userRow }, { account, password }, 'authorize_signIn');
       // 更新token
       const token = await UsersService.updateToken(userRow);
       const now = Math.floor(Date.now() / 1000);
@@ -54,7 +54,7 @@ export class AuthorizeController {
         return;
       }
       // 触发 Event (异步解耦，操作日志)
-      (req as any).eventEmitter.emit('writeLogs', { ...userRow, post: { uuid, secret } }, 'authorize_signSecret');
+      (req as any).eventEmitter.emit('writeLogs', { ...userRow }, { uuid, secret }, 'authorize_signSecret');
       // 更新token
       const token = await UsersService.updateToken(userRow);
       const now = Math.floor(Date.now() / 1000);
@@ -88,7 +88,7 @@ export class AuthorizeController {
         return;
       }
       // 触发 Event (异步解耦，操作日志)
-      (req as any).eventEmitter.emit('writeLogs', { ...(req as any).currentUser }, 'authorize_signOut');
+      (req as any).eventEmitter.emit('writeLogs', { ...(req as any).currentUser }, { remember_token: '' }, 'authorize_signOut');
       // 更新token
       await UsersService.updateToken((req as any).currentUser);
       res.success();

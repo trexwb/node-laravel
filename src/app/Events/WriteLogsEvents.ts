@@ -1,45 +1,81 @@
 import { eventBus } from '#bootstrap/events';
+import { BaseModel } from '#app/Models/BaseModel';
 import { UsersLogsModel } from '#app/Models/UsersLogsModel';
+import { SecretsLogsModel } from '#app/Models/SecretsLogsModel';
+import { SchedulesLogsModel } from '#app/Models/SchedulesLogsModel';
 
-export const UserLogHandle = {
+/**
+ * 1️⃣ 统一定义 Handle
+ */
+export const WriteLogHandle = {
   AuthorizeSignIn: 'authorize_signIn',
   AuthorizeSignSecret: 'authorize_signSecret',
   AuthorizeSignOut: 'authorize_signOut',
+  SecretsUpdate: 'secrets_update',
+  SchedulesTaskRunner: 'schedules_taskRunner',
 } as const;
 
-export type UserLogHandle = typeof UserLogHandle[keyof typeof UserLogHandle];
+export type WriteLogHandle = typeof WriteLogHandle[keyof typeof WriteLogHandle];
+
+type LogSource = { id: number;[key: string]: unknown; };
+type LogRule = {
+  model: typeof BaseModel;
+  foreignKey: 'userId' | 'secretId' | 'scheduleId';
+};
+const logRules: Record<WriteLogHandle, LogRule> = {
+  authorize_signIn: {
+    model: UsersLogsModel,
+    foreignKey: 'userId',
+  },
+  authorize_signSecret: {
+    model: UsersLogsModel,
+    foreignKey: 'userId',
+  },
+  authorize_signOut: {
+    model: UsersLogsModel,
+    foreignKey: 'userId',
+  },
+  secrets_update: {
+    model: SecretsLogsModel,
+    foreignKey: 'secretId',
+  },
+  schedules_taskRunner: {
+    model: SchedulesLogsModel,
+    foreignKey: 'scheduleId',
+  },
+};
+
+type LogPayload = Record<string, unknown>;
+
+const clone = <T>(data: T): T => structuredClone ? structuredClone(data) : JSON.parse(JSON.stringify(data));
 
 export class WriteLogsEvents {
-  public static readonly eventName = 'writeLogs';
-
-  // 发送事件
-  public static dispatch<H extends UserLogHandle>(
-    source: {
-      id: number;
-      [key: string]: any;
-    },
-    handle: H
-  ): void {
-    eventBus.emit(this.eventName, source, handle);
+  static readonly eventName = 'writeLogs';
+  private static listening = false;
+  static dispatch(
+    source: LogSource,
+    payload: LogPayload,
+    action: WriteLogHandle,
+  ) {
+    eventBus.emit(this.eventName, source, payload, action);
   }
 
-  // 监听事件 (通常在 Provider 中注册)
-  public static listen() {
-    const handleModel = {
-      'authorize_signIn': UsersLogsModel,
-      'authorize_signSecret': UsersLogsModel,
-      'authorize_signOut': UsersLogsModel
-    };
-    eventBus.on(this.eventName, (source, handle) => {
-      const safeSource = JSON.parse(JSON.stringify(source));
-      if (handle in handleModel && handleModel[handle as keyof typeof handleModel]) {
-        const model = handleModel[handle as keyof typeof handleModel];
-        model.create({
-          userId: Number(source.id),
-          source: safeSource,
-          handle: handle,
+  static listen() {
+    if (this.listening) return;
+    this.listening = true;
+    eventBus.on(
+      this.eventName,
+      async (source: LogSource, payload: LogPayload, action: WriteLogHandle) => { // 明确指定action类型
+        const rule = logRules[action];
+        if (!rule) return;
+        const { model, foreignKey } = rule;
+        await model.insert({
+          action,
+          source: clone(source),
+          payload: clone(payload),
+          [foreignKey]: Number(source.id),
         });
       }
-    });
+    );
   }
 }

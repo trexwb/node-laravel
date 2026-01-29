@@ -22,6 +22,56 @@ export class BaseModel extends Model {
   // 👉 软删除字段名（可覆盖）
   static softDeleteColumn = 'deleted_at';
 
+  $parseDatabaseJson(json: Pojo): Pojo {
+    json = super.$parseDatabaseJson(json);
+    for (const key of Object.keys(json)) {
+      const value = json[key];
+      // 这里的逻辑可以根据你的字段命名习惯优化，比如只处理以 At 结尾的字段
+      if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
+        // 将时间转为指定时区并格式化
+        json[key] = formatDate(value);
+      }
+    }
+    return json;
+  }
+
+  $formatJson(json: Pojo): Pojo {
+    json = super.$formatJson(json);
+    // 遍历所有字段，如果是 Date 对象或符合日期格式的字符串，进行转换
+    for (const key of Object.keys(json)) {
+      const value = json[key];
+      // 这里的逻辑可以根据你的字段命名习惯优化，比如只处理以 At 结尾的字段
+      if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
+        // 将时间转为指定时区并格式化
+        json[key] = formatDate(value);
+      }
+    }
+    return json;
+  }
+
+  getUpdatedAtAttribute(value: string | Date) {
+    return formatDate(value);
+  }
+
+  getCreatedAtAttribute(value: string | Date) {
+    return formatDate(value);
+  }
+
+  // 自动时间戳
+  $beforeInsert() {
+    // const now = new Date().toISOString();
+    const now = nowInTz();
+    (this as any).createdAt = now;
+    (this as any).updatedAt = now;
+  }
+
+  // 自动更新 updatedAt（Objection 默认已支持，这里显式保留）
+  $beforeUpdate() {
+    // (this as any).updatedAt = new Date().toISOString();
+    (this as any).updatedAt = nowInTz();
+  }
+
+
   /**
  * 子类必须实现
  */
@@ -64,33 +114,6 @@ export class BaseModel extends Model {
       }
     }
     return query;
-  }
-
-  $parseDatabaseJson(json: Pojo): Pojo {
-    json = super.$parseDatabaseJson(json);
-    for (const key of Object.keys(json)) {
-      const value = json[key];
-      // 这里的逻辑可以根据你的字段命名习惯优化，比如只处理以 At 结尾的字段
-      if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
-        // 将时间转为指定时区并格式化
-        json[key] = formatDate(value);
-      }
-    }
-    return json;
-  }
-
-  $formatJson(json: Pojo): Pojo {
-    json = super.$formatJson(json);
-    // 遍历所有字段，如果是 Date 对象或符合日期格式的字符串，进行转换
-    for (const key of Object.keys(json)) {
-      const value = json[key];
-      // 这里的逻辑可以根据你的字段命名习惯优化，比如只处理以 At 结尾的字段
-      if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
-        // 将时间转为指定时区并格式化
-        json[key] = formatDate(value);
-      }
-    }
-    return json;
   }
 
   /**
@@ -151,28 +174,6 @@ export class BaseModel extends Model {
 
   static get updatedAtColumn() {
     return 'updatedAt';
-  }
-
-  getUpdatedAtAttribute(value: string | Date) {
-    return formatDate(value);
-  }
-
-  getCreatedAtAttribute(value: string | Date) {
-    return formatDate(value);
-  }
-
-  // 自动时间戳
-  $beforeInsert() {
-    // const now = new Date().toISOString();
-    const now = nowInTz();
-    (this as any).createdAt = now;
-    (this as any).updatedAt = now;
-  }
-
-  // 自动更新 updatedAt（Objection 默认已支持，这里显式保留）
-  $beforeUpdate() {
-    // (this as any).updatedAt = new Date().toISOString();
-    (this as any).updatedAt = nowInTz();
   }
 
   // 排序任务
@@ -285,7 +286,7 @@ export class BaseModel extends Model {
   }
 
   // 单条插入
-  static async create(
+  static async insert(
     data: Partial<any>
   ) {
     // 1. 应用修改器和 casts（set）
@@ -303,7 +304,7 @@ export class BaseModel extends Model {
   }
 
   // 批量插入
-  static async createMany(
+  static async insertMany(
     data: Array<Partial<any>>
   ) {
     if (data.length === 0) return [];

@@ -1,18 +1,12 @@
 import { CacheService } from '#app/Services/Cache/CacheService';
-import { SecretsModel } from '#app/Models/SecretsModel';
+import { SchedulesModel } from '#app/Models/SchedulesModel';
 import Utils from '#utils/index';
 
-export class SecretsService {
-  protected static cacheKey: string = 'secrets';
+export class SchedulesService {
+  protected static cacheKey: string = 'schedules';
   public static async findById(id: number) {
     return await CacheService.remember(`${this.cacheKey}[id:${id}]`, 0, async () => {
-      return await SecretsModel.findById(id);
-    });
-  }
-
-  public static async findByAppId(appId: number) {
-    return await CacheService.remember(`${this.cacheKey}[appId:${appId}]`, 0, async () => {
-      return await SecretsModel.findByAppId(appId);
+      return await SchedulesModel.findById(id);
     });
   }
 
@@ -28,13 +22,20 @@ export class SecretsService {
     let order: { column: string; order: string }[] | undefined = undefined;
     const regex = /^([+-])(.*?)$/si;
     const match = (sort || '').match(regex);
-    const schemaColumns = SecretsModel.getSchemaDbColumns();
+    const schemaColumns = SchedulesModel.getSchemaDbColumns();
     if (match) {
       if (schemaColumns.includes(match[2])) order = [{ column: match[2], order: match[1] === '-' ? 'DESC' : 'ASC' }];
     }
     const cacheKey = `${this.cacheKey}[list:${JSON.stringify(Utils.sortMultiDimensionalObject([filters, page, pageSize, order]))}]`;
     return await CacheService.remember(`${cacheKey}`, 0, async () => {
-      return await SecretsModel.findMany(filters, { page, pageSize, order }, trashed);
+      return await SchedulesModel.findMany(filters, { page, pageSize, order }, trashed);
+    });
+  }
+
+  public static async findAll() {
+    const cacheKey = `${this.cacheKey}[all:${JSON.stringify({ status: 1 })}]`;
+    return await CacheService.remember(`${cacheKey}`, 0, async () => {
+      return await SchedulesModel.findAll({ status: 1 }, undefined, false);
     });
   }
 
@@ -49,9 +50,9 @@ export class SecretsService {
       extension?: object;
       status?: number;
     } = {}
-  ): Promise<InstanceType<typeof SecretsModel> | null> {
+  ): Promise<InstanceType<typeof SchedulesModel> | null> {
     // 1. 创建用户
-    const newUser = await SecretsModel.insert(data);
+    const newUser = await SchedulesModel.insert(data);
     if (!newUser) {
       throw new Error('Failed to create secret');
     }
@@ -73,20 +74,20 @@ export class SecretsService {
       extension?: object;
       status?: number;
     } = {}
-  ): Promise<InstanceType<typeof SecretsModel> | null> {
+  ): Promise<InstanceType<typeof SchedulesModel> | null> {
     // 检查 id 是否存在
     if (id === undefined) {
       throw new Error('User ID is required for update operation');
     }
     // 更新用户
-    const updatedUser = await SecretsModel.updateById(id, data);
+    const updatedUser = await SchedulesModel.updateById(id, data);
     if (!updatedUser) {
       throw new Error('Failed to update secret');
     }
     // 清除相关缓存
     await this.flushallCache();
     // 类型断言确保返回正确类型
-    return updatedUser as InstanceType<typeof SecretsModel>;
+    return updatedUser as InstanceType<typeof SchedulesModel>;
   }
 
   public static async updateByFilters(
@@ -103,8 +104,8 @@ export class SecretsService {
     } = {}
   ): Promise<number | null> {
     // 更新用户
-    const processedData = { ...data } as Partial<InstanceType<typeof SecretsModel>>;
-    const affects = await SecretsModel.updateByFilters(filters, processedData);
+    const processedData = { ...data } as Partial<InstanceType<typeof SchedulesModel>>;
+    const affects = await SchedulesModel.updateByFilters(filters, processedData);
     // 清除相关缓存
     await this.flushallCache();
     // 类型断言确保返回正确类型
@@ -113,7 +114,7 @@ export class SecretsService {
 
   public static async deleteById(id: number): Promise<number | null> {
     // 清除所有缓存
-    const affects = await SecretsModel.deleteById(id);
+    const affects = await SchedulesModel.deleteById(id);
     await this.flushallCache();
     // 类型断言确保返回正确类型
     return affects;
@@ -121,16 +122,7 @@ export class SecretsService {
 
   public static async deleteByFilters(filters: object | undefined = undefined): Promise<number | null> {
     // 清除所有缓存
-    const affects = await SecretsModel.deleteByFilters(filters);
-    await this.flushallCache();
-    // 类型断言确保返回正确类型
-    return affects;
-  }
-
-
-  public static async restoreById(id: number): Promise<number | null> {
-    // 清除所有缓存
-    const affects = await SecretsModel.restoreById(id);
+    const affects = await SchedulesModel.deleteByFilters(filters);
     await this.flushallCache();
     // 类型断言确保返回正确类型
     return affects;
@@ -138,20 +130,14 @@ export class SecretsService {
 
   public static async restoreByFilters(filters: object | undefined = undefined): Promise<number | null> {
     // 清除所有缓存
-    const affects = await SecretsModel.restoreByFilters(filters);
+    const affects = await SchedulesModel.restoreByFilters(filters);
     await this.flushallCache();
     // 类型断言确保返回正确类型
     return affects;
   }
 
-  public static async forceDelete(filters: object | undefined = undefined): Promise<number | null> {
-    // 清除所有缓存
-    return await SecretsModel.forceDelete(filters);
-  }
-
-  public static async clearUserCache(secret: SecretsModel) {
+  public static async clearUserCache(secret: SchedulesModel) {
     CacheService.forget(`${this.cacheKey}[id:${secret.id}]`);
-    CacheService.forget(`${this.cacheKey}[appId:${secret.appId}]`);
   }
 
   public static async flushallCache() {
