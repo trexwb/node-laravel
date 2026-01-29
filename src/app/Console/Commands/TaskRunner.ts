@@ -1,11 +1,11 @@
 import { createRequire } from 'node:module';
 import { exec } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
+// import { config } from '#bootstrap/configLoader';
 import { eventBus } from '#bootstrap/events';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { pathToFileURL } from 'node:url';
 const execAsync = promisify(exec);
 
 // 1. 重命名 require 避免与全局/编译环境冲突
@@ -30,14 +30,35 @@ export class TaskRunner {
       } else if (handler.require) {
         // 2. 使用 path.resolve 确保路径绝对正确
         // 注意：localRequire.resolve 是相对于当前文件路径解析的
-        const modulePath = path.resolve(__dirname, '../Schedules', handler.require);
-        // const modulePath = localRequire.resolve(path.join(process.cwd(), 'src/app/Console/Schedules', handler.require));
-        // console.log(`[Task Info] Loading module: ${modulePath}`);
+        // const modulePath = path.resolve(process.cwd(), 'src/app/Console/Schedules', handler.require);
+        // let taskModule: any;
+        // try {
+        //   const moduleUrl = pathToFileURL(modulePath).href + `${config('app.env') === 'production' ? 'js' : 'ts'}?t=${Date.now()}`;
+        //   taskModule = await import(moduleUrl);
+        // } catch (e) {
+        //   console.error(`Failed to import module: ${modulePath}`, e);
+        //   throw e; // 或者设置 status = 3 并 return
+        // }
+        const baseModulePath = path.resolve(process.cwd(), 'src/app/Console/Schedules', handler.require);
         let taskModule: any;
-        try {
-          taskModule = await import(modulePath + `?t=${Date.now()}`);
-        } catch (e) {
-          taskModule = localRequire(modulePath);
+        let found = false;
+
+        // 优先 .ts（开发），再 .js（生产）
+        for (const ext of ['.ts', '.js']) {
+          const fullPath = baseModulePath + ext;
+          try {
+            await fs.promises.access(fullPath); // 文件存在
+            const moduleUrl = pathToFileURL(fullPath).href + `?t=${Date.now()}`;
+            taskModule = await import(moduleUrl);
+            found = true;
+            break;
+          } catch {
+            // 文件不存在，继续
+          }
+        }
+
+        if (!found) {
+          throw new Error(`Task module not found: ${handler.require} (.ts or .js)`);
         }
         // 支持多种导出格式
         if (typeof taskModule === 'function') {
@@ -46,9 +67,9 @@ export class TaskRunner {
           await taskModule.handle();
         } else if (taskModule && typeof taskModule.default === 'function') {
           await taskModule.default();
+        } else {
+          throw new Error(`Module does not export a runnable function: ${handler.require}`);
         }
-        // 3. 清理缓存，确保下一次执行时加载的是最新代码（如果是动态修改脚本的需求）
-        delete localRequire.cache[modulePath];
       }
       status = 1; // 成功
       stdout = 'success';
