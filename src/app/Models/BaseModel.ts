@@ -17,6 +17,7 @@ export class BaseModel extends Model {
   protected static hidden: string[] = [];
   protected static casts: Record<string, CastInterface | string> = {};
   protected static useTimestamps: boolean = true;
+  declare static InsertType: Record<string, any>;
   // 👉 是否支持软删除（默认 false）
   static softDelete = false;
   // 👉 软删除字段名（可覆盖）
@@ -71,12 +72,9 @@ export class BaseModel extends Model {
     (this as any).updatedAt = nowInTz();
   }
 
-
-  /**
- * 子类必须实现
- */
+  // 子类必须实现
   static buildQuery(
-    query: QueryBuilder<any>,
+    query: QueryBuilder<BaseModel> = this.query(),
     filterss: any,
     trashed: boolean = false
   ): QueryBuilder<any> {
@@ -85,6 +83,7 @@ export class BaseModel extends Model {
     return query;
   }
 
+  // 获取所有字段
   static buildIdQuery(
     query: QueryBuilder<BaseModel> = this.query(),
     ids?: IdFilter
@@ -116,9 +115,7 @@ export class BaseModel extends Model {
     return query;
   }
 
-  /**
-   * 自动运行访问器 (Getters)
-   */
+  // 自动运行访问器 (Getters)
   protected static runAccessors(data: any) {
     const proto = this.prototype;
     const methods = Object.getOwnPropertyNames(this).concat(Object.getOwnPropertyNames(proto));
@@ -135,9 +132,7 @@ export class BaseModel extends Model {
     return data;
   }
 
-  /**
-   * 自动运行修改器 (Setters)
-   */
+  // 自动运行修改器 (Setters)
   protected static runMutators(data: any) {
     for (const key in data) {
       const methodName = `set${_.upperFirst(_.camelCase(key))}Attribute`;
@@ -148,9 +143,7 @@ export class BaseModel extends Model {
     return data;
   }
 
-  /**
-   * 执行类型转换
-   */
+  // 执行类型转换
   protected static runCasts(data: any, type: 'get' | 'set') {
     const result = { ...data };
     for (const key in this.casts) {
@@ -172,6 +165,7 @@ export class BaseModel extends Model {
     return 'createdAt';
   }
 
+  // 启用自动时间戳（createdAt, updatedAt）
   static get updatedAtColumn() {
     return 'updatedAt';
   }
@@ -222,6 +216,7 @@ export class BaseModel extends Model {
 
   // 查询单条
   static async findOne<T extends typeof BaseModel>(
+    this: T,
     filterss: Parameters<T['buildQuery']>[1],
     trashed: boolean = false
   ): Promise<InstanceType<T> | undefined> {
@@ -230,7 +225,8 @@ export class BaseModel extends Model {
   }
 
   // 多条查询（全部）
-  static async findAll(
+  static async findAll<T extends typeof BaseModel>(
+    this: T,
     filterss: Parameters<typeof this.buildQuery>[1],
     options: {
       order?: Array<{ column: string; order?: string }> | { column: string; order?: string };
@@ -255,6 +251,7 @@ export class BaseModel extends Model {
 
   // 查询多条（分页）
   static async findMany<T extends typeof BaseModel>(
+    this: T,
     filterss: Parameters<T['buildQuery']>[1],
     options: {
       page?: number;
@@ -286,7 +283,8 @@ export class BaseModel extends Model {
   }
 
   // 单条插入
-  static async insert(
+  static async insert<T extends typeof BaseModel>(
+    this: T,
     data: Partial<any>
   ) {
     // 1. 应用修改器和 casts（set）
@@ -304,7 +302,8 @@ export class BaseModel extends Model {
   }
 
   // 批量插入
-  static async insertMany(
+  static async insertMany<T extends typeof BaseModel>(
+    this: T,
     data: Array<Partial<any>>
   ) {
     if (data.length === 0) return [];
@@ -340,6 +339,7 @@ export class BaseModel extends Model {
 
   // 通过过滤条件更新
   static async updateByFilters<T extends typeof BaseModel>(
+    this: T,
     filterss: Parameters<T['buildQuery']>[1],
     data: Partial<InstanceType<T>>
   ) {
@@ -359,6 +359,7 @@ export class BaseModel extends Model {
 
   // 通过过滤条件恢复
   static async restoreByFilters<T extends typeof BaseModel>(
+    this: T,
     filterss: Parameters<T['buildQuery']>[1]
   ) {
     const query = this.buildQuery(this.query(), filterss);

@@ -10,7 +10,7 @@ export class Kernel {
    * 定义应用的计划任务
    */
   public static async schedule() {
-    // // 示例 1: 每分钟执行一次 (Laravel 风格: * * * * *)
+    // // 示例 1: 每分钟执行一次 (* * * * *)
     // schedule.scheduleJob('* * * * *', () => {
     //   console.log(`[Scheduled Task] 执行系统健康检查: ${new Date().toISOString()}`);
     //   // 这里可以触发事件或调用 Service
@@ -23,7 +23,7 @@ export class Kernel {
     //   // await LogService.cleanup();
     // });
 
-    // // 示例 3: 使用对象配置执行 (每小时第30分钟)
+    // // 示例 3: 使用对象配置执行 (0 */30 * * * *)
     // const rule = new schedule.RecurrenceRule();
     // rule.minute = 30;
     // schedule.scheduleJob(rule, () => {
@@ -31,7 +31,6 @@ export class Kernel {
     // });
     if (this.isInitializing) return;
     this.isInitializing = true;
-
     try {
       const taskData = (await SchedulesService.findAll())?.data || [];
       const activeIds = new Set<string>();

@@ -29,13 +29,11 @@ export const tzToUtc = (input?: Date | string | number | null): Date => {
     // 当前时刻在 TIME_ZONE 下的 UTC 表示 → 其实就是 now()
     return new Date();
   }
-
   if (typeof input === 'string') {
     // 字符串是 TIME_ZONE 的本地时间（无时区）
     // 先按 TIME_ZONE 解析，再转 UTC
     return dayjs.tz(input, TIME_ZONE).utc().toDate();
   }
-
   // input 是 Date 或 number
   // 假设这个 Date 代表的是 TIME_ZONE 的本地时间（比如来自日历选择器）
   // → 需要先格式化为 YYYY-MM-DD HH:mm:ss，再按 TIME_ZONE 解析，最后转 UTC

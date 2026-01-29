@@ -3,7 +3,14 @@ import { BaseModel } from '#app/Models/BaseModel';
 import { SecretsModel } from '#app/Models/SecretsModel';
 import { config } from '#bootstrap/configLoader';
 
+export type SecretLogInsert = {
+  secretId?: number;
+  source?: object;
+  handle?: object;
+};
+
 export class SecretsLogsModel extends BaseModel {
+  static InsertType: SecretLogInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   secretId!: number;

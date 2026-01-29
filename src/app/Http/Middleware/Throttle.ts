@@ -13,7 +13,6 @@ export const throttle = (max: number = 60, windowMinutes: number = 1) => {
     standardHeaders: true, // 在响应头中返回 RateLimit-* 信息
     legacyHeaders: false, // 禁用 X-RateLimit-* 旧版头
     validate: { trustProxy: false },
-
     // 自定义超出限制时的返回内容 (Laravel 风格)
     handler: (_req: Request, res: Response) => {
       res.status(429).json({

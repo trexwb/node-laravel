@@ -5,7 +5,6 @@ import { UsersModel } from '#app/Models/UsersModel';
 export class UserSaveRequest extends BaseRequest {
   rules() {
     const id = Number(this.req.body.id || 0);
-
     const rules: Record<string, any> = {
       status: 'required|integer|in:0,1',
       // email 必须是邮箱格式，并且唯一

@@ -1,8 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
 export class Str {
-  private static readonly ALPHABET =
-    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  private static readonly ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
   /**
    * 生成指定长度的随机字符串（不依赖第三方库）
@@ -11,12 +10,10 @@ export class Str {
     const bytes = randomBytes(length);
     const chars = Str.ALPHABET;
     const charsLen = chars.length;
-
     let result = '';
     for (let i = 0; i < length; i++) {
       result += chars[bytes[i] % charsLen];
     }
-
     return result;
   }
 

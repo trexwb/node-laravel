@@ -3,7 +3,17 @@ import { BaseModel } from '#app/Models/BaseModel';
 import { config } from '#bootstrap/configLoader';
 import { nowInTz, tzToUtc, formatDate } from '#app/Helpers/Format';
 
+export type JobInsert = {
+  queue?: string;
+  payload?: object;
+  attempts?: number;
+  reservedAt?: Date | null;
+  availableAt?: Date;
+  finishedAt?: Date | null;
+};
+
 export class JobsModel extends BaseModel {
+  static InsertType: JobInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   queue!: string;

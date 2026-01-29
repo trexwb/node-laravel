@@ -5,7 +5,6 @@ import { SecretsModel } from '#app/Models/SecretsModel';
 export class SecretSaveRequest extends BaseRequest {
   rules() {
     const id = Number(this.req.body.id || 0);
-
     const rules: Record<string, any> = {
       status: 'required|integer|in:0,1',
       // email 必须是邮箱格式，并且唯一

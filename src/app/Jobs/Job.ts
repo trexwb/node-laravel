@@ -3,7 +3,6 @@ import { JobsModel } from '#app/Models/JobsModel';
 export abstract class Job {
   // 子类需实现具体的业务逻辑
   abstract handle(): Promise<void>;
-
   /**
    * 将任务推送到数据库
    */

@@ -15,10 +15,7 @@ export const refreshToken = (req: Request, res: Response, next: NextFunction) =>
     if (user && currentTokenPayload && currentTokenPayload.timeStamp) {
       const now = Math.floor(Date.now() / 1000);
       const timeLeft = currentTokenPayload.timeStamp - now;
-      /**
-       * 2. 刷新策略：
-       * 如果剩余有效期不足总时长的 1/2，则进行无感续期
-       */
+      // 2. 刷新策略：如果剩余有效期不足总时长的 1/2，则进行无感续期
       if (timeLeft > 0 && timeLeft < (tokenTime / 2)) {
         const newTokenData = {
           token: user.remember_token || user.id, // 根据你的业务 logic

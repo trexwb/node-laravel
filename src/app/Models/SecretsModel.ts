@@ -2,7 +2,19 @@ import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
 
+export type SecretInsert = {
+  title?: string;
+  appId?: number;
+  appSecret?: string;
+  appIv?: string;
+  permissions?: object;
+  timesExpire?: Date | null;
+  extension?: object;
+  status?: number;
+};
+
 export class SecretsModel extends BaseModel {
+  static InsertType: SecretInsert;
   // 显式声明属性，对应数据库字段
   id!: number;
   title!: string;
