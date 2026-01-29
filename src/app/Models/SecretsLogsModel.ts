@@ -8,7 +8,7 @@ export class SecretsLogsModel extends BaseModel {
   id!: number;
   secretId!: number;
   source!: object;
-  handle!: string;
+  handle!: object;
   updatedAt!: Date;
   createdAt!: Date;
   static softDelete = false;
@@ -25,7 +25,7 @@ export class SecretsLogsModel extends BaseModel {
         id: { type: 'integer' },
         secretId: { type: 'integer' },
         source: { type: 'object' },
-        handle: { type: 'string' },
+        handle: { type: 'object' },
         createdAt: { type: 'string' },
         updatedAt: { type: 'string' },
       }

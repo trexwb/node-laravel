@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('user_id').unsigned();
     table.foreign('user_id').references('id').inTable(`${config('database.prefix')}users`);
     table.json('source').nullable().comment('源数据');
-    table.text('handle').notNullable().comment('操作处理');
+    table.json('handle').nullable().comment('操作内容');
     table.specificType('updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.comment('用户更新日志');

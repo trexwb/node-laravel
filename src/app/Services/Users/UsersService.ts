@@ -87,7 +87,7 @@ export class UsersService {
     } = {}
   ): Promise<InstanceType<typeof UsersModel> | null> {
     // 1. 创建用户
-    const newUser = await UsersModel.create(data);
+    const newUser = await UsersModel.insert(data);
     if (!newUser) {
       throw new Error('Failed to create user');
     }

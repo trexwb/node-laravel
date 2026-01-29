@@ -7,9 +7,8 @@ export class SchedulesLogsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
   id!: number;
   scheduleId!: number;
-  name!: string;
-  time!: string;
-  handler!: object;
+  source!: object;
+  handle!: object;
   updatedAt!: Date;
   createdAt!: Date;
   static softDelete = false;
@@ -21,13 +20,12 @@ export class SchedulesLogsModel extends BaseModel {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['scheduleId', 'name', 'time', 'handler'], // 必填字段
+      required: ['scheduleId', 'handle'], // 必填字段
       properties: {
         id: { type: 'integer' },
         scheduleId: { type: 'integer' },
-        name: { type: 'string' },
-        time: { type: 'string' },
-        handler: { type: 'object' },
+        source: { type: 'object' },
+        handle: { type: 'object' },
         createdAt: { type: 'string' },
         updatedAt: { type: 'string' },
       }
@@ -36,7 +34,7 @@ export class SchedulesLogsModel extends BaseModel {
 
   // 定义 JSON 字段（Objection 会自动序列化/反序列化）
   static get jsonAttributes() {
-    return ['handler'];
+    return ['source'];
   }
 
   static getSchemaColumns(): string[] {
@@ -61,7 +59,7 @@ export class SchedulesLogsModel extends BaseModel {
     filterss: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       scheduleId?: string | number | number[];
-      handle?: string;
+      title?: string;
       keywords?: string;
     } = {}
   ): QueryBuilder<SchedulesLogsModel> {
@@ -84,19 +82,20 @@ export class SchedulesLogsModel extends BaseModel {
       keywords.forEach(keyword => {
         const myTableName = this.tableName;
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${myTableName}.name\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}.source\`) > 0`, [keyword])
             .orWhereRaw(`LOCATE(?, \`${myTableName}.handle\`) > 0`, [keyword])
             .orWhereIn(`${myTableName}.schedule_id`, function () {
               this.select('id').from(SchedulesModel.tableName).where(function () {
-                this.orWhereRaw('LOCATE(?, `name`) > 0', [keyword])
-                  .orWhereRaw('LOCATE(?, `handler`) > 0', [keyword])
+                this.orWhereRaw('LOCATE(?, `title`) > 0', [keyword])
+                  .orWhereRaw('LOCATE(?, `app_id`) > 0', [keyword])
+                  .orWhereRaw('LOCATE(?, `extension`) > 0', [keyword])
               });
             })
         });
       });
     }
-    if (filterss.handle) {
-      query.where(`${this.tableName}.handle`, filterss.handle);
+    if (filterss.title) {
+      query.where(`${this.tableName}.title`, filterss.title);
     }
     return query;
   }
@@ -114,7 +113,7 @@ export class SchedulesLogsModel extends BaseModel {
     };
   }
 
-  // 查询单个日志并关联用户
+  // 查询单个日志及密钥
   static async findByIdAndSchedule(id: number) {
     return await this.query().findById(id).withGraphJoined('schedule');
   }

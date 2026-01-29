@@ -9,8 +9,8 @@ import { runWithCluster } from '#bootstrap/cluster';
 import { registerChannels } from '#routes/channels';
 
 runWithCluster(async () => {
-  const config = container.config('app'); // 假设你已经有了配置加载器
   const { app } = container;
+  const config = container.config('app'); // 假设你已经有了配置加载器
   await bootstrap(app);
   // --- 1. 创建 HTTP 服务器 ---
   const httpServer = createHttpServer(app);
