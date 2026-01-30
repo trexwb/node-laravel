@@ -5,12 +5,12 @@ import { AuthorizeController } from '#app/Http/Controllers/AuthorizeController';
 
 const router = Router();
 
-router.post('/signIn', decryptRequest, AuthorizeController.signIn);
+router.post('/signIn', [decryptRequest], AuthorizeController.signIn);
 
-router.post('/signSecret', decryptRequest, AuthorizeController.signSecret);
+router.post('/signSecret', [decryptRequest], AuthorizeController.signSecret);
 
-router.post('/signOut', authenticateToken, AuthorizeController.signOut);
+router.post('/signOut', [authenticateToken], AuthorizeController.signOut);
 
-router.post('/signInfo', authenticateToken, decryptRequest, AuthorizeController.signInfo);
+router.post('/signInfo', [authenticateToken, decryptRequest], AuthorizeController.signInfo);
 
 export default router;
