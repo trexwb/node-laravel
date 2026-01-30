@@ -54,19 +54,23 @@ export class UsersController {
     }
   }
 
-  public static async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async modify(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      if (!req.body.id) {
-        res.error(400009003003, 'id Not Empty');
+      let inputData: any = req.body;
+      if (!inputData.id) {
+        res.error(400009003003, 'id｜uuid Not Empty');
         return;
       }
-      const form = new UserSaveRequest(req);
-      const data = await form.validate();
-      if (!data) {
-        res.error(400009003004, 'User Error');
+      try {
+        inputData = await new UserSaveRequest(req).validate();
+      } catch (err) {
+        res.error(400009003002, JSON.stringify(err));
         return;
       }
-      const result = await UsersService.updateById(req.body.id, data);
+      if (!inputData.roles && req.body.roles) {
+        inputData.roles = req.body.roles;
+      }
+      const result = await UsersService.modifyById(inputData.id, inputData);
       res.success(result);
     } catch (error) {
       next(error);
@@ -79,7 +83,7 @@ export class UsersController {
         res.error(400009003005, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.updateByFilters(req.body.filters, { status: 1 });
+      const result = await UsersService.modifyByFilters(req.body.filters, { status: 1 });
       res.success(result);
     } catch (error) {
       next(error);
@@ -92,25 +96,12 @@ export class UsersController {
         res.error(400009003006, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
+      const result = await UsersService.modifyByFilters(req.body.filters, { status: 0 });
       res.success(result);
     } catch (error) {
       next(error);
     }
   }
-
-  // public static async sort(req: Request, res: Response, next: NextFunction): Promise<void> {
-  //   try {
-  //     if (!req.body.filters) {
-  //       res.error(400009003007, 'filters Not Empty');
-  //       return;
-  //     }
-  //     const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
-  //     res.success(result);
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // }
 
   public static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {

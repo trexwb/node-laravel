@@ -49,7 +49,7 @@ export class UsersService {
 
   public static async updateToken(user: InstanceType<typeof UsersModel>) {
     const newToken = Utils.generateRandomString(64);
-    UsersModel.updateById(user.id, { rememberToken: newToken });
+    UsersModel.modifyById(user.id, { rememberToken: newToken });
     this.clearUserCache(user);
     return newToken;
   }
@@ -104,12 +104,10 @@ export class UsersService {
         throw new Error(`Failed to create user: invalid role id(s) ${data.roles}`);
       }
     }
-
     const newUser = await UsersModel.insert(data);
     if (!newUser) {
       throw new Error('Failed to create user');
     }
-
     if (rolesIds.length) {
       // await UsersRolesModel.deleteByFilters({ userId: newUser.id });
       const roleData = rolesIds.map(roleId => ({ roleId, userId: newUser.id, status: 1 }));
@@ -121,7 +119,7 @@ export class UsersService {
     return newUser;
   }
 
-  public static async updateById(
+  public static async modifyById(
     id?: number,
     data: {
       nickname?: string;
@@ -130,8 +128,11 @@ export class UsersService {
       avatar?: string;
       password?: string;
       salt?: string;
+      uuid?: string;
+      secret?: string;
       extension?: object;
       status?: number;
+      roles?: number[] | number;
     } = {}
   ): Promise<InstanceType<typeof UsersModel> | null> {
     if (data.password) {
@@ -140,36 +141,45 @@ export class UsersService {
     }
     // 检查 id 是否存在
     if (id === undefined) {
-      throw new Error('User ID is required for update operation');
+      throw new Error('User ID is required for modify operation');
+    }
+    let rolesIds: number[] = [];
+    if (data.roles) {
+      rolesIds = (await RolesModel.findAll({ id: data.roles, status: 1 })).map(row => row.id);
+      if (!rolesIds.length) {
+        throw new Error(`Failed to create user: invalid role id(s) ${data.roles}`);
+      }
     }
     // 更新用户
-    const updatedUser = await UsersModel.updateById(id, data);
-    if (!updatedUser) {
-      throw new Error('Failed to update user');
+    const modifydUser = await UsersModel.modifyById(id, data);
+    if (!modifydUser) {
+      throw new Error('Failed to modify user');
+    }
+    if (rolesIds.length) {
+      await UsersRolesModel.deleteByFilters({ userId: id });
+      const roleData = rolesIds.map(roleId => ({ roleId, userId: id, status: 1 }));
+      await UsersRolesModel.insertMany(roleData);
     }
     // 清除相关缓存
     await this.flushallCache();
     // 类型断言确保返回正确类型
-    return updatedUser as InstanceType<typeof UsersModel>;
+    return modifydUser as InstanceType<typeof UsersModel>;
   }
 
-  public static async updateByFilters(
+  public static async modifyByFilters(
     filters: object | undefined = undefined,
     data: {
       nickname?: string;
       email?: string;
       mobile?: string;
       avatar?: string;
-      password?: string;
-      salt?: string;
-      uuid?: string;
       extension?: object;
       status?: number;
     } = {}
   ): Promise<number | null> {
     // 更新用户
     const processedData = { ...data } as Partial<InstanceType<typeof UsersModel>>;
-    const affects = await UsersModel.updateByFilters(filters, processedData);
+    const affects = await UsersModel.modifyByFilters(filters, processedData);
     // 清除相关缓存
     await this.flushallCache();
     // 类型断言确保返回正确类型

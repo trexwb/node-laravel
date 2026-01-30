@@ -61,7 +61,7 @@ export class SecretsService {
     return newUser;
   }
 
-  public static async updateById(
+  public static async modifyById(
     id?: number,
     data: {
       title?: string;
@@ -76,20 +76,20 @@ export class SecretsService {
   ): Promise<InstanceType<typeof SecretsModel> | null> {
     // 检查 id 是否存在
     if (id === undefined) {
-      throw new Error('User ID is required for update operation');
+      throw new Error('User ID is required for modify operation');
     }
     // 更新用户
-    const updatedUser = await SecretsModel.updateById(id, data);
-    if (!updatedUser) {
-      throw new Error('Failed to update secret');
+    const modifydUser = await SecretsModel.modifyById(id, data);
+    if (!modifydUser) {
+      throw new Error('Failed to modify secret');
     }
     // 清除相关缓存
     await this.flushallCache();
     // 类型断言确保返回正确类型
-    return updatedUser as InstanceType<typeof SecretsModel>;
+    return modifydUser as InstanceType<typeof SecretsModel>;
   }
 
-  public static async updateByFilters(
+  public static async modifyByFilters(
     filters: object | undefined = undefined,
     data: {
       title?: string;
@@ -104,7 +104,7 @@ export class SecretsService {
   ): Promise<number | null> {
     // 更新用户
     const processedData = { ...data } as Partial<InstanceType<typeof SecretsModel>>;
-    const affects = await SecretsModel.updateByFilters(filters, processedData);
+    const affects = await SecretsModel.modifyByFilters(filters, processedData);
     // 清除相关缓存
     await this.flushallCache();
     // 类型断言确保返回正确类型

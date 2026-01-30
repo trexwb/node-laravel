@@ -13,7 +13,7 @@ export const usersRoutes = [
   ['/list', 'list', 'accountsUsers:read'],
   ['/detail', 'detail', 'accountsUsers:read'],
   ['/create', 'create', 'accountsUsers:write'],
-  ['/update', 'update', 'accountsUsers:write'],
+  ['/modify', 'modify', 'accountsUsers:write'],
   ['/enable', 'enable', 'accountsUsers:write'],
   ['/disable', 'disable', 'accountsUsers:write'],
 

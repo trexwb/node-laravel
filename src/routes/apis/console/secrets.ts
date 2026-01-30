@@ -13,7 +13,7 @@ export const secretsRoutes = [
   ['/list', 'list', 'systemsSecrets:read'],
   ['/detail', 'detail', 'systemsSecrets:read'],
   ['/create', 'create', 'systemsSecrets:write'],
-  ['/update', 'update', 'systemsSecrets:write'],
+  ['/modify', 'modify', 'systemsSecrets:write'],
   ['/enable', 'enable', 'systemsSecrets:write'],
   ['/disable', 'disable', 'systemsSecrets:write'],
 
