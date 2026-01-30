@@ -8,6 +8,7 @@ export class UsersRolesModel extends BaseModel {
   roleId!: number;
   status!: number;
   static softDelete = false;
+  static useTimestamps = false;
   static inserTable = ['userId', 'roleId', 'status'];
 
   static get tableName() {
@@ -50,28 +51,30 @@ export class UsersRolesModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<UsersRolesModel> = this.query(),
-    filterss: {
+    filters: {
       userId?: string | number | number[];
       roleId?: string | number | number[];
       status?: string | number | number[];
     } = {}
   ): QueryBuilder<UsersRolesModel> {
-    function applyWhereCondition(field: string, value: any) {
-      if (Array.isArray(value)) {
-        if (value.length > 0) query.whereIn(field, value);
-      } else if (value) {
-        query.where(field, value);
+    function applyCondition(field: string, value: any, isNot: boolean = false) {
+      const isArray = Array.isArray(value);
+      if (isNot) {
+        isArray ? query.whereNotIn(field, value) : query.whereNot(field, value);
+      } else {
+        isArray ? query.whereIn(field, value) : query.where(field, value);
       }
     }
-    if (!filterss) return query;
-    if (Object.hasOwn(filterss, 'status') && filterss.status != '' && filterss.status != null) {
-      applyWhereCondition('status', filterss.status);
+    if (!filters) return query;
+    const table = this.tableName;
+    if (filters.status !== undefined && filters.status !== null && filters.status !== '') {
+      applyCondition(`${table}.status`, filters.status);
     }
-    if (Object.hasOwn(filterss, 'userId') && filterss.userId != '' && filterss.userId != null) {
-      applyWhereCondition('user_id', filterss.userId);
+    if (Object.hasOwn(filters, 'userId') && filters.userId != '' && filters.userId != null) {
+      applyCondition(`${table}.user_id`, filters.userId);
     }
-    if (Object.hasOwn(filterss, 'roleId') && filterss.roleId != '' && filterss.roleId != null) {
-      applyWhereCondition('role_id', filterss.roleId);
+    if (Object.hasOwn(filters, 'roleId') && filters.roleId != '' && filters.roleId != null) {
+      applyCondition(`${table}.role_id`, filters.roleId);
     }
     return query;
   }

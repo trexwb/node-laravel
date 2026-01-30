@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import utils from '#utils/index';
+import Utils from '#utils/index';
 import type { Knex } from 'knex';
 import { fileURLToPath } from 'url';
 import { config } from '#bootstrap/configLoader';
@@ -21,9 +21,9 @@ export async function seed(knex: Knex): Promise<void> {
   if (total === 0) {
     const secretsData = {
       title: '网关',
-      app_id: utils.unique(16).toString(),
-      app_secret: utils.generateRandomString(32),
-      app_iv: utils.generateRandomString(16),
+      app_id: Utils.unique(16).toString(),
+      app_secret: Utils.generateRandomString(32),
+      app_iv: Utils.generateRandomString(16),
       permissions: JSON.stringify(['admin']),
       extension: JSON.stringify({}),
       status: 1,

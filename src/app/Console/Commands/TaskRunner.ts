@@ -22,27 +22,24 @@ export class TaskRunner {
     try {
       status = 2; // 运行中
       if (handler.comment) {
-        await execAsync(handler.comment, { timeout: 60000 });
+        function assertSafe(command: string) {
+          const forbidden = ['..', 'rm', 'sudo', '&&', '|', ';', '$(', '`'];
+          if (forbidden.some(k => command.includes(k))) {
+            throw new Error('Unsafe command');
+          }
+        }
+        assertSafe(handler.comment);
+        const SAFE_EXEC_DIR = path.resolve(process.cwd(), 'src');
+        await execAsync(handler.comment, { cwd: SAFE_EXEC_DIR, timeout: 60000 });
       } else if (handler.script) {
         // 传递我们创建的 localRequire 给动态脚本
         const func = new Function('require', 'console', handler.script);
         await func(localRequire, console);
       } else if (handler.require) {
         // 2. 使用 path.resolve 确保路径绝对正确
-        // 注意：localRequire.resolve 是相对于当前文件路径解析的
-        // const modulePath = path.resolve(process.cwd(), 'src/app/Console/Schedules', handler.require);
-        // let taskModule: any;
-        // try {
-        //   const moduleUrl = pathToFileURL(modulePath).href + `${config('app.env') === 'production' ? 'js' : 'ts'}?t=${Date.now()}`;
-        //   taskModule = await import(moduleUrl);
-        // } catch (e) {
-        //   console.error(`Failed to import module: ${modulePath}`, e);
-        //   throw e; // 或者设置 status = 3 并 return
-        // }
         const baseModulePath = path.resolve(process.cwd(), 'src/app/Console/Schedules', handler.require);
         let taskModule: any;
         let found = false;
-
         // 优先 .ts（开发），再 .js（生产）
         for (const ext of ['.ts', '.js']) {
           const fullPath = baseModulePath + ext;
@@ -56,7 +53,6 @@ export class TaskRunner {
             // 文件不存在，继续
           }
         }
-
         if (!found) {
           throw new Error(`Task module not found: ${handler.require} (.ts or .js)`);
         }

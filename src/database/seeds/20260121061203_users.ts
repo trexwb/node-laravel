@@ -1,7 +1,7 @@
 import type { Knex } from 'knex';
 import fs from 'fs';
 import path from 'path';
-import utils from '#utils/index';
+import Utils from '#utils/index';
 import { Crypto } from '#utils/Crypto';
 import { fileURLToPath } from 'url';
 import { config } from '#bootstrap/configLoader';
@@ -29,22 +29,22 @@ export async function seed(knex: Knex): Promise<void> {
       if (total === 0) {
         const accountData = {
           'root': {
-            salt: utils.generateRandomString(6),
-            password: utils.generateRandomString(16),
-            uuid: utils.getUUID(),
-            secret: utils.generateRandomString(32)
+            salt: Utils.generateRandomString(6),
+            password: Utils.generateRandomString(16),
+            uuid: Utils.getUUID(),
+            secret: Utils.generateRandomString(32)
           },
           'admin': {
-            salt: utils.generateRandomString(6),
-            password: utils.generateRandomString(16),
-            uuid: utils.getUUID(),
-            secret: utils.generateRandomString(32)
+            salt: Utils.generateRandomString(6),
+            password: Utils.generateRandomString(16),
+            uuid: Utils.getUUID(),
+            secret: Utils.generateRandomString(32)
           },
           'editor': {
-            salt: utils.generateRandomString(6),
-            password: utils.generateRandomString(16),
-            uuid: utils.getUUID(),
-            secret: utils.generateRandomString(32)
+            salt: Utils.generateRandomString(6),
+            password: Utils.generateRandomString(16),
+            uuid: Utils.getUUID(),
+            secret: Utils.generateRandomString(32)
           }
         };
         // Deletes ALL existing entries
@@ -99,13 +99,16 @@ export async function seed(knex: Knex): Promise<void> {
         ]).then(async () => {
           await knex(`${config('database.prefix')}users_roles`).insert([{
             user_id: 1,
-            role_id: 1
+            role_id: 1,
+            status: 1
           }, {
             user_id: 2,
-            role_id: 2
+            role_id: 2,
+            status: 1
           }, {
             user_id: 3,
-            role_id: 3
+            role_id: 3,
+            status: 1
           }]);
           // 插入成功后，记录这次执行
           await knex(`${config('database.prefix')}seeds`).insert([{

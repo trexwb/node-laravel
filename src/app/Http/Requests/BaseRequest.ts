@@ -1,27 +1,88 @@
+import Validator from 'validatorjs';
 import type { Request } from 'express';
-import { makeValidator } from '#utils/Validator';
+
+Validator.register(
+  'nullable',
+  () => true,
+);
 
 export abstract class BaseRequest {
   protected req: Request;
+
   constructor(req: Request) {
     this.req = req;
   }
-  // 子类实现具体的规则
-  abstract rules(): any;
-  // 子类实现自定义错误消息
-  messages(): any { return {}; }
-  /**
-   * 执行验证
-   */
-  public async validate(): Promise<any> {
-    const validator = makeValidator(this.req.body, this.rules(), this.messages());
-    const fails = await new Promise((resolve) => {
-      validator.checkAsync(() => resolve(false), () => resolve(true));
-    });
-    if (fails) {
-      const firstError = Object.values(validator.errors.all())[0][0];
-      throw new Error(`VALIDATION_FAILED:${firstError}`);
-    }
-    return validator.input; // 返回通过验证的数据
+
+  /** 子类必须实现 */
+  abstract rules(): Record<string, any>;
+
+  /** 可选 */
+  messages(): Record<string, string> {
+    return {};
   }
+
+  /** 是否有权限 */
+  authorize(): boolean {
+    return true;
+  }
+
+  /** 获取全部输入 */
+  all() {
+    return this.req.body;
+  }
+
+  /** 获取单个字段 */
+  input<T = any>(key: string, defaultValue?: T): T {
+    return this.req.body?.[key] ?? defaultValue;
+  }
+
+  /** 核心校验入口（Controller 只调用这个） */
+  async validate<T = any>(): Promise<T> {
+    if (!this.authorize()) {
+      throw { message: '无权操作' };
+    }
+
+    const data = this.all();
+    const rules = this.rules();
+    const validator = new Validator(data, this.rules(), this.messages());
+
+    await this.registerAsyncRules();
+
+    // 🔥 关键：异步校验必须用 checkAsync
+    await new Promise<void>((resolve, reject) => {
+      validator.checkAsync(
+        () => resolve(),
+        () => reject(validator.errors.all())
+      );
+    });
+
+    // ✅ 根据 rules 生成返回对象，全部字段都 castValue
+    // const casted: Record<string, any> = {};
+    // for (const key of Object.keys(rules)) {
+    //   casted[key] = this.castValue(data[key], rules[key]);
+    // }
+    // return casted as T;
+
+    // ✅ 只保留 rules 中的字段
+    const validated: Record<string, any> = {};
+    for (const key of Object.keys(rules)) {
+      if (key in data) {
+        validated[key] = this.castValue(data[key], rules[key]);
+      }
+    }
+    return validated as T;
+  }
+
+  private castValue(value: any, rule: string) {
+    // 判断是否允许为空
+    if (value === undefined || value === null) return value;
+    const rules = rule.split('|');
+    if (rules.includes('integer')) return Number(value);
+    if (rules.includes('numeric')) return Number(value);
+    if (rules.includes('boolean')) return Boolean(value);
+    if (rules.includes('string')) return String(value);
+    return value; // 默认不转换
+  }
+  /** 供子类覆盖：注册 async 规则 */
+  protected async registerAsyncRules() { }
 }

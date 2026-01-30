@@ -57,29 +57,36 @@ export class SecretsLogsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<SecretsLogsModel> = this.query(),
-    filterss: {
+    filters: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       secretId?: string | number | number[];
       title?: string;
       keywords?: string;
     } = {}
   ): QueryBuilder<SecretsLogsModel> {
-    function applyWhereCondition(field: string, value: any) {
-      if (Array.isArray(value)) {
-        if (value.length > 0) query.whereIn(field, value);
-      } else if (value) {
-        query.where(field, value);
+    function applyCondition(field: string, value: any, isNot: boolean = false) {
+      const isArray = Array.isArray(value);
+      if (isNot) {
+        isArray ? query.whereNotIn(field, value) : query.whereNot(field, value);
+      } else {
+        isArray ? query.whereIn(field, value) : query.where(field, value);
       }
     }
-    if (!filterss) return query;
-    if (filterss.id != null) {
-      this.buildIdQuery(query, filterss.id);
+    if (!filters) return query;
+    const table = this.tableName;
+    // 处理 ID 过滤器 (支持 简单值, 数组, 或 {eq, not} 对象)
+    if (filters.id !== undefined && filters.id !== null) {
+      const id = filters.id;
+      if (typeof id === 'object' && !Array.isArray(id)) {
+        // 处理高级对象格式: { eq, not }
+        if (id.eq !== undefined) applyCondition(`${table}.id`, id.eq);
+        if (id.not !== undefined) applyCondition(`${table}.id`, id.not, true);
+      } else {
+        applyCondition(`${table}.id`, id);
+      }
     }
-    if (Object.hasOwn(filterss, 'schedule_id') && filterss.secretId != '' && filterss.secretId != null) {
-      applyWhereCondition(`${this.tableName}.status`, filterss.secretId);
-    }
-    if (filterss.keywords) {
-      const keywords = filterss.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+    if (filters.keywords) {
+      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         const myTableName = this.tableName;
         query.where(function () {
@@ -95,8 +102,8 @@ export class SecretsLogsModel extends BaseModel {
         });
       });
     }
-    if (filterss.title) {
-      query.where(`${this.tableName}.title`, filterss.title);
+    if (filters.title) {
+      query.where(`${this.tableName}.title`, filters.title);
     }
     return query;
   }
@@ -120,14 +127,14 @@ export class SecretsLogsModel extends BaseModel {
   }
 
   // 单条查询（非 ID）
-  static async findOneAndSecret(filterss: Parameters<typeof this.buildQuery>[1]) {
-    const query = this.buildQuery(this.query(), filterss).withGraphJoined('secret');
+  static async findOneAndSecret(filters: Parameters<typeof this.buildQuery>[1]) {
+    const query = this.buildQuery(this.query(), filters).withGraphJoined('secret');
     return await query.first(); // 或 .limit(1).first()
   }
 
   // 多条查询（分页）
   static async findManyAndSecret(
-    filterss: Parameters<typeof this.buildQuery>[1],
+    filters: Parameters<typeof this.buildQuery>[1],
     options: {
       page?: number;
       pageSize?: number;
@@ -136,7 +143,7 @@ export class SecretsLogsModel extends BaseModel {
   ) {
     const { page = 1, pageSize = 10, order } = options;
     const offset = (page - 1) * pageSize;
-    const baseQuery = this.buildQuery(this.query(), filterss);
+    const baseQuery = this.buildQuery(this.query(), filters);
     const countQuery = baseQuery.clone();
     const dataQuery = baseQuery.clone();
     const total = await countQuery.resultSize();

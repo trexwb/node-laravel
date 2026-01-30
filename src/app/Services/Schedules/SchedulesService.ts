@@ -33,9 +33,10 @@ export class SchedulesService {
   }
 
   public static async findAll() {
-    const cacheKey = `${this.cacheKey}[all:${JSON.stringify({ status: 1 })}]`;
+    const filters = { status: 1 };
+    const cacheKey = `${this.cacheKey}[all:${JSON.stringify(filters)}]`;
     return await CacheService.remember(`${cacheKey}`, 0, async () => {
-      return await SchedulesModel.findAll({ status: 1 }, undefined, false);
+      return await SchedulesModel.findAll(filters, undefined, false);
     });
   }
 
@@ -134,6 +135,11 @@ export class SchedulesService {
     await this.flushallCache();
     // 类型断言确保返回正确类型
     return affects;
+  }
+
+  public static async forceDelete(filters: object | undefined = undefined): Promise<number | null> {
+    // 清除所有缓存
+    return await SchedulesModel.forceDelete(filters);
   }
 
   public static async clearUserCache(secret: SchedulesModel) {

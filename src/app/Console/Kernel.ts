@@ -32,7 +32,7 @@ export class Kernel {
     if (this.isInitializing) return;
     this.isInitializing = true;
     try {
-      const taskData = (await SchedulesService.findAll())?.data || [];
+      const taskData = await SchedulesService.findAll() || [];
       const activeIds = new Set<string>();
       if (Array.isArray(taskData)) {
         for (const row of taskData) {
