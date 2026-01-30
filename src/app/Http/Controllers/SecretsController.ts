@@ -47,7 +47,7 @@ export class SecretsController {
     }
   }
 
-  public static async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async modify(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.id) {
         res.error(400009002002, 'id Not Empty');
@@ -59,7 +59,7 @@ export class SecretsController {
         res.error(400009002003, 'User Error');
         return;
       }
-      const result = await SecretsService.updateById(req.body.id, data);
+      const result = await SecretsService.modifyById(req.body.id, data);
       res.success(result);
     } catch (error) {
       next(error);
@@ -72,7 +72,7 @@ export class SecretsController {
         res.error(400009002004, 'filters Not Empty');
         return;
       }
-      const result = await SecretsService.updateByFilters(req.body.filters, { status: 1 });
+      const result = await SecretsService.modifyByFilters(req.body.filters, { status: 1 });
       res.success(result);
     } catch (error) {
       next(error);
@@ -85,25 +85,12 @@ export class SecretsController {
         res.error(400009002005, 'filters Not Empty');
         return;
       }
-      const result = await SecretsService.updateByFilters(req.body.filters, { status: 0 });
+      const result = await SecretsService.modifyByFilters(req.body.filters, { status: 0 });
       res.success(result);
     } catch (error) {
       next(error);
     }
   }
-
-  // public static async sort(req: Request, res: Response, next: NextFunction): Promise<void> {
-  //   try {
-  //     if (!req.body.filters) {
-  //       res.error(400009002007, 'filters Not Empty');
-  //       return;
-  //     }
-  //     const result = await SecretsService.updateByFilters(req.body.filters, { status: 0 });
-  //     res.success(result);
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // }
 
   public static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {

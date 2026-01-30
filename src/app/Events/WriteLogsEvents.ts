@@ -11,7 +11,7 @@ export const WriteLogHandle = {
   AuthorizeSignIn: 'authorize_signIn',
   AuthorizeSignSecret: 'authorize_signSecret',
   AuthorizeSignOut: 'authorize_signOut',
-  SecretsUpdate: 'secrets_update',
+  SecretsUpdate: 'secrets_modify',
   SchedulesTaskRunner: 'schedules_taskRunner',
 } as const;
 
@@ -35,7 +35,7 @@ const logRules: Record<WriteLogHandle, LogRule> = {
     model: UsersLogsModel,
     foreignKey: 'userId',
   },
-  secrets_update: {
+  secrets_modify: {
     model: SecretsLogsModel,
     foreignKey: 'secretId',
   },

@@ -282,12 +282,12 @@ export class BaseModel extends Model {
   }
 
   // 通过ID更新
-  static async updateById(id: number, data: Partial<any>) {
+  static async modifyById(id: number, data: Partial<any>) {
     return await this.query().patchAndFetchById(id, data);
   }
 
   // 通过过滤条件更新
-  static async updateByFilters<T extends typeof BaseModel>(
+  static async modifyByFilters<T extends typeof BaseModel>(
     this: T,
     filters: Parameters<T['buildQuery']>[1],
     data: Partial<InstanceType<T>>
