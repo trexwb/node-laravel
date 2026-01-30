@@ -45,28 +45,28 @@
 
 ## 📦 技术栈
 
-| 技术                   | 说明 |
-| ----------            | ------------- |
-| Node.js               | 运行环境 |
-| TypeScript            | 语言 |
-| cors                  | 跨域 |
-| dayjs                 | 时间处理 |
-| dotenv                | 环境变量
-| express               | 框架 |
-| express-rate-limit    | 请求限制 |
-| helmet                | 安全
-| http-proxy-middleware | 代理
-| knex                  | ORM |
-| lodash-es             | 函数式 |
-| multer                | 文件上传 |
-| mysql2                | 数据库
-| node-schedule         | 定时任务 |
-| objection             | ORM |
-| redis                 | 缓存 / 队列 |
-| sharp                 | 图片处理 |
-| sqlite3               | 缓存 / 队列 / 数据库 ｜
-| validatorjs           | 表单验证 |
-| ws                    | WebSocket |
+| 技术                   | 说明                 | 版本                                                                 |
+|------------------------|----------------------|----------------------------------------------------------------------|
+| Node.js                | 运行环境               | ![Static Badge](https://img.shields.io/badge/Node-%E2%89%A522.21.1-green)        |
+| TypeScript             | 语言                   | ![Static Badge](https://img.shields.io/badge/TypeScript-%E2%89%A55.9.3-green)   |
+| cors                   | 跨域                   | ![Static Badge](https://img.shields.io/badge/Cors-%E2%89%A52.8.6-green)         |
+| dayjs                  | 时间处理               | ![Static Badge](https://img.shields.io/badge/Dayjs-%E2%89%A51.11.19-green)        |
+| dotenv                 | 环境变量               | ![Static Badge](https://img.shields.io/badge/Dotenv-%E2%89%A517.2.3-green)      |
+| express                | 框架                   | ![Static Badge](https://img.shields.io/badge/Express-%E2%89%A55.2.1-green)      |
+| express-rate-limit     | 请求限制               | ![Static Badge](https://img.shields.io/badge/ExpressRateLimit-%E2%89%A58.2.1-green) |
+| helmet                 | 安全                   | ![Static Badge](https://img.shields.io/badge/helmet-%E2%89%A58.1.0-green)       |
+| http-proxy-middleware  | 代理                   | ![Static Badge](https://img.shields.io/badge/HttpProxyMiddleware-%E2%89%A53.0.5-green) |
+| knex                   | ORM                   | ![Static Badge](https://img.shields.io/badge/Knex-%E2%89%A53.1.0-green)         |
+| lodash-es              | 函数式                 | ![Static Badge](https://img.shields.io/badge/LodashES-%E2%89%A54.17.23-green)     |
+| multer                 | 文件上传               | ![Static Badge](https://img.shields.io/badge/Multer-%E2%89%A52.0.2-green)       |
+| mysql2                 | 数据库                 | ![Static Badge](https://img.shields.io/badge/Mysql2-%E2%89%A53.16.2-green)       |
+| node-schedule          | 定时任务               | ![Static Badge](https://img.shields.io/badge/NodeSchedule-%E2%89%A52.1.1-green) |
+| objection              | ORM                   | ![Static Badge](https://img.shields.io/badge/Objection-%E2%89%A53.1.5-green)    |
+| redis                  | 缓存 / 队列             | ![Static Badge](https://img.shields.io/badge/Redis-%E2%89%A55.10.0-green)        |
+| sharp                  | 图片处理                | ![Static Badge](https://img.shields.io/badge/Sharp-%E2%89%A50.34.5-green)        |
+| sqlite3                | 缓存 / 队列 / 数据库     | ![Static Badge](https://img.shields.io/badge/Sqlite3-%E2%89%A55.1.7-green)      |
+| validatorjs            | 表单验证                | ![Static Badge](https://img.shields.io/badge/Validatorjs-%E2%89%A53.22.1-green)  |
+| ws                     | WebSocket              | ![Static Badge](https://img.shields.io/badge/Ws-%E2%89%A58.19.0-green)           |
 
 ---
 
@@ -212,7 +212,7 @@ decrypt(payload: string): string
 ### 本地开发
 
 ```bash
-npm run dev
+npm run start:dev
 ```
 
 ### 构建生产版本
@@ -289,29 +289,29 @@ npm run start
 
 | 码 | 目录 |
 |----|------|
-| 001 | app/Casts |
-| 002 | app/Console |
-| 003 | app/Console/Commands |
-| 004 | app/Console/Schedules |
-| 005 | app/Events |
-| 006 | app/Exceptions |
-| 007 | app/Helpers |
-| 008 | app/Http |
-| 009 | app/Http/Controllers |
-| 010 | app/Http/Middleware |
-| 011 | app/Http/Requests |
-| 012 | app/Jobs |
-| 013 | app/Listeners |
-| 014 | app/Models |
-| 015 | app/Providers |
-| 016 | app/Services |
-| 017 | app/Services/Cache |
-| 018 | app/Services/Image |
-| 019 | app/Services/Schedules |
-| 020 | app/Services/Secrets |
-| 021 | app/Services/Users |
-| 022 | app/Traits |
-| 023 | app/WebSockets |
+| 001 | src/app/Casts |
+| 002 | src/app/Console |
+| 003 | src/app/Console/Commands |
+| 004 | src/app/Console/Schedules |
+| 005 | src/app/Events |
+| 006 | src/app/Exceptions |
+| 007 | src/app/Helpers |
+| 008 | src/app/Http |
+| 009 | src/app/Http/Controllers |
+| 010 | src/app/Http/Middleware |
+| 011 | src/app/Http/Requests |
+| 012 | src/app/Jobs |
+| 013 | src/app/Listeners |
+| 014 | src/app/Models |
+| 015 | src/app/Providers |
+| 016 | src/app/Services |
+| 017 | src/app/Services/Cache |
+| 018 | src/app/Services/Image |
+| 019 | src/app/Services/Schedules |
+| 020 | src/app/Services/Secrets |
+| 021 | src/app/Services/Users |
+| 022 | src/app/Traits |
+| 023 | src/app/WebSockets |
 
 ---
 
@@ -397,8 +397,8 @@ if (!appId || !appSecret) {
 
 ### 错误码解析
 - **401** - 状态码：未授权
-- **006** - 目录码：`app/Http/Middleware`
-- **014** - 文件码：`AuthenticateSecret.ts`
+- **010** - 目录码：`app/Http/Middleware`
+- **001** - 文件码：`AuthenticateSecret.ts`
 - **001** - 错误序号：该文件中第一个定义的错误
 
 ---
@@ -430,6 +430,13 @@ if (!appId || !appSecret) {
 MIT License
 
 ---
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/trexwb/node-laravel.svg?variant=adaptive)](https://starchart.cc/trexwb/node-laravel)
+
+---
+
 
 ## 🙌 致谢
 
