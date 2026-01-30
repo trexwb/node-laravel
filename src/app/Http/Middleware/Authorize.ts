@@ -2,12 +2,12 @@ import type { Request, Response, NextFunction } from 'express';
 
 export const can = (permissionName: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const userRow = (req as any).currentUser;
-    if (!userRow) {
+    const currentUser = (req as any).currentUser;
+    if (!currentUser) {
       res.error(401010003001, 'Unauthorized');
       return;
     }
-    const roles = userRow.roles || [];
+    const roles = currentUser.roles || [];
     if (!roles || !roles.length) {
       res.error(401010003002, 'Unauthorized');
       return;

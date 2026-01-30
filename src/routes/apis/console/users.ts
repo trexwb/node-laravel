@@ -1,31 +1,32 @@
 import { Router } from 'express';
 import { decryptRequest } from '#app/Http/Middleware/DecryptRequest';
 import { authenticateToken } from '#app/Http/Middleware/AuthenticateToken';
+import { refreshToken } from '#app/Http/Middleware/RefreshToken';
 import { can } from '#app/Http/Middleware/Authorize';
 import { UsersController } from '#app/Http/Controllers/UsersController';
 
 const router = Router();
 
-router.post('/list', [authenticateToken, decryptRequest, can('accountsUsers:read')], UsersController.list);
+const base = [authenticateToken, refreshToken, decryptRequest];
 
-router.post('/detail', [authenticateToken, decryptRequest, can('accountsUsers:read')], UsersController.detail);
+export const usersRoutes = [
+  ['/list', 'list', 'accountsUsers:read'],
+  ['/detail', 'detail', 'accountsUsers:read'],
+  ['/create', 'create', 'accountsUsers:write'],
+  ['/update', 'update', 'accountsUsers:write'],
+  ['/enable', 'enable', 'accountsUsers:write'],
+  ['/disable', 'disable', 'accountsUsers:write'],
 
-router.post('/create', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.create);
+  ['/delete', 'delete', 'accountsUsers:delete'],
 
-router.post('/update', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.update);
+  ['/trashList', 'trashList', 'systemsTrash:read'],
+  ['/restore', 'restore', 'systemsTrash:restore'],
+  ['/forceDelete', 'forceDelete', 'systemsTrash:delete'],
+] as const;
 
-router.post('/enable', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.enable);
+usersRoutes.forEach(([path, action, permission]) => {
+  router.post(path, [...base, can(permission)], UsersController[action]);
+});
 
-router.post('/disable', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.disable);
-
-// router.post('/sort', [authenticateToken, decryptRequest, can('accountsUsers:write')], UsersController.sort);
-
-router.post('/delete', [authenticateToken, decryptRequest, can('accountsUsers:delete')], UsersController.delete);
-
-router.post('/trashList', [authenticateToken, decryptRequest, can('systemsTrash:read')], UsersController.trashList);
-
-router.post('/restore', [authenticateToken, decryptRequest, can('systemsTrash:restore')], UsersController.restore);
-
-router.post('/forceDelete', [authenticateToken, decryptRequest, can('systemsTrash:delete')], UsersController.forceDelete);
 
 export default router;

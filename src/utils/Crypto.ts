@@ -70,17 +70,16 @@ export class Crypto {
       const cipher = crypto.createCipheriv(this.algorithm, this.key, this.iv);
       let encrypted = cipher.update(payload, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      return `${this.iv.toString('hex')}:${encrypted}`;
+      return encrypted;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Encryption failed: ${errorMessage}`);
     }
   }
   // 校验 Token
-  public static decryptToken(token: string): any {
+  public static decryptToken(encryptedText: string): any {
     try {
-      const [ivHex, encryptedText] = token.split(':');
-      const decipher = crypto.createDecipheriv(this.algorithm, this.key, Buffer.from(ivHex, 'hex'));
+      const decipher = crypto.createDecipheriv(this.algorithm, this.key, this.iv);
       let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       // 如果返回的是字符串，则解析为对象
