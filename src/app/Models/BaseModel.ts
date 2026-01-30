@@ -4,12 +4,6 @@ import { nowInTz, formatDate } from '#app/Helpers/Format';
 import type { CastInterface } from '#app/Casts/CastInterface';
 import * as _ from 'lodash-es';
 
-// 定义ID过滤条件的类型
-type IdFilter = {
-  not?: number | number[];
-  eq?: number | number[];
-} | number | number[] | string[];
-
 export class BaseModel extends Model {
   protected static table: string;
   protected static primaryKey: string = 'id';
@@ -61,58 +55,30 @@ export class BaseModel extends Model {
 
   // 自动时间戳
   $beforeInsert() {
-    // const now = new Date().toISOString();
-    const now = nowInTz();
-    (this as any).createdAt = now;
-    (this as any).updatedAt = now;
+    if ((this.constructor as typeof BaseModel).useTimestamps) {
+      // const now = new Date().toISOString();
+      const now = nowInTz();
+      (this as any).createdAt = now;
+      (this as any).updatedAt = now;
+    }
   }
 
   // 自动更新 updatedAt（Objection 默认已支持，这里显式保留）
   $beforeUpdate() {
-    // (this as any).updatedAt = new Date().toISOString();
-    (this as any).updatedAt = nowInTz();
+    if ((this.constructor as typeof BaseModel).useTimestamps) {
+      // (this as any).updatedAt = new Date().toISOString();
+      (this as any).updatedAt = nowInTz();
+    }
   }
 
   // 子类必须实现
   static buildQuery(
     query: QueryBuilder<BaseModel> = this.query(),
-    filterss: any,
+    filters: any,
     trashed: boolean = false
   ): QueryBuilder<any> {
     // query.toKnexQuery().toSQL()
-    console.log('buildQuery:', query.toKnexQuery().toSQL(), filterss, trashed);
-    return query;
-  }
-
-  // 获取所有字段
-  static buildIdQuery(
-    query: QueryBuilder<BaseModel> = this.query(),
-    ids?: IdFilter
-  ): QueryBuilder<BaseModel> {
-    function applyWhereCondition(field: string, value: any) {
-      if (Array.isArray(value)) {
-        if (value.length > 0) query.whereIn(field, value);
-      } else if (value) {
-        query.where(field, value);
-      }
-    }
-    if (ids != null) {
-      // 检查是否为对象形式的过滤条件
-      if (typeof ids === 'object' && ids !== null) {
-        if ('not' in ids && ids.not !== undefined) {
-          Array.isArray(ids.not)
-            ? query.whereNotIn('id', ids.not as number[])
-            : query.whereNot('id', ids.not as number);
-        }
-        if ('eq' in ids && ids.eq !== undefined) {
-          Array.isArray(ids.eq)
-            ? query.whereIn('id', ids.eq as number[])
-            : query.where('id', ids.eq as number);
-        }
-      } else {
-        applyWhereCondition('id', ids);
-      }
-    }
+    console.log('buildQuery:', query.toKnexQuery().toSQL(), filters, trashed);
     return query;
   }
 
@@ -120,7 +86,6 @@ export class BaseModel extends Model {
   protected static runAccessors(data: any) {
     const proto = this.prototype;
     const methods = Object.getOwnPropertyNames(this).concat(Object.getOwnPropertyNames(proto));
-
     methods.forEach(method => {
       if (method.startsWith('get') && method.endsWith('Attribute')) {
         const field = _.snakeCase(method.replace('get', '').replace('Attribute', ''));
@@ -216,42 +181,34 @@ export class BaseModel extends Model {
   // 查询单条
   static async findOne<T extends typeof BaseModel>(
     this: T,
-    filterss: Parameters<T['buildQuery']>[1],
+    filters: Parameters<T['buildQuery']>[1],
     trashed: boolean = false
   ): Promise<InstanceType<T> | undefined> {
-    const query = this.buildQuery(this.query(), filterss, trashed);
+    const query = this.buildQuery(this.query(), filters, trashed);
     return await query.first();
   }
 
   // 多条查询（全部）
   static async findAll<T extends typeof BaseModel>(
     this: T,
-    filterss: Parameters<typeof this.buildQuery>[1],
+    filters: Parameters<typeof this.buildQuery>[1],
     options: {
       order?: Array<{ column: string; order?: string }> | { column: string; order?: string };
     } = {},
     trashed: boolean = false
   ) {
     const { order } = options;
-    const baseQuery = this.buildQuery(this.query(), filterss, trashed);
-    const dataQuery = baseQuery.clone();
-    const totalCount = await baseQuery.resultSize();
+    const baseQuery = this.buildQuery(this.query(), filters, trashed);
     if (order) {
-      (this as any).applyOrder(dataQuery, order);
+      (this as any).applyOrder(baseQuery, order);
     }
-    const data = await dataQuery;
-    return {
-      data,
-      meta: {
-        total: totalCount
-      },
-    };
+    return await baseQuery;
   }
 
   // 查询多条（分页）
   static async findMany<T extends typeof BaseModel>(
     this: T,
-    filterss: Parameters<T['buildQuery']>[1],
+    filters: Parameters<T['buildQuery']>[1],
     options: {
       page?: number;
       pageSize?: number;
@@ -261,7 +218,7 @@ export class BaseModel extends Model {
   ) {
     const { page = 1, pageSize = 10, order } = options;
     const offset = (page - 1) * pageSize;
-    const baseQuery = this.buildQuery(this.query(), filterss, trashed);
+    const baseQuery = this.buildQuery(this.query(), filters, trashed);
     const countQuery = baseQuery.clone();
     const dataQuery = baseQuery.clone();
     const total = await countQuery.resultSize();
@@ -306,7 +263,7 @@ export class BaseModel extends Model {
     data: Array<Record<string, any>>
   ) {
     if (data.length === 0) return [];
-    const inserted: Array<InstanceType<any>> = [];
+    const inserted: Array<InstanceType<T>> = [];
     // 可以使用事务提高性能
     await this.transaction(async trx => {
       for (const item of data) {
@@ -317,15 +274,8 @@ export class BaseModel extends Model {
         // 3️⃣ 应用类型转换（set）
         normalized = this.runCasts(normalized, 'set');
         // 4️⃣ 单条插入 + 获取完整模型
-        const insertedItem = await this.query(trx).insertAndFetch(normalized);
-        // 5️⃣ 转为 plain object
-        let json = insertedItem.toJSON();
-        // 6️⃣ 应用访问器（get）
-        json = this.runAccessors(json);
-        // 7️⃣ 应用类型转换（get）
-        json = this.runCasts(json, 'get');
-        // 8️⃣ 重新构造为模型实例，保留原型链
-        inserted.push(Object.assign(Object.create(this.prototype), json));
+        const result = await this.query(trx).insert(normalized);
+        inserted.push(result as InstanceType<T>);
       }
     });
     return inserted;
@@ -339,10 +289,10 @@ export class BaseModel extends Model {
   // 通过过滤条件更新
   static async updateByFilters<T extends typeof BaseModel>(
     this: T,
-    filterss: Parameters<T['buildQuery']>[1],
+    filters: Parameters<T['buildQuery']>[1],
     data: Partial<InstanceType<T>>
   ) {
-    const query = this.buildQuery(this.query(), filterss);
+    const query = this.buildQuery(this.query(), filters);
     return await query.patch(data);
   }
 
@@ -359,9 +309,9 @@ export class BaseModel extends Model {
   // 通过过滤条件恢复
   static async restoreByFilters<T extends typeof BaseModel>(
     this: T,
-    filterss: Parameters<T['buildQuery']>[1]
+    filters: Parameters<T['buildQuery']>[1]
   ) {
-    const query = this.buildQuery(this.query(), filterss);
+    const query = this.buildQuery(this.query(), filters);
     if (this.softDelete) { // 软删除
       return await query.patch({
         [this.softDeleteColumn]: null,
@@ -382,9 +332,9 @@ export class BaseModel extends Model {
 
   // 通过过滤条件删除
   static async deleteByFilters<T extends typeof BaseModel>(
-    filterss: Parameters<T['buildQuery']>[1]
+    filters: Parameters<T['buildQuery']>[1]
   ) {
-    const query = this.buildQuery(this.query(), filterss);
+    const query = this.buildQuery(this.query(), filters);
     if (this.softDelete) { // 软删除
       return await query.patch({
         [this.softDeleteColumn]: nowInTz(),
@@ -394,9 +344,9 @@ export class BaseModel extends Model {
   }
 
   static async forceDelete<T extends typeof BaseModel>(
-    filterss: Parameters<T['buildQuery']>[1]
+    filters: Parameters<T['buildQuery']>[1]
   ) {
-    const query = this.buildQuery(this.query(), filterss);
+    const query = this.buildQuery(this.query(), filters);
     return await query.delete();
   }
 }

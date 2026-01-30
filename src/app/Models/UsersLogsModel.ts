@@ -57,35 +57,41 @@ export class UsersLogsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<UsersLogsModel> = this.query(),
-    filterss: {
+    filters: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       userId?: string | number | number[];
       handle?: string;
       keywords?: string;
     } = {}
   ): QueryBuilder<UsersLogsModel> {
-    function applyWhereCondition(field: string, value: any) {
-      if (Array.isArray(value)) {
-        if (value.length > 0) query.whereIn(field, value);
-      } else if (value) {
-        query.where(field, value);
+    function applyCondition(field: string, value: any, isNot: boolean = false) {
+      const isArray = Array.isArray(value);
+      if (isNot) {
+        isArray ? query.whereNotIn(field, value) : query.whereNot(field, value);
+      } else {
+        isArray ? query.whereIn(field, value) : query.where(field, value);
       }
     }
-    if (!filterss) return query;
-    if (filterss.id != null) {
-      this.buildIdQuery(query, filterss.id);
+    if (!filters) return query;
+    const table = this.tableName;
+    // 处理 ID 过滤器 (支持 简单值, 数组, 或 {eq, not} 对象)
+    if (filters.id !== undefined && filters.id !== null) {
+      const id = filters.id;
+      if (typeof id === 'object' && !Array.isArray(id)) {
+        // 处理高级对象格式: { eq, not }
+        if (id.eq !== undefined) applyCondition(`${table}.id`, id.eq);
+        if (id.not !== undefined) applyCondition(`${table}.id`, id.not, true);
+      } else {
+        applyCondition(`${table}.id`, id);
+      }
     }
-    if (Object.hasOwn(filterss, 'user_id') && filterss.userId != '' && filterss.userId != null) {
-      applyWhereCondition(`${this.tableName}.status`, filterss.userId);
-    }
-    if (filterss.keywords) {
-      const keywords = filterss.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+    if (filters.keywords) {
+      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
-        const myTableName = this.tableName;
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${myTableName}.source\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${myTableName}.handle\`) > 0`, [keyword])
-            .orWhereIn(`${myTableName}.user_id`, function () {
+          this.orWhereRaw(`LOCATE(?, \`${table}.source\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}.handle\`) > 0`, [keyword])
+            .orWhereIn(`${table}.user_id`, function () {
               this.select('id').from(UsersModel.tableName).where(function () {
                 this.orWhereRaw('LOCATE(?, `nickname`) > 0', [keyword])
                   .orWhereRaw('LOCATE(?, `email`) > 0', [keyword])
@@ -96,8 +102,8 @@ export class UsersLogsModel extends BaseModel {
         });
       });
     }
-    if (filterss.handle) {
-      query.where(`${this.tableName}.handle`, filterss.handle);
+    if (filters.handle) {
+      query.where(`${table}.handle`, filters.handle);
     }
     return query;
   }
@@ -121,14 +127,14 @@ export class UsersLogsModel extends BaseModel {
   }
 
   // 单条查询（非 ID）
-  static async findOneAndUser(filterss: Parameters<typeof this.buildQuery>[1]) {
-    const query = this.buildQuery(this.query(), filterss).withGraphJoined('user');
+  static async findOneAndUser(filters: Parameters<typeof this.buildQuery>[1]) {
+    const query = this.buildQuery(this.query(), filters).withGraphJoined('user');
     return await query.first(); // 或 .limit(1).first()
   }
 
   // 多条查询（分页）
   static async findManyAndUser(
-    filterss: Parameters<typeof this.buildQuery>[1],
+    filters: Parameters<typeof this.buildQuery>[1],
     options: {
       page?: number;
       pageSize?: number;
@@ -137,7 +143,7 @@ export class UsersLogsModel extends BaseModel {
   ) {
     const { page = 1, pageSize = 10, order } = options;
     const offset = (page - 1) * pageSize;
-    const baseQuery = this.buildQuery(this.query(), filterss);
+    const baseQuery = this.buildQuery(this.query(), filters);
     const countQuery = baseQuery.clone();
     const dataQuery = baseQuery.clone();
     const total = await countQuery.resultSize();

@@ -91,22 +91,32 @@ export class UsersModel extends BaseModel {
     } = {},
     trashed: boolean = false
   ): QueryBuilder<UsersModel> {
-    function applyWhereCondition(field: string, value: any) {
-      if (Array.isArray(value)) {
-        if (value.length > 0) query.whereIn(field, value);
-      } else if (value) {
-        query.where(field, value);
+    function applyCondition(field: string, value: any, isNot: boolean = false) {
+      const isArray = Array.isArray(value);
+      if (isNot) {
+        isArray ? query.whereNotIn(field, value) : query.whereNot(field, value);
+      } else {
+        isArray ? query.whereIn(field, value) : query.where(field, value);
       }
     }
     if (!filters) return query;
-    if (filters.id != null) {
-      this.buildIdQuery(query, filters.id);
+    const table = this.tableName;
+    // 处理 ID 过滤器 (支持 简单值, 数组, 或 {eq, not} 对象)
+    if (filters.id !== undefined && filters.id !== null) {
+      const id = filters.id;
+      if (typeof id === 'object' && !Array.isArray(id)) {
+        // 处理高级对象格式: { eq, not }
+        if (id.eq !== undefined) applyCondition(`${table}.id`, id.eq);
+        if (id.not !== undefined) applyCondition(`${table}.id`, id.not, true);
+      } else {
+        applyCondition(`${table}.id`, id);
+      }
     }
-    if (Object.hasOwn(filters, 'status') && filters.status != '' && filters.status != null) {
-      applyWhereCondition(`${this.tableName}.status`, filters.status);
+    if (filters.status !== undefined && filters.status !== null && filters.status !== '') {
+      applyCondition(`${table}.status`, filters.status);
     }
     if (filters.uuid) {
-      applyWhereCondition(`${this.tableName}.uuid`, filters.uuid);
+      applyCondition(`${this.tableName}.uuid`, filters.uuid);
     }
     if (filters.keywords) {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
@@ -195,9 +205,13 @@ export class UsersModel extends BaseModel {
           through: {
             from: `${UsersRolesModel.tableName}.user_id`, // users_roles.user_id
             to: `${UsersRolesModel.tableName}.role_id`,   // users_roles.role_id
+            filter: (query: QueryBuilder<UsersModel>) => {
+              query.where(`${UsersRolesModel.tableName}.status`, 1);
+            }
           },
           to: `${RolesModel.tableName}.id`, // ✅ roles.id
         },
+        // filter: (query: QueryBuilder<UsersModel> = this.query()) => query.where(`${RolesModel.tableName}.status`, 1),
       },
     };
   }

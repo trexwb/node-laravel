@@ -1,12 +1,12 @@
 import Validator from 'validatorjs';
 import { BaseRequest } from '#app/Http/Requests/BaseRequest';
-import { SecretsModel } from '#app/Models/SecretsModel';
+import { SchedulesModel } from '#app/Models/SchedulesModel';
 
 Validator.registerAsync(
   'unique',
   async (value, args, _attribute, passes) => {
     const [column, exceptId] = args.split(',');
-    let query = SecretsModel.query().where(column, value);
+    let query = SchedulesModel.query().where(column, value);
     if (exceptId) {
       query.whereNot('id', exceptId);
     }

@@ -56,18 +56,35 @@ export class ConfigsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<ConfigsModel> = this.query(),
-    filterss: {
+    filters: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       key?: string;
       keywords?: string;
     } = {}
   ): QueryBuilder<ConfigsModel> {
-    if (!filterss) return query;
-    if (filterss.id != null) {
-      this.buildIdQuery(query, filterss.id);
+    function applyCondition(field: string, value: any, isNot: boolean = false) {
+      const isArray = Array.isArray(value);
+      if (isNot) {
+        isArray ? query.whereNotIn(field, value) : query.whereNot(field, value);
+      } else {
+        isArray ? query.whereIn(field, value) : query.where(field, value);
+      }
     }
-    if (filterss.keywords) {
-      const keywords = filterss.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+    if (!filters) return query;
+    const table = this.tableName;
+    // 处理 ID 过滤器 (支持 简单值, 数组, 或 {eq, not} 对象)
+    if (filters.id !== undefined && filters.id !== null) {
+      const id = filters.id;
+      if (typeof id === 'object' && !Array.isArray(id)) {
+        // 处理高级对象格式: { eq, not }
+        if (id.eq !== undefined) applyCondition(`${table}.id`, id.eq);
+        if (id.not !== undefined) applyCondition(`${table}.id`, id.not, true);
+      } else {
+        applyCondition(`${table}.id`, id);
+      }
+    }
+    if (filters.keywords) {
+      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
           this.orWhereRaw('LOCATE(?, `key`) > 0', [keyword])
@@ -75,8 +92,8 @@ export class ConfigsModel extends BaseModel {
         });
       });
     }
-    if (filterss.key) {
-      query.where('key', filterss.key);
+    if (filters.key) {
+      query.where('key', filters.key);
     }
     return query;
   }

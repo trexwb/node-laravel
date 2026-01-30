@@ -68,8 +68,8 @@ export class SecretsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<SecretsModel> = this.query(),
-    filterss: {
-      id?: number;
+    filters: {
+      id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       title?: string;
       appId?: number;
       status?: string | number | number[];
@@ -77,38 +77,45 @@ export class SecretsModel extends BaseModel {
     } = {},
     trashed: boolean = false
   ): QueryBuilder<SecretsModel> {
-    function applyWhereCondition(field: string, value: any) {
-      if (Array.isArray(value)) {
-        if (value.length > 0) query.whereIn(field, value);
-      } else if (value) {
-        query.where(field, value);
+    function applyCondition(field: string, value: any, isNot: boolean = false) {
+      const isArray = Array.isArray(value);
+      if (isNot) {
+        isArray ? query.whereNotIn(field, value) : query.whereNot(field, value);
+      } else {
+        isArray ? query.whereIn(field, value) : query.where(field, value);
       }
     }
-    if (!filterss) return query;
-    if (filterss.id != null) {
-      this.buildIdQuery(query, filterss.id);
+    if (!filters) return query;
+    const table = this.tableName;
+    // 处理 ID 过滤器 (支持 简单值, 数组, 或 {eq, not} 对象)
+    if (filters.id !== undefined && filters.id !== null) {
+      const id = filters.id;
+      if (typeof id === 'object' && !Array.isArray(id)) {
+        // 处理高级对象格式: { eq, not }
+        if (id.eq !== undefined) applyCondition(`${table}.id`, id.eq);
+        if (id.not !== undefined) applyCondition(`${table}.id`, id.not, true);
+      } else {
+        applyCondition(`${table}.id`, id);
+      }
     }
-    if (Object.hasOwn(filterss, 'status') && filterss.status != '' && filterss.status != null) {
-      applyWhereCondition(`${this.tableName}.status`, filterss.status);
-    }
-    if (filterss.keywords) {
-      const keywords = filterss.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
+    if (filters.keywords) {
+      const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
-          this.orWhereRaw('LOCATE(?, `title`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `app_id`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `permissions`) > 0', [keyword])
-            .orWhereRaw('LOCATE(?, `extension`) > 0', [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${table}.title\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}.app_id\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}.permissions\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}.extension\`) > 0`, [keyword])
         });
       });
     }
-    if (filterss.title) {
-      query.where('title', filterss.title);
+    if (filters.title) {
+      query.where(`${table}.title`, filters.title);
     }
     if (trashed) {
-      query.whereNotNull('deleted_at');
+      query.whereNotNull(`${table}.deleted_at`);
     } else {
-      query.whereNull('deleted_at');
+      query.whereNull(`${table}.deleted_at`);
     }
     return query;
   }

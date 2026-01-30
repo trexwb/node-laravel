@@ -8,8 +8,8 @@ export async function up(knex: Knex): Promise<void> {
     table.string('email').notNullable().comment('账号邮箱');
     table.string('mobile').notNullable().comment('账号手机等');
     table.string('avatar').nullable().comment('头像');
-    table.string('password', 40).notNullable().comment('密码');
-    table.string('salt', 6).notNullable().comment('加密码');
+    table.string('password', 40).nullable().comment('密码');
+    table.string('salt', 6).nullable().comment('密码盐');
     table.string('remember_token').nullable().comment('令牌');
     table.uuid('uuid').notNullable().unique().comment('uuid');
     table.string('secret', 80).notNullable().comment('密钥');

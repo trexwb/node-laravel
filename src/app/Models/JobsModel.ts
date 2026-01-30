@@ -75,8 +75,8 @@ export class JobsModel extends BaseModel {
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
     query: QueryBuilder<JobsModel> = this.query(),
-    filterss: {
-      id?: number;
+    filters: {
+      id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       name?: string;
       status?: string; // 假设有 status 字段
       availableAtFrom?: Date;
@@ -85,25 +85,39 @@ export class JobsModel extends BaseModel {
       finished?: boolean;
     } = {}
   ): QueryBuilder<JobsModel> {
-    function applyWhereCondition(field: string, value: any) {
-      if (Array.isArray(value)) {
-        if (value.length > 0) query.whereIn(field, value);
-      } else if (value) {
-        query.where(field, value);
+    function applyCondition(field: string, value: any, isNot: boolean = false) {
+      const isArray = Array.isArray(value);
+      if (isNot) {
+        isArray ? query.whereNotIn(field, value) : query.whereNot(field, value);
+      } else {
+        isArray ? query.whereIn(field, value) : query.where(field, value);
       }
     }
-    if (filterss.id != null) {
-      applyWhereCondition('id', filterss.id);
+    if (!filters) return query;
+    const table = this.tableName;
+    // 处理 ID 过滤器 (支持 简单值, 数组, 或 {eq, not} 对象)
+    if (filters.id !== undefined && filters.id !== null) {
+      const id = filters.id;
+      if (typeof id === 'object' && !Array.isArray(id)) {
+        // 处理高级对象格式: { eq, not }
+        if (id.eq !== undefined) applyCondition(`${table}.id`, id.eq);
+        if (id.not !== undefined) applyCondition(`${table}.id`, id.not, true);
+      } else {
+        applyCondition(`${table}.id`, id);
+      }
     }
-    if (filterss.reserved === true) {
-      query = query.whereNotNull('reserved_at');
-    } else if (filterss.reserved === false) {
-      query = query.whereNull('reserved_at');
+    if (filters.status !== undefined && filters.status !== null && filters.status !== '') {
+      applyCondition(`${table}.status`, filters.status);
     }
-    if (filterss.finished === true) {
-      query = query.whereNotNull('finished_at');
-    } else if (filterss.finished === false) {
-      query = query.whereNull('finished_at');
+    if (filters.reserved === true) {
+      query = query.whereNotNull(`${table}.reserved_at`);
+    } else if (filters.reserved === false) {
+      query = query.whereNull(`${table}.reserved_at`);
+    }
+    if (filters.finished === true) {
+      query = query.whereNotNull(`${table}.finished_at`);
+    } else if (filters.finished === false) {
+      query = query.whereNull(`${table}.finished_at`);
     }
     return query;
   }

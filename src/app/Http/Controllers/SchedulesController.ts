@@ -1,12 +1,12 @@
 import type { Request, Response, NextFunction } from 'express';
-import { UsersService } from '#app/Services/Users/UsersService';
-import { UserSaveRequest } from '#app/Http/Requests/UserSaveRequest';
+import { SchedulesService } from '#app/Services/Schedules/SchedulesService';
+import { SecretSaveRequest } from '#app/Http/Requests/SecretSaveRequest';
 
-export class UsersController {
+export class SchedulesController {
   public static async list(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { filters, page, pageSize, sort } = req.body;
-      const list = await UsersService.findMany(filters, page, pageSize, sort, false);
+      const list = await SchedulesService.findMany(filters, page, pageSize, sort, false);
       res.success(list);
     } catch (error) {
       next(error);
@@ -15,21 +15,17 @@ export class UsersController {
 
   public static async detail(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id, uuid, account } = req.body;
-      let userRow = null;
+      const { id } = req.body;
       if (id) {
-        userRow = await UsersService.findById(id);
-      } else if (uuid) {
-        userRow = await UsersService.findByUuid(uuid);
-      } else if (account) {
-        userRow = await UsersService.findByAccount(account);
-      }
-      // console.log('userRow:', userRow.withGraphJoined('roles.permissions'));
-      if (!userRow) {
-        res.error(404009003001, 'User not found');
+        res.error(400009002002, 'id Not Empty');
         return;
       }
-      res.success(userRow);
+      const secretRow = await SchedulesService.findById(id);
+      if (!secretRow) {
+        res.error(404009002001, 'User not found');
+        return;
+      }
+      res.success(secretRow);
     } catch (error) {
       next(error);
     }
@@ -37,17 +33,13 @@ export class UsersController {
 
   public static async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      let inputData: any = req.body;
-      try {
-        inputData = await new UserSaveRequest(req).validate();
-      } catch (err) {
-        res.error(400009003002, JSON.stringify(err));
+      const form = new SecretSaveRequest(req);
+      const data = await form.validate();
+      if (!data) {
+        res.error(400009002001, 'User Error');
         return;
       }
-      if (!inputData.roles && req.body.roles) {
-        inputData.roles = req.body.roles;
-      }
-      const result = await UsersService.create(inputData);
+      const result = await SchedulesService.create(data);
       res.success(result);
     } catch (error) {
       next(error);
@@ -57,16 +49,16 @@ export class UsersController {
   public static async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.id) {
-        res.error(400009003003, 'id Not Empty');
+        res.error(400009002002, 'id Not Empty');
         return;
       }
-      const form = new UserSaveRequest(req);
+      const form = new SecretSaveRequest(req);
       const data = await form.validate();
       if (!data) {
-        res.error(400009003004, 'User Error');
+        res.error(400009002003, 'User Error');
         return;
       }
-      const result = await UsersService.updateById(req.body.id, data);
+      const result = await SchedulesService.updateById(req.body.id, data);
       res.success(result);
     } catch (error) {
       next(error);
@@ -76,10 +68,10 @@ export class UsersController {
   public static async enable(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400009003005, 'filters Not Empty');
+        res.error(400009002004, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.updateByFilters(req.body.filters, { status: 1 });
+      const result = await SchedulesService.updateByFilters(req.body.filters, { status: 1 });
       res.success(result);
     } catch (error) {
       next(error);
@@ -89,10 +81,10 @@ export class UsersController {
   public static async disable(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400009003006, 'filters Not Empty');
+        res.error(400009002005, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
+      const result = await SchedulesService.updateByFilters(req.body.filters, { status: 0 });
       res.success(result);
     } catch (error) {
       next(error);
@@ -102,10 +94,10 @@ export class UsersController {
   // public static async sort(req: Request, res: Response, next: NextFunction): Promise<void> {
   //   try {
   //     if (!req.body.filters) {
-  //       res.error(400009003007, 'filters Not Empty');
+  //       res.error(400009002007, 'filters Not Empty');
   //       return;
   //     }
-  //     const result = await UsersService.updateByFilters(req.body.filters, { status: 0 });
+  //     const result = await SchedulesService.updateByFilters(req.body.filters, { status: 0 });
   //     res.success(result);
   //   } catch (error) {
   //     next(error);
@@ -115,10 +107,10 @@ export class UsersController {
   public static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400009003007, 'filters Not Empty');
+        res.error(400009002006, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.deleteByFilters(req.body.filters);
+      const result = await SchedulesService.deleteByFilters(req.body.filters);
       res.success(result);
     } catch (error) {
       next(error);
@@ -128,7 +120,7 @@ export class UsersController {
   public static async trashList(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { filters, page, pageSize, sort } = req.body;
-      const list = await UsersService.findMany(filters, page, pageSize, sort, true);
+      const list = await SchedulesService.findMany(filters, page, pageSize, sort, true);
       res.success(list);
     } catch (error) {
       next(error);
@@ -138,10 +130,10 @@ export class UsersController {
   public static async restore(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400009003008, 'filters Not Empty');
+        res.error(400009002007, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.restoreByFilters(req.body.filters);
+      const result = await SchedulesService.restoreByFilters(req.body.filters);
       res.success(result);
     } catch (error) {
       next(error);
@@ -151,10 +143,10 @@ export class UsersController {
   public static async forceDelete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.body.filters) {
-        res.error(400009003009, 'filters Not Empty');
+        res.error(400009002008, 'filters Not Empty');
         return;
       }
-      const result = await UsersService.forceDelete(req.body.filters);
+      const result = await SchedulesService.forceDelete(req.body.filters);
       res.success(result);
     } catch (error) {
       next(error);

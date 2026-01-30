@@ -1,6 +1,9 @@
 import { CacheService } from '#app/Services/Cache/CacheService';
+import { RolesModel } from '#app/Models/RolesModel';
 import { UsersModel } from '#app/Models/UsersModel';
+import { UsersRolesModel } from '#app/Models/UsersRolesModel';
 import Utils from '#utils/index';
+import { Crypto } from '#utils/Crypto';
 
 export class UsersService {
   protected static cacheKey: string = 'users';
@@ -82,14 +85,35 @@ export class UsersService {
       password?: string;
       salt?: string;
       uuid?: string;
+      secret?: string;
       extension?: object;
       status?: number;
+      roles?: number[] | number;
     } = {}
   ): Promise<InstanceType<typeof UsersModel> | null> {
-    // 1. 创建用户
+    if (!data.uuid) data.uuid = Utils.getUUID();
+    if (!data.secret) data.secret = Utils.generateRandomString(32);
+    if (!data.salt) data.salt = Utils.generateRandomString(6);
+    if (!data.password) data.password = Crypto.md5(Utils.generateRandomString(16));
+    data.password = Crypto.md5(`${data.password}${data.salt}`);
+
+    let rolesIds: number[] = [];
+    if (data.roles) {
+      rolesIds = (await RolesModel.findAll({ id: data.roles, status: 1 })).map(row => row.id);
+      if (!rolesIds.length) {
+        throw new Error(`Failed to create user: invalid role id(s) ${data.roles}`);
+      }
+    }
+
     const newUser = await UsersModel.insert(data);
     if (!newUser) {
       throw new Error('Failed to create user');
+    }
+
+    if (rolesIds.length) {
+      // await UsersRolesModel.deleteByFilters({ userId: newUser.id });
+      const roleData = rolesIds.map(roleId => ({ roleId, userId: newUser.id, status: 1 }));
+      await UsersRolesModel.insertMany(roleData);
     }
     // 2. 清除相关缓存（建议只清列表，或按需）
     await this.flushallCache(); // 或更精细地只清除列表缓存
@@ -106,11 +130,14 @@ export class UsersService {
       avatar?: string;
       password?: string;
       salt?: string;
-      uuid?: string;
       extension?: object;
       status?: number;
     } = {}
   ): Promise<InstanceType<typeof UsersModel> | null> {
+    if (data.password) {
+      data.salt = Utils.generateRandomString(6);
+      data.password = Crypto.md5(`${data.password}${data.salt}`);
+    }
     // 检查 id 是否存在
     if (id === undefined) {
       throw new Error('User ID is required for update operation');

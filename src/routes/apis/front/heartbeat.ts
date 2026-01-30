@@ -38,5 +38,4 @@ if (config('app.env') == 'development') {
   });
 }
 
-
 export default router;
