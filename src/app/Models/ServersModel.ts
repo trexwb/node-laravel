@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-02-05 14:03:32
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:52:52
- * @FilePath: /node-laravel/src/app/Models/RolesModel.ts
+ * @LastEditTime: 2026-02-09 14:56:12
+ * @FilePath: /node-laravel/src/app/Models/ServersModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
@@ -11,36 +11,42 @@
 import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
-import { PermissionsModel } from '#app/Models/PermissionsModel';
-import { RolesPermissionsModel } from '#app/Models/RolesPermissionsModel';
 
-export class RolesModel extends BaseModel {
+export class ServersModel extends BaseModel {
   // 显式声明属性，对应数据库字段
   id!: number;
   name!: string;
-  permissions!: object;
+  url!: string;
+  key!: string;
+  appId!: number;
+  appSecret!: string;
+  appIv!: string;
   extension!: object;
   status!: number;
   updatedAt!: Date;
   createdAt!: Date;
   deletedAt!: Date | null;
   static softDelete = true;
-  static inserTable = ['name', 'permissions', 'extension', 'status'];
+  static inserTable = ['name', 'url', 'key', 'appId', 'appSecret', 'appIv', 'extension', 'status'];
 
   static get tableName() {
-    return `${config('database.prefix')}roles`;
+    return `${config('database.prefix')}servers`;
   }
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['name', 'permissions'], // 必填字段
+      required: ['name', 'url', 'key', 'appId'], // 必填字段
       properties: {
         id: { type: 'integer' },
         name: { type: 'string' },
-        permissions: { type: 'object' },
+        url: { type: 'string' },
+        key: { type: 'string' },
+        appId: { type: 'string', maxLength: 40 },
+        appSecret: { type: 'string', maxLength: 40 },
+        appIv: { type: 'string', maxLength: 40 },
         extension: { type: 'object' },
-        status: { type: 'integer' },
+        status: { type: 'integer', minimum: 0, maximum: 1 },
         createdAt: { type: 'string' },
         updatedAt: { type: 'string' },
         deletedAt: { type: ['string', 'null'] },
@@ -50,7 +56,7 @@ export class RolesModel extends BaseModel {
 
   // 定义 JSON 字段（Objection 会自动序列化/反序列化）
   static get jsonAttributes() {
-    return ['permissions', 'extension'];
+    return ['extension'];
   }
 
   static getSchemaColumns(): string[] {
@@ -71,15 +77,18 @@ export class RolesModel extends BaseModel {
 
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
-    query: QueryBuilder<RolesModel> = this.query(),
+    query: QueryBuilder<ServersModel> = this.query(),
     filters: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
       name?: string;
+      url?: string;
+      key?: string;
+      appId?: number;
       status?: string | number | number[];
       keywords?: string;
     } = {},
     trashed: boolean = false
-  ): QueryBuilder<RolesModel> {
+  ): QueryBuilder<ServersModel> {
     function applyCondition(field: string, value: any, isNot: boolean = false) {
       const isArray = Array.isArray(value);
       if (isNot) {
@@ -101,14 +110,14 @@ export class RolesModel extends BaseModel {
         applyCondition(`${table}.id`, id);
       }
     }
-    if (filters.status !== undefined && filters.status !== null && filters.status !== '') {
-      applyCondition(`${table}.status`, filters.status);
-    }
     if (filters.keywords) {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
           this.orWhereRaw(`LOCATE(?, \`${table}.name\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}.url\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}.key\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}.app_id\`) > 0`, [keyword])
             .orWhereRaw(`LOCATE(?, \`${table}.permissions\`) > 0`, [keyword])
             .orWhereRaw(`LOCATE(?, \`${table}.extension\`) > 0`, [keyword])
         });
@@ -116,6 +125,12 @@ export class RolesModel extends BaseModel {
     }
     if (filters.name) {
       query.where(`${table}.name`, filters.name);
+    }
+    if (filters.url) {
+      query.where(`${table}.url`, filters.url);
+    }
+    if (filters.key) {
+      query.where(`${table}.key`, filters.key);
     }
     if (trashed) {
       query.whereNotNull(`${table}.deleted_at`);
@@ -125,21 +140,15 @@ export class RolesModel extends BaseModel {
     return query;
   }
 
-  static get relationMappings() {
-    return {
-      permissions: {
-        relation: BaseModel.ManyToManyRelation,
-        modelClass: PermissionsModel, // ✅ 目标模型
-        join: {
-          from: `${this.tableName}.id`, // roles.id
-          through: {
-            from: `${RolesPermissionsModel.tableName}.role_id`, // roles_permissions.role_id
-            to: `${RolesPermissionsModel.tableName}.permission_id` // roles_permissions.permission_id
-          },
-          to: `${PermissionsModel.tableName}.id` // ✅ permissions.id
-        },
-        filter: (query: QueryBuilder<PermissionsModel> = this.query()) => query.where(`${PermissionsModel.tableName}.status`, 1),
-      }
-    };
+  // 查询单个appId
+  static async findByAppId(appId: number) {
+    const query = this.buildQuery(this.query(), { appId });
+    return await query.first(); // 或 .limit(1).first()
+  }
+
+  // 查询单个appId
+  static async findByKey(key: string) {
+    const query = this.buildQuery(this.query(), { key });
+    return await query.first(); // 或 .limit(1).first()
   }
 }

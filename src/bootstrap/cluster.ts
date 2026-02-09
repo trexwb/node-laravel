@@ -1,3 +1,13 @@
+/*
+ * @Author: trexwb
+ * @Date: 2026-02-05 10:40:12
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-02-09 14:57:10
+ * @FilePath: /node-laravel/src/bootstrap/cluster.ts
+ * @Description: 
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ */
 import cluster from 'node:cluster';
 import os from 'node:os';
 import { config } from '#bootstrap/configLoader';

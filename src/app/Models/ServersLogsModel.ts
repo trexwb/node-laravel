@@ -1,40 +1,40 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-30 14:10:39
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:53:11
- * @FilePath: /node-laravel/src/app/Models/UsersLogsModel.ts
+ * @LastEditTime: 2026-02-05 16:13:18
+ * @FilePath: /ts/gateway/src/app/Models/ServersLogsModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
  */
 import { QueryBuilder } from 'objection';
 import { BaseModel } from '#app/Models/BaseModel';
-import { UsersModel } from '#app/Models/UsersModel';
+import { ServersModel } from '#app/Models/ServersModel';
 import { config } from '#bootstrap/configLoader';
 
-export class UsersLogsModel extends BaseModel {
+export class ServersLogsModel extends BaseModel {
   // 显式声明属性，对应数据库字段
   id!: number;
-  userId!: number;
+  serverId!: number;
   source!: object;
   handle!: object;
   updatedAt!: Date;
   createdAt!: Date;
   static softDelete = false;
-  static inserTable = ['userId', 'source', 'handle'];
+  static inserTable = ['serverId', 'source', 'handle'];
 
   static get tableName() {
-    return `${config('database.prefix')}users_logs`;
+    return `${config('database.prefix')}servers_logs`;
   }
 
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['userId', 'handle'], // 必填字段
+      required: ['serverId', 'handle'], // 必填字段
       properties: {
         id: { type: 'integer' },
-        userId: { type: 'integer' },
+        serverId: { type: 'integer' },
         source: { type: 'object' },
         handle: { type: 'object' },
         createdAt: { type: 'string' },
@@ -66,14 +66,14 @@ export class UsersLogsModel extends BaseModel {
 
   // 👇 核心：通用查询构建器（返回 QueryBuilder）
   static buildQuery(
-    query: QueryBuilder<UsersLogsModel> = this.query(),
+    query: QueryBuilder<ServersLogsModel> = this.query(),
     filters: {
       id?: { not?: number | number[]; eq?: number | number[]; } | number | number[] | string[];
-      userId?: string | number | number[];
-      handle?: string;
+      serverId?: string | number | number[];
+      title?: string;
       keywords?: string;
     } = {}
-  ): QueryBuilder<UsersLogsModel> {
+  ): QueryBuilder<ServersLogsModel> {
     function applyCondition(field: string, value: any, isNot: boolean = false) {
       const isArray = Array.isArray(value);
       if (isNot) {
@@ -98,52 +98,52 @@ export class UsersLogsModel extends BaseModel {
     if (filters.keywords) {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
+        const myTableName = this.tableName;
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${table}.source\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.handle\`) > 0`, [keyword])
-            .orWhereIn(`${table}.user_id`, function () {
-              this.select('id').from(UsersModel.tableName).where(function () {
-                this.orWhereRaw('LOCATE(?, `nickname`) > 0', [keyword])
-                  .orWhereRaw('LOCATE(?, `email`) > 0', [keyword])
-                  .orWhereRaw('LOCATE(?, `mobile`) > 0', [keyword])
-                  .orWhereRaw('LOCATE(?, `uuid`) > 0', [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}.source\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}.handle\`) > 0`, [keyword])
+            .orWhereIn(`${myTableName}.schedule_id`, function () {
+              this.select('id').from(ServersModel.tableName).where(function () {
+                this.orWhereRaw('LOCATE(?, `title`) > 0', [keyword])
+                  .orWhereRaw('LOCATE(?, `app_id`) > 0', [keyword])
+                  .orWhereRaw('LOCATE(?, `extension`) > 0', [keyword])
               });
             })
         });
       });
     }
-    if (filters.handle) {
-      query.where(`${table}.handle`, filters.handle);
+    if (filters.title) {
+      query.where(`${this.tableName}.title`, filters.title);
     }
     return query;
   }
 
   static get relationMappings() {
     return {
-      user: {
+      server: {
         relation: BaseModel.BelongsToOneRelation,
-        modelClass: UsersModel,
+        modelClass: ServersModel,
         join: {
-          from: `${this.tableName}}.user_id`,
-          to: `${UsersModel.tableName}.id`
+          from: `${this.tableName}}.server_id`,
+          to: `${ServersModel.tableName}.id`
         }
       }
     };
   }
 
-  // 查询单个日志并关联用户
-  static async findByIdAndUser(id: number) {
-    return await this.query().findById(id).withGraphJoined('user');
+  // 查询单个日志及密钥
+  static async findByIdAndSecret(id: number) {
+    return await this.query().findById(id).withGraphJoined('server');
   }
 
   // 单条查询（非 ID）
-  static async findOneAndUser(filters: Parameters<typeof this.buildQuery>[1]) {
-    const query = this.buildQuery(this.query(), filters).withGraphJoined('user');
+  static async findOneAndSecret(filters: Parameters<typeof this.buildQuery>[1]) {
+    const query = this.buildQuery(this.query(), filters).withGraphJoined('server');
     return await query.first(); // 或 .limit(1).first()
   }
 
   // 多条查询（分页）
-  static async findManyAndUser(
+  static async findManyAndSecret(
     filters: Parameters<typeof this.buildQuery>[1],
     options: {
       page?: number;
@@ -161,7 +161,7 @@ export class UsersLogsModel extends BaseModel {
     if (order) {
       (this as any).applyOrder(dataQuery, order);
     }
-    const data = await dataQuery.withGraphJoined('user').limit(pageSize).offset(offset);
+    const data = await dataQuery.withGraphJoined('server').limit(pageSize).offset(offset);
     return {
       data,
       meta: {

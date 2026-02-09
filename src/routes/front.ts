@@ -1,16 +1,6 @@
-/*** 
- * @Author: trexwb
- * @Date: 2024-02-01 11:31:39
- * @LastEditors: ${git_name}
- * @LastEditTime: 2025-09-15 14:28:11
- * @FilePath: /web/server/src/route/front/index.js
- * @Description: 
- * @一花一世界，一叶一如来
- * @Copyright (c) 2024 by 杭州大美, All Rights Reserved. 
- */
-'use strict';
 import path from 'path';
-import express from 'express';
+import express, { Router } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { fileURLToPath } from 'url';
 import { config } from '#bootstrap/configLoader';
@@ -18,18 +8,16 @@ import { config } from '#bootstrap/configLoader';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const router = express.Router();
+const router = Router();
 const FRONT_PORT = config('app.front.port') || 3000;
 
 // // 静态文件服务优化
-const frontDistPath = path.resolve(__dirname, '../../../', './front/.output');
-router.use(express.static(path.resolve(frontDistPath, 'public')));
-
-router.use('/storage', express.static(path.join(__dirname, '../public/uploads')));
+const frontDistPath = path.resolve(__dirname, '../');
+router.use('/storage', express.static(path.resolve(frontDistPath, './storage/uploads')));
 
 if (FRONT_PORT == 'nuxt') {
-  router.get('/{*splat}', (_req, res) => {
-    res.status(200).sendFile(path.resolve(frontDistPath, 'index.html'));
+  router.get('/{*splat}', (_req: Request, res: Response, _next: NextFunction) => {
+    res.status(200).sendFile(path.resolve(frontDistPath, '.resources/view/index.html'));
   });
 } else {
   // 如果是 Nuxt 服务，则使用代理中间件

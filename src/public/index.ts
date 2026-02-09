@@ -1,3 +1,13 @@
+/*
+ * @Author: trexwb
+ * @Date: 2026-02-05 10:40:12
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-02-09 14:59:36
+ * @FilePath: /node-laravel/src/public/index.ts
+ * @Description: 
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ */
 import 'dotenv/config'; // 简写，自动加载根目录 .env
 import { createServer as createHttpServer } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';

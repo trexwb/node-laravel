@@ -1,4 +1,13 @@
-
+/*
+ * @Author: trexwb
+ * @Date: 2026-02-05 10:40:12
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-02-09 14:57:29
+ * @FilePath: /node-laravel/src/config/app.ts
+ * @Description: 
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ */
 export default {
   name: process.env.APP_NAME || 'NodeLaravel',
   env: process.env.APP_ENV || 'development',
