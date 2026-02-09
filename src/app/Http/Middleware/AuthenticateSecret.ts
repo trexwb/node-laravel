@@ -1,3 +1,13 @@
+/*
+ * @Author: trexwb
+ * @Date: 2026-01-22 14:24:57
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-02-09 14:48:42
+ * @FilePath: /node-laravel/src/app/Http/Middleware/AuthenticateSecret.ts
+ * @Description: 
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ */
 import type { Request, Response, NextFunction } from 'express';
 import { Crypto } from '#utils/Crypto';
 import { config } from '#bootstrap/configLoader';
@@ -21,7 +31,7 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
   }
   // 4. 从数据库/缓存获取原始 Secret
   // 假设你已经定义了 secretsHelper 或者直接使用 Model
-  const secretRow = await SecretsService.findByAppId(parseInt(appId));
+  const secretRow = await SecretsService.findByAppId(Number(appId));
   if (!secretRow || !secretRow.appId || !secretRow.appSecret) {
     return res.error(401010001003, 'appId/appSecret error');
   }

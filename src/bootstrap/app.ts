@@ -1,3 +1,13 @@
+/*
+ * @Author: trexwb
+ * @Date: 2026-02-05 10:40:12
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-02-09 14:57:07
+ * @FilePath: /node-laravel/src/bootstrap/app.ts
+ * @Description: 
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ */
 import express from 'express';
 import cors from 'cors';
 import { Model } from 'objection';

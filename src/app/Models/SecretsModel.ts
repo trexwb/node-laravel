@@ -1,3 +1,13 @@
+/*
+ * @Author: trexwb
+ * @Date: 2026-01-23 14:52:39
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-02-09 14:49:06
+ * @FilePath: /node-laravel/src/app/Models/SecretsModel.ts
+ * @Description: 
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ */
 import { QueryBuilder } from 'objection';
 import { config } from '#bootstrap/configLoader';
 import { BaseModel } from '#app/Models/BaseModel';
@@ -111,6 +121,9 @@ export class SecretsModel extends BaseModel {
     }
     if (filters.title) {
       query.where(`${table}.title`, filters.title);
+    }
+    if (filters.appId) {
+      query.where(`${table}.app_id`, filters.appId);
     }
     if (trashed) {
       query.whereNotNull(`${table}.deleted_at`);

@@ -1,3 +1,13 @@
+/*
+ * @Author: trexwb
+ * @Date: 2026-01-28 14:56:19
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-02-09 14:48:31
+ * @FilePath: /node-laravel/src/app/Http/Controllers/SecretsController.ts
+ * @Description: 
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ */
 import type { Request, Response, NextFunction } from 'express';
 import { SecretsService } from '#app/Services/Secrets/SecretsService';
 import { SecretSaveRequest } from '#app/Http/Requests/SecretSaveRequest';
@@ -18,9 +28,9 @@ export class SecretsController {
       const { id, appId } = req.body;
       let secretRow = null;
       if (id) {
-        secretRow = await SecretsService.findById(id);
+        secretRow = await SecretsService.findById(Number(id));
       } else if (appId) {
-        secretRow = await SecretsService.findByAppId(appId);
+        secretRow = await SecretsService.findByAppId(Number(appId));
       }
       if (!secretRow) {
         res.error(404009002001, 'User not found');

@@ -1,3 +1,13 @@
+/*
+ * @Author: trexwb
+ * @Date: 2026-02-05 10:40:12
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-02-09 14:59:13
+ * @FilePath: /node-laravel/src/database/seeds/20260121061201_permissions.ts
+ * @Description: 
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ */
 import type { Knex } from 'knex';
 import path from 'path';
 import { fileURLToPath } from 'url';
