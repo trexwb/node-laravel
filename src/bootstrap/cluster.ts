@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-02-05 10:40:12
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
+ * @LastEditTime: 2026-03-27 13:45:00
  * @FilePath: /node-laravel/src/bootstrap/cluster.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -18,8 +18,6 @@ interface ClusterOptions {
   enabled?: boolean;
   /** Worker 数量：'auto' | number */
   workers?: 'auto' | number;
-  /** Worker 进程启动入口脚本（用于独立进程模式如 WS） */
-  workerScript?: string;
 }
 
 export function runWithCluster(
@@ -34,7 +32,6 @@ export function runWithCluster(
   // 独立 WebSocket 进程检测
   // ============================================================
   if (process.env.NODE_IS_WS === 'true') {
-    // 这是一个独立的 WebSocket 进程，不走集群
     boot(false);
     return;
   }
@@ -76,7 +73,9 @@ export function runWithCluster(
 
   cluster.on('exit', (worker, code, signal) => {
     // WebSocket Worker 退出时不应重启（已由上面单独处理）
-    if (worker.process.env.NODE_IS_WS === 'true') {
+    // 注：worker.process.env 在 Node.js 中不可用，改用全局 process.env 检查
+    // 实际上 fork 时传入的 env 会合并到 worker 进程的 process.env
+    if (process.env.NODE_IS_WS === 'true') {
       return;
     }
     logger.warn(

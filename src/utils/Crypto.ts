@@ -2,14 +2,14 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
+ * @LastEditTime: 2026-03-27 13:45:00
  * @FilePath: /node-laravel/src/utils/Crypto.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
  */
 import crypto from 'node:crypto';
-import { config, validateSecurityConfig } from '#bootstrap/configLoader';
+import { config } from '#bootstrap/configLoader';
 import { logger } from '#utils/Logger';
 
 // 启动时必须已验证安全配置，否则抛异常
@@ -20,7 +20,7 @@ try {
   const appKeyStr = config('app.security.app_key') || '';
   const appIvStr = config('app.security.app_iv') || '';
 
-  // 强制要求密钥存在（validateSecurityConfig 已保证，但做防御性校验）
+  // 强制要求密钥存在
   if (!appKeyStr || !appIvStr) {
     throw new Error('APP_KEY 或 APP_IV 未配置');
   }

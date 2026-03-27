@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
+ * @LastEditTime: 2026-03-27 12:34:47
  * @FilePath: /node-laravel/src/app/Services/Cache/CacheSqliteDriver.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -44,7 +44,7 @@ export class SqliteDriver implements CacheDriver {
 
     // 使用 WAL 模式提升并发性能
     this.db = new sqlite3.Database(this.DB_PATH);
-    this.db.pragma('journal_mode = WAL');
+    // this.db.pragma('journal_mode = WAL');
     this.initTable();
   }
 
@@ -71,7 +71,7 @@ export class SqliteDriver implements CacheDriver {
         if (err) return reject(err);
         if (!row) return resolve(null);
         if (Date.now() > row.expire_at) {
-          this.forget(key).catch(() => {});
+          this.forget(key).catch(() => { });
           return resolve(null);
         }
         try {

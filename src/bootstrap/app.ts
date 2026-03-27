@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-02-05 10:40:12
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
+ * @LastEditTime: 2026-03-27 13:45:00
  * @FilePath: /node-laravel/src/bootstrap/app.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -29,12 +29,10 @@ import frontRoutes from '#routes/front';
 import { forceHttps } from '#app/Http/Middleware/ForceHttps';
 import { responseWrapper } from '#app/Http/Middleware/ResponseWrapper';
 import { requestId } from '#app/Http/Middleware/RequestId';
-import { config, validateSecurityConfig, isDebug } from '#bootstrap/configLoader';
+import { config, validateSecurityConfig } from '#bootstrap/configLoader';
 import { logger } from '#utils/Logger';
 import { bootScheduling } from '#bootstrap/schedule';
-import { runWithCluster } from '#bootstrap/cluster';
 import { registerChannels } from '#routes/channels';
-import { createStandaloneWebSocketServer } from '#bootstrap/websocket';
 
 // 🔴 安全配置验证必须在任何业务逻辑之前执行
 validateSecurityConfig();
@@ -104,7 +102,7 @@ export async function bootstrap(): Promise<HttpServer> {
   }
 
   // 事件总线注入
-  app.use((req: any, res, next) => {
+  app.use((req: any, _res, next) => {
     req.eventEmitter = eventBus;
     next();
   });

@@ -37,5 +37,7 @@ export const requestId = (req: Request, res: Response, next: NextFunction) => {
   // 响应头透传，方便客户端排查
   res.setHeader('X-Request-Id', requestId);
 
+  logger.info(requestId);
+
   next();
 };

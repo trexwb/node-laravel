@@ -15,6 +15,7 @@ import type { CastInterface } from '#app/Casts/CastInterface';
 import * as _ from 'lodash-es';
 import { config } from '#bootstrap/configLoader';
 
+
 export class BaseModel extends Model {
   protected static table: string;
   protected static primaryKey: string = 'id';
@@ -29,7 +30,7 @@ export class BaseModel extends Model {
   // 👇 软删除字段名（可覆盖）
   static softDeleteColumn = 'deleted_at';
   // 👇 需要自动格式化日期的字段名模式（优化：只在匹配这些模式时才做日期转换）
-  protected static dateFields: string[] = ['At', 'Time', 'Date'];
+  protected dateFields: string[] = ['At', 'Time', 'Date'];
 
   // ============================================================
   // 日期转换 — 优化：仅对以 At/Time/Date 结尾的字段做格式转换
@@ -81,8 +82,8 @@ export class BaseModel extends Model {
   // 子类必须实现
   static buildQuery(
     query: QueryBuilder<BaseModel> = this.query(),
-    filters: any,
-    trashed: boolean = false
+    _filters: any,
+    _trashed: boolean = false
   ): QueryBuilder<any> {
     // 🔧 Debug 模式下才打印 SQL，避免生产环境污染日志
     if (config('app.debugger') === true) {

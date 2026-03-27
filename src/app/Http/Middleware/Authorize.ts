@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
+ * @LastEditTime: 2026-03-27 12:29:53
  * @FilePath: /node-laravel/src/app/Http/Middleware/Authorize.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -20,7 +20,7 @@ import { logger } from '#utils/Logger';
  */
 export const can = (permissionName: string) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const currentUser = req.currentUser;
+    const currentUser = (req as any).currentUser;
 
     if (!currentUser) {
       res.error(401010003001, 'Unauthorized');

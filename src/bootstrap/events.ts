@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-05 10:40:12
+ * @Date: 2026-03-27 11:30:00
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
+ * @LastEditTime: 2026-03-27 13:45:00
  * @FilePath: /node-laravel/src/bootstrap/events.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -17,7 +17,7 @@ import { config } from '#bootstrap/configLoader';
 class LocalEventBus extends EventEmitter {
   constructor() {
     super();
-    this.setMaxListeners(50); // 防止大量监听器导致内存泄漏警告
+    this.setMaxListeners(50);
   }
 }
 
@@ -72,7 +72,6 @@ async function getRedisSubscriber() {
   const client = await getRedisClient();
   if (!client) return null;
 
-  const { createClient } = await import('redis');
   redisSubscriber = client.duplicate();
   await redisSubscriber.connect();
   return redisSubscriber;
@@ -131,7 +130,6 @@ export async function createCrossProcessEventBus(options: CrossProcessBusOptions
      * 注册监听器（同时支持本地和跨进程）
      */
     subscribe: (event: string, handler: EventHandler) => {
-      // 本地
       if (!localHandlers.has(event)) {
         localHandlers.set(event, []);
       }
@@ -151,7 +149,6 @@ export async function broadcast(event: string, ...args: any[]) {
   if (crossProcessBus) {
     await crossProcessBus.publish(event, ...args);
   } else {
-    // 回退到本地事件
     eventBus.emit(event, ...args);
   }
 }
