@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-22 14:24:57
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:48:42
+ * @LastEditTime: 2026-03-27 11:30:00
  * @FilePath: /node-laravel/src/app/Http/Middleware/AuthenticateSecret.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -12,39 +12,56 @@ import type { Request, Response, NextFunction } from 'express';
 import { Crypto } from '#utils/Crypto';
 import { config } from '#bootstrap/configLoader';
 import { SecretsService } from '#app/Services/Secrets/SecretsService';
+import { logger } from '#utils/Logger';
 
-export const authenticateSecret = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-  // 1. 获取 Headers
+export const authenticateSecret = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const appId = req.headers['app-id'] as string;
-  const appSecret = req.headers['app-secret'] as string; // 这里实际传的是签名后的密文
+  const appSecret = req.headers['app-secret'] as string;
+
+  // 1. 参数校验
   if (!appId || !appSecret) {
-    return res.error(401010001001, 'appId/appSecret is empty');
+    res.error(401010001001, 'appId/appSecret is empty');
+    return;
   }
-  // 2. 提取时间戳 (根据你的逻辑：密文的最后 10 位是时间戳)
+
+  // 2. 提取时间戳并校验是否过期
   const timeStampStr = appSecret.substring(32);
   const timeStamp = parseInt(timeStampStr) || 0;
   const tokenTime = parseInt(config('app.security.token_time') || '1800');
-  // 3. 校验时间戳是否过期
   const now = Math.floor(Date.now() / 1000);
+
   if (timeStamp < now - tokenTime) {
-    return res.error(401010001002, 'appSecret expiration');
+    res.error(401010001002, 'appSecret expired');
+    return;
   }
-  // 4. 从数据库/缓存获取原始 Secret
-  // 假设你已经定义了 secretsHelper 或者直接使用 Model
+
+  // 3. 从数据库/缓存获取原始 Secret
   const secretRow = await SecretsService.findByAppId(Number(appId));
   if (!secretRow || !secretRow.appId || !secretRow.appSecret) {
-    return res.error(401010001003, 'appId/appSecret error');
+    res.error(401010001003, 'appId/appSecret error');
+    return;
   }
+
   if (!secretRow.status) {
-    return res.error(403010001001, 'appSecret has been disabled',);
+    res.error(403010001001, 'appSecret has been disabled');
+    return;
   }
-  // 5. 核心：校验签名算法
+
+  // 4. 签名校验
   const appStr = Crypto.sha256(`${secretRow.appId}${timeStampStr}`);
   const expectedSecret = Crypto.md5(`${appStr}${secretRow.appSecret}`) + timeStampStr;
   if (appSecret !== expectedSecret) {
-    return res.error(401010001004, 'appSecret verification failed');
+    logger.warn(`[AuthSecret] 签名校验失败 appId=${appId} req.id=${req.id}`);
+    res.error(401010001004, 'appSecret verification failed');
+    return;
   }
-  // 6. 鉴权通过，挂载数据供后续使用
-  (req as any).secretRow = secretRow;
+
+  // ✅ 注入到 req（类型已在 express.d.ts 中声明）
+  req.secretRow = secretRow;
+  logger.debug(`[AuthSecret] appId=${appId} authenticated req.id=${req.id}`);
   next();
 };

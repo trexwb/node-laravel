@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:52:42
+ * @LastEditTime: 2026-03-27 11:30:00
  * @FilePath: /node-laravel/src/app/Models/BaseModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -13,6 +13,7 @@ import type { Pojo } from 'objection';
 import { nowInTz, formatDate } from '#app/Helpers/Format';
 import type { CastInterface } from '#app/Casts/CastInterface';
 import * as _ from 'lodash-es';
+import { config } from '#bootstrap/configLoader';
 
 export class BaseModel extends Model {
   protected static table: string;
@@ -27,14 +28,22 @@ export class BaseModel extends Model {
   static softDelete = false;
   // 👇 软删除字段名（可覆盖）
   static softDeleteColumn = 'deleted_at';
+  // 👇 需要自动格式化日期的字段名模式（优化：只在匹配这些模式时才做日期转换）
+  protected static dateFields: string[] = ['At', 'Time', 'Date'];
+
+  // ============================================================
+  // 日期转换 — 优化：仅对以 At/Time/Date 结尾的字段做格式转换
+  // ============================================================
+  private isDateField(key: string): boolean {
+    return this.dateFields.some(suffix => key.endsWith(suffix));
+  }
 
   $parseDatabaseJson(json: Pojo): Pojo {
     json = super.$parseDatabaseJson(json);
     for (const key of Object.keys(json)) {
       const value = json[key];
-      // 这里的逻辑可以根据你的字段命名习惯优化，比如只处理以 At 结尾的字段
+      if (!this.isDateField(key)) continue;
       if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
-        // 将时间转为指定时区并格式化
         json[key] = formatDate(value);
       }
     }
@@ -43,40 +52,28 @@ export class BaseModel extends Model {
 
   $formatJson(json: Pojo): Pojo {
     json = super.$formatJson(json);
-    // 遍历所有字段，如果是 Date 对象或符合日期格式的字符串，进行转换
     for (const key of Object.keys(json)) {
       const value = json[key];
-      // 这里的逻辑可以根据你的字段命名习惯优化，比如只处理以 At 结尾的字段
+      if (!this.isDateField(key)) continue;
       if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
-        // 将时间转为指定时区并格式化
         json[key] = formatDate(value);
       }
     }
     return json;
   }
 
-  getUpdatedAtAttribute(value: string | Date) {
-    return formatDate(value);
-  }
-
-  getCreatedAtAttribute(value: string | Date) {
-    return formatDate(value);
-  }
-
   // 自动时间戳
   $beforeInsert() {
     if ((this.constructor as typeof BaseModel).useTimestamps) {
-      // const now = new Date().toISOString();
       const now = nowInTz();
       (this as any).createdAt = now;
       (this as any).updatedAt = now;
     }
   }
 
-  // 自动更新 updatedAt（Objection 默认已支持，这里显式保留）
+  // 自动更新 updatedAt
   $beforeUpdate() {
     if ((this.constructor as typeof BaseModel).useTimestamps) {
-      // (this as any).updatedAt = new Date().toISOString();
       (this as any).updatedAt = nowInTz();
     }
   }
@@ -87,8 +84,10 @@ export class BaseModel extends Model {
     filters: any,
     trashed: boolean = false
   ): QueryBuilder<any> {
-    // query.toKnexQuery().toSQL()
-    console.log('buildQuery:', query.toKnexQuery().toSQL(), filters, trashed);
+    // 🔧 Debug 模式下才打印 SQL，避免生产环境污染日志
+    if (config('app.debugger') === true) {
+      console.debug('[SQL]', query.toKnexQuery().toSQL().toNative());
+    }
     return query;
   }
 
@@ -100,7 +99,6 @@ export class BaseModel extends Model {
       if (method.startsWith('get') && method.endsWith('Attribute')) {
         const field = _.snakeCase(method.replace('get', '').replace('Attribute', ''));
         if (data[field] !== undefined) {
-          // 模拟 Laravel 传递当前值进行转换
           data[field] = (this as any)[method](data[field]);
         }
       }
@@ -131,17 +129,15 @@ export class BaseModel extends Model {
     return result;
   }
 
-  // 自动处理驼峰命名转下划线 (数据库用 snake_case, 代码用 camelCase)
+  // 驼峰 → 下划线 映射
   static get columnNameMappers() {
     return snakeCaseMappers();
   }
 
-  // 启用自动时间戳（createdAt）
   static get createdAtColumn() {
     return 'createdAt';
   }
 
-  // 启用自动时间戳（updatedAt）
   static get updatedAtColumn() {
     return 'updatedAt';
   }
@@ -152,7 +148,6 @@ export class BaseModel extends Model {
     order?: Array<{ column: string; order?: string }> | { column: string; order?: string }
   ): QueryBuilder<T> {
     let safeOrder: any[] = [];
-    // 1. 格式化 order 参数
     if (Array.isArray(order)) {
       safeOrder = order.map(item => ({
         column: item.column,
@@ -164,20 +159,16 @@ export class BaseModel extends Model {
         order: (order as any).order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
       }];
     }
-    // 2. 检查当前模型是否存在 'sort' 字段 (通过 jsonSchema 判断)
     const hasSortField = this.jsonSchema && this.jsonSchema.properties && Object.keys(this.jsonSchema.properties).includes('sort');
     if (hasSortField) {
-      // 存在 sort 字段时，插入权重排序：sort > 0 的排在前面，且按值升序
       safeOrder.unshift(
         { column: raw('CASE WHEN `sort` > 0 THEN 1 ELSE 0 END'), order: 'DESC' },
         { column: 'sort', order: 'ASC' }
       );
     }
-    // 3. 应用排序
     if (safeOrder.length > 0) {
       query.orderBy(safeOrder);
     } else {
-      // 默认排序
       query.orderBy('id', 'asc');
     }
     return query;
@@ -232,7 +223,6 @@ export class BaseModel extends Model {
     const countQuery = baseQuery.clone();
     const dataQuery = baseQuery.clone();
     const total = await countQuery.resultSize();
-    // 排序由 BaseModel 统一处理
     if (order) {
       (this as any).applyOrder(dataQuery, order);
     }
@@ -253,17 +243,15 @@ export class BaseModel extends Model {
     this: T,
     data: Record<string, any>
   ) {
-    // 1. 应用修改器和 casts（set）
-    let normalized = this.inserTable.length ? Object.fromEntries(Object.entries(data).filter(([key]) => this.inserTable.includes(key))) : { ...data };
+    let normalized = this.inserTable.length
+      ? Object.fromEntries(Object.entries(data).filter(([key]) => this.inserTable.includes(key)))
+      : { ...data };
     normalized = this.runMutators(normalized);
     normalized = this.runCasts(normalized, 'set');
-    // 2. 插入数据库（Objection 会自动调用  $ beforeInsert）
     const inserted = await this.query().insertAndFetch(normalized) as Partial<any>;
-    // 3. 转为 plain object 并应用访问器和 casts（get）
     let json = inserted.toJSON();
     json = this.runAccessors(json);
     json = this.runCasts(json, 'get');
-    // 4. 重新构造为模型实例（保留原型链）
     return Object.assign(Object.create(this.prototype), json);
   }
 
@@ -274,16 +262,13 @@ export class BaseModel extends Model {
   ) {
     if (data.length === 0) return [];
     const inserted: Array<InstanceType<T>> = [];
-    // 可以使用事务提高性能
     await this.transaction(async trx => {
       for (const item of data) {
-        // 1️⃣ 复制数据
-        let normalized = this.inserTable.length ? Object.fromEntries(Object.entries(item).filter(([key]) => this.inserTable.includes(key))) : { ...item };
-        // 2️⃣ 应用修改器（set）
+        let normalized = this.inserTable.length
+          ? Object.fromEntries(Object.entries(item).filter(([key]) => this.inserTable.includes(key)))
+          : { ...item };
         normalized = this.runMutators(normalized);
-        // 3️⃣ 应用类型转换（set）
         normalized = this.runCasts(normalized, 'set');
-        // 4️⃣ 单条插入 + 获取完整模型
         const result = await this.query(trx).insert(normalized);
         inserted.push(result as InstanceType<T>);
       }
@@ -308,7 +293,7 @@ export class BaseModel extends Model {
 
   // 通过ID恢复
   static async restoreById(id: number) {
-    if (this.softDelete) { // 软删除
+    if (this.softDelete) {
       return await this.query()
         .where('id', id)
         .patch({ [this.softDeleteColumn]: null });
@@ -322,17 +307,15 @@ export class BaseModel extends Model {
     filters: Parameters<T['buildQuery']>[1]
   ) {
     const query = this.buildQuery(this.query(), filters);
-    if (this.softDelete) { // 软删除
-      return await query.patch({
-        [this.softDeleteColumn]: null,
-      });
+    if (this.softDelete) {
+      return await query.patch({ [this.softDeleteColumn]: null });
     }
     return null;
   }
 
   // 通过ID删除
   static async deleteById(id: number) {
-    if (this.softDelete) { // 软删除
+    if (this.softDelete) {
       return await this.query()
         .where('id', id)
         .patch({ [this.softDeleteColumn]: nowInTz() });
@@ -345,10 +328,8 @@ export class BaseModel extends Model {
     filters: Parameters<T['buildQuery']>[1]
   ) {
     const query = this.buildQuery(this.query(), filters);
-    if (this.softDelete) { // 软删除
-      return await query.patch({
-        [this.softDeleteColumn]: nowInTz(),
-      });
+    if (this.softDelete) {
+      return await query.patch({ [this.softDeleteColumn]: nowInTz() });
     }
     return await query.delete();
   }

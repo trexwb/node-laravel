@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-02-05 10:40:12
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:57:10
+ * @LastEditTime: 2026-03-27 11:30:00
  * @FilePath: /node-laravel/src/bootstrap/cluster.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -11,22 +11,86 @@
 import cluster from 'node:cluster';
 import os from 'node:os';
 import { config } from '#bootstrap/configLoader';
+import { logger } from '#utils/Logger';
 
-export function runWithCluster(boot: () => void) {
-  const isClusterEnabled = config('app.cluster.enabled');
+interface ClusterOptions {
+  /** 是否启用集群 */
+  enabled?: boolean;
+  /** Worker 数量：'auto' | number */
+  workers?: 'auto' | number;
+  /** Worker 进程启动入口脚本（用于独立进程模式如 WS） */
+  workerScript?: string;
+}
 
-  if (isClusterEnabled && cluster.isPrimary) {
-    const numCPUs = config('app.cluster.workers') === 'auto' ? os.cpus().length : parseInt(config('app.cluster.workers') || '1');
-    console.log(`[Master] 🛡️ 系统启动中，正在调度 ${numCPUs} 个工作进程...`);
-    for (let i = 0; i < numCPUs; i++) {
-      cluster.fork();
-    }
-    cluster.on('exit', (worker) => {
-      console.log(`[Master] ⚠️ 工作进程 ${worker.process.pid} 离线，正在自动拉起...`);
-      cluster.fork();
-    });
-  } else {
-    // 如果未开启集群或处于子进程，则执行传入的启动回调
-    boot();
+export function runWithCluster(
+  boot: (isMaster: boolean) => Promise<void>,
+  options: ClusterOptions = {}
+) {
+  const { enabled = config('app.cluster.enabled'), workers } = options;
+  const wsEnabled = config('app.ws.enabled');
+  const wsMode = config('app.ws.mode');
+
+  // ============================================================
+  // 独立 WebSocket 进程检测
+  // ============================================================
+  if (process.env.NODE_IS_WS === 'true') {
+    // 这是一个独立的 WebSocket 进程，不走集群
+    boot(false);
+    return;
   }
+
+  // ============================================================
+  // 非集群模式
+  // ============================================================
+  if (!enabled || !cluster.isPrimary) {
+    boot(true);
+    return;
+  }
+
+  // ============================================================
+  // 集群模式（Primary 进程）
+  // ============================================================
+  const numCPUs = workers === 'auto' || !workers
+    ? os.cpus().length
+    : parseInt(String(workers)) || os.cpus().length;
+
+  logger.info(`[Cluster] Master 进程 ${process.pid} 启动，正在调度 ${numCPUs} 个 Worker...`);
+
+  // 🔌 如果 WebSocket 开启 standalone 模式，启动独立的 WebSocket Worker
+  if (wsEnabled && wsMode === 'standalone') {
+    const wsEnv = { ...process.env, NODE_IS_WS: 'true' };
+    const wsWorker = cluster.fork(wsEnv);
+    wsWorker.on('online', () => {
+      logger.info(`[Cluster] WebSocket Worker ${wsWorker.process.pid} 已启动`);
+    });
+    wsWorker.on('exit', (code, signal) => {
+      logger.warn(`[Cluster] WebSocket Worker 退出 (code=${code} signal=${signal})，正在重启...`);
+      cluster.fork(wsEnv);
+    });
+  }
+
+  // 🚀 HTTP Workers
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('exit', (worker, code, signal) => {
+    // WebSocket Worker 退出时不应重启（已由上面单独处理）
+    if (worker.process.env.NODE_IS_WS === 'true') {
+      return;
+    }
+    logger.warn(
+      `[Cluster] Worker ${worker.process.pid} 退出 (code=${code} signal=${signal})，` +
+      `正在重新拉起...`
+    );
+    cluster.fork();
+  });
+
+  cluster.on('fork', (worker) => {
+    logger.debug(`[Cluster] Worker ${worker.process.pid} 正在启动...`);
+  });
+
+  cluster.on('online', (worker) => {
+    logger.info(`[Cluster] Worker ${worker.process.pid} 已就绪`);
+  });
 }
