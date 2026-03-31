@@ -2,15 +2,15 @@
  * @Author: trexwb
  * @Date: 2026-02-05 16:58:57
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:09:37
- * @FilePath: /ts/accounts/src/routes/rpc.ts
+ * @LastEditTime: 2026-03-27 10:45:59
+ * @FilePath: /node-laravel/src/routes/rpc.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
  */
 import path from 'node:path';
 import { Router } from 'express';
-import { loadRpcMethods } from '#bootstrap/routeLoader';
+import { loadDynamicRoutes } from '#bootstrap/routeLoader';
 import { authenticateSecret } from '#app/Http/Middleware/AuthenticateSecret';
 // import { verifySignature } from '#app/Http/Middleware/VerifySignature';
 import { decryptRequest } from '#app/Http/Middleware/DecryptRequest';
@@ -23,11 +23,11 @@ const __dirname = path.dirname(__filename);
 const router = Router();
 
 // 存储动态加载的方法
-let rpcMethods: Record<string, Function> = {};
+let rpcMethods: Record<string, any> = {};
 
 async function initRpc() {
   const rpcsDir = path.join(__dirname, 'rpcs');
-  rpcMethods = await loadRpcMethods(rpcsDir);
+  rpcMethods = await loadDynamicRoutes(rpcsDir);
 }
 
 // 执行加载

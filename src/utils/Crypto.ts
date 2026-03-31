@@ -1,102 +1,130 @@
+/*
+ * @Author: trexwb
+ * @Date: 2026-01-29 11:25:15
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-03-27 13:45:00
+ * @FilePath: /node-laravel/src/utils/Crypto.ts
+ * @Description: 
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ */
 import crypto from 'node:crypto';
 import { config } from '#bootstrap/configLoader';
+import { logger } from '#utils/Logger';
+
+// 启动时必须已验证安全配置，否则抛异常
+let APP_KEY: Buffer;
+let APP_IV: Buffer;
+
+try {
+  const appKeyStr = config('app.security.app_key') || '';
+  const appIvStr = config('app.security.app_iv') || '';
+
+  // 强制要求密钥存在
+  if (!appKeyStr || !appIvStr) {
+    throw new Error('APP_KEY 或 APP_IV 未配置');
+  }
+
+  // 统一转换为 Buffer，长度不够则补齐（警告后补），超长则截断
+  APP_KEY = Buffer.alloc(32);
+  Buffer.from(appKeyStr).copy(APP_KEY);
+  if (Buffer.from(appKeyStr).length !== 32) {
+    logger.warn(`[Crypto] APP_KEY 长度 ${Buffer.from(appKeyStr).length} ≠ 32，已自动补齐`);
+  }
+
+  APP_IV = Buffer.alloc(16);
+  Buffer.from(appIvStr).copy(APP_IV);
+  if (Buffer.from(appIvStr).length !== 16) {
+    logger.warn(`[Crypto] APP_IV 长度 ${Buffer.from(appIvStr).length} ≠ 16，已自动补齐`);
+  }
+} catch (err) {
+  logger.error('[Crypto] 密钥初始化失败，请检查 APP_KEY / APP_IV 环境变量');
+  throw err;
+}
+
+const ALGORITHM = 'aes-256-cbc';
 
 export class Crypto {
-  private static readonly algorithm = 'aes-256-cbc';
-  private static readonly key = Buffer.from(config('app.security.app_key') || crypto.randomBytes(32));
-  private static readonly iv = Buffer.from(config('app.security.app_iv') || crypto.randomBytes(16));
-
-  // md5加密
+  // ============================================================
+  // 摘要算法
+  // ============================================================
   public static md5(str: string): string {
-    const md5 = crypto.createHash('md5');
-    md5.update(str);
-    return md5.digest('hex');
+    return crypto.createHash('md5').update(str).digest('hex');
   }
-  // 使用更安全的哈希算法 SHA-256 替换 MD5
+
   public static sha256(str: string): string {
     return crypto.createHash('sha256').update(str).digest('hex');
   }
-  // HMAC-SHA1 签名函数
+
   public static sha1(encryptedData: string, keyStr: string | false = false): string {
-    return crypto.createHmac('sha1', keyStr || this.key).update(encryptedData).digest('base64');
+    return crypto.createHmac('sha1', keyStr || APP_KEY).update(encryptedData).digest('base64');
   }
-  // 加密函数
-  public static encrypt(encryptedData: any, keyStr: string | false = false, ivStr: string | false = false): string | undefined {
-    if (!encryptedData) return;
-    const key = keyStr || this.key;
-    const iv = ivStr || this.iv;
-    try {
-      // 验证 key 和 iv 的长度
-      if (Buffer.byteLength(key) !== 32 || Buffer.byteLength(iv) !== 16) {
-        throw new Error('Invalid key or iv length');
-      }
-      const encryptedText = typeof encryptedData == 'string' ? encryptedData : JSON.stringify(encryptedData);
-      const cipher = crypto.createCipheriv(this.algorithm, key, iv);
-      let encrypted = cipher.update(encryptedText, 'utf8', 'hex');
-      encrypted += cipher.final('hex');
-      return encrypted;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`Encryption failed: ${errorMessage}`);
-    }
+
+  // ============================================================
+  // AES-256-CBC 加密/解密
+  // ============================================================
+  public static encrypt(data: any, keyStr?: string | false, ivStr?: string | false): string | undefined {
+    if (data === undefined || data === null) return undefined;
+    const key = keyStr ? Buffer.from(keyStr) : APP_KEY;
+    const iv = ivStr ? Buffer.from(ivStr) : APP_IV;
+    const text = typeof data === 'string' ? data : JSON.stringify(data);
+
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
   }
-  // 解密函数
-  public static decrypt(encryptedText: string, keyStr: string | false = false, ivStr: string | false = false): any {
-    if (!encryptedText) return;
-    const key = keyStr || this.key;
-    const iv = ivStr || this.iv;
+
+  public static decrypt(encryptedText: string, keyStr?: string | false, ivStr?: string | false): any {
+    if (!encryptedText) return undefined;
+    const key = keyStr ? Buffer.from(keyStr) : APP_KEY;
+    const iv = ivStr ? Buffer.from(ivStr) : APP_IV;
+
     try {
-      // 验证 key 和 iv 的长度
-      if (Buffer.byteLength(key) !== 32 || Buffer.byteLength(iv) !== 16) {
-        throw new Error('Invalid key or iv length');
-      }
-      const decipher = crypto.createDecipheriv(this.algorithm, key, iv);
+      const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
       let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
-      // 验证解密后的字符串是否为有效的 JSON
+
+      // 尝试解析为 JSON
       try {
         return JSON.parse(decrypted);
-      } catch (jsonError) {
-        throw new Error('Invalid JSON format after decryption');
+      } catch {
+        // 非 JSON 字符串则直接返回原文
+        return decrypted;
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`Encryption failed: ${errorMessage}`);
+    } catch (err) {
+      logger.error(`[Crypto] 解密失败: ${(err as Error).message}`);
+      throw new Error('Decryption failed: invalid data or key mismatch');
     }
   }
-  // 生成一个简单的 Token (示例：用户ID + 时间戳)
+
+  // ============================================================
+  // Token 生成与校验
+  // ============================================================
   public static generateToken(payload: string): string {
-    try {
-      const cipher = crypto.createCipheriv(this.algorithm, this.key, this.iv);
-      let encrypted = cipher.update(payload, 'utf8', 'hex');
-      encrypted += cipher.final('hex');
-      return encrypted;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`Encryption failed: ${errorMessage}`);
-    }
+    return this.encrypt(payload) as string;
   }
-  // 校验 Token
+
   public static decryptToken(encryptedText: string): any {
     try {
-      const decipher = crypto.createDecipheriv(this.algorithm, this.key, this.iv);
+      const decipher = crypto.createDecipheriv(ALGORITHM, APP_KEY, APP_IV);
       let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
-      // 如果返回的是字符串，则解析为对象
-      let decryptedPayload = null;
-      if (typeof decrypted === 'string') {
-        try {
-          decryptedPayload = JSON.parse(decrypted);
-        } catch (error) {
-          console.error('Failed to parse decrypted token:', error);
-        }
-      } else {
-        decryptedPayload = decrypted;
+      try {
+        return JSON.parse(decrypted);
+      } catch {
+        return decrypted;
       }
-      return decryptedPayload;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`Encryption failed: ${errorMessage}`);
+    } catch (err) {
+      logger.error(`[Crypto] Token 解密失败: ${(err as Error).message}`);
+      throw new Error('Token decryption failed');
     }
+  }
+
+  // ============================================================
+  // 工具：生成随机密钥（用于生成 APP_KEY / APP_IV）
+  // ============================================================
+  public static generateSecureKey(length: 16 | 32 = 32): string {
+    return crypto.randomBytes(length).toString('hex');
   }
 }
