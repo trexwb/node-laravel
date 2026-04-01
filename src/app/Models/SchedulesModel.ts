@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:53:00
+ * @LastEditTime: 2026-04-01 14:49:15
  * @FilePath: /node-laravel/src/app/Models/SchedulesModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -105,8 +105,8 @@ export class SchedulesModel extends BaseModel {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${table}.name\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.handler\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${table}\`.\`name\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`handler\`) > 0`, [keyword])
         });
       });
     }

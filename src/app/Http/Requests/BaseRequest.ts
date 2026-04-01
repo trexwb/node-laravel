@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:52:12
+ * @LastEditTime: 2026-04-01 14:56:06
  * @FilePath: /node-laravel/src/app/Http/Requests/BaseRequest.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -49,7 +49,7 @@ export abstract class BaseRequest {
   /** 核心校验入口（Controller 只调用这个） */
   async validate<T = any>(): Promise<T> {
     if (!this.authorize()) {
-      throw { message: '无权操作' };
+      throw new Error('无权操作');
     }
 
     const data = this.all();

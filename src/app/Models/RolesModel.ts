@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:52:52
+ * @LastEditTime: 2026-04-01 14:48:43
  * @FilePath: /node-laravel/src/app/Models/RolesModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -108,9 +108,9 @@ export class RolesModel extends BaseModel {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${table}.name\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.permissions\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.extension\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${table}\`.\`name\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`permissions\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`extension\`) > 0`, [keyword])
         });
       });
     }

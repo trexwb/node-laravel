@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:53:05
+ * @LastEditTime: 2026-04-01 14:49:30
  * @FilePath: /node-laravel/src/app/Models/SecretsLogsModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -100,8 +100,8 @@ export class SecretsLogsModel extends BaseModel {
       keywords.forEach(keyword => {
         const myTableName = this.tableName;
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${myTableName}.source\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${myTableName}.handle\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`source\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`handle\`) > 0`, [keyword])
             .orWhereIn(`${myTableName}.schedule_id`, function () {
               this.select('id').from(SecretsModel.tableName).where(function () {
                 this.orWhereRaw('LOCATE(?, `title`) > 0', [keyword])

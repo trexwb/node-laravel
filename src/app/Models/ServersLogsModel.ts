@@ -2,8 +2,8 @@
  * @Author: trexwb
  * @Date: 2026-01-30 14:10:39
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-05 16:13:18
- * @FilePath: /ts/gateway/src/app/Models/ServersLogsModel.ts
+ * @LastEditTime: 2026-04-01 14:49:48
+ * @FilePath: /node-laravel/src/app/Models/ServersLogsModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
@@ -100,8 +100,8 @@ export class ServersLogsModel extends BaseModel {
       keywords.forEach(keyword => {
         const myTableName = this.tableName;
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${myTableName}.source\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${myTableName}.handle\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`source\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`handle\`) > 0`, [keyword])
             .orWhereIn(`${myTableName}.schedule_id`, function () {
               this.select('id').from(ServersModel.tableName).where(function () {
                 this.orWhereRaw('LOCATE(?, `title`) > 0', [keyword])

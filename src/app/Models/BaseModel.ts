@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
- * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
- * @FilePath: /node-laravel/src/app/Models/BaseModel.ts
+ * @LastEditors: ${git_name}
+ * @LastEditTime: 2026-04-01 14:41:07
+ * @FilePath: /stl-dev-server/server/src/app/Models/BaseModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
@@ -12,9 +12,8 @@ import { Model, snakeCaseMappers, QueryBuilder, raw } from 'objection';
 import type { Pojo } from 'objection';
 import { nowInTz, formatDate } from '#app/Helpers/Format';
 import type { CastInterface } from '#app/Casts/CastInterface';
-import * as _ from 'lodash-es';
 import { config } from '#bootstrap/configLoader';
-
+import * as _ from 'lodash-es';
 
 export class BaseModel extends Model {
   protected static table: string;
@@ -29,52 +28,72 @@ export class BaseModel extends Model {
   static softDelete = false;
   // 👇 软删除字段名（可覆盖）
   static softDeleteColumn = 'deleted_at';
-  // 👇 需要自动格式化日期的字段名模式（优化：只在匹配这些模式时才做日期转换）
-  protected dateFields: string[] = ['At', 'Time', 'Date'];
-
-  // ============================================================
-  // 日期转换 — 优化：仅对以 At/Time/Date 结尾的字段做格式转换
-  // ============================================================
-  private isDateField(key: string): boolean {
-    return this.dateFields.some(suffix => key.endsWith(suffix));
-  }
 
   $parseDatabaseJson(json: Pojo): Pojo {
-    json = super.$parseDatabaseJson(json);
-    for (const key of Object.keys(json)) {
-      const value = json[key];
-      if (!this.isDateField(key)) continue;
-      if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
-        json[key] = formatDate(value);
-      }
-    }
-    return json;
+    // DB -> JS：这里不做“展示层”的格式化，避免把原始时间字段变成字符串导致比较/更新异常。
+    return super.$parseDatabaseJson(json);
   }
 
   $formatJson(json: Pojo): Pojo {
     json = super.$formatJson(json);
+    // 仅对常见时间字段做展示格式化，避免误伤类似 "2026-03-xx" 的非时间业务字符串。
+    const shouldFormatDateField = (key: string) => {
+      const TIMESTAMP_FIELDS = new Set([
+        'availableAt',
+        'cancelledAt',
+        'closedAt',
+        'completedAt',
+        'createdAt',
+        'deletedAt',
+        'expiresAt',
+        'finishedAt',
+        'invalidatedAt',
+        'notifiedAt',
+        'paidAt',
+        'pricedAt',
+        'refundedAt',
+        'reservedAt',
+        'returnShippedAt',
+        'reviewedAt',
+        'startsAt',
+        'updatedAt',
+        'usedAt',
+      ]);
+      if (TIMESTAMP_FIELDS.has(key)) return true;
+      return key.endsWith('At') || key.endsWith('Date');
+    };
     for (const key of Object.keys(json)) {
+      if (!shouldFormatDateField(key)) continue;
       const value = json[key];
-      if (!this.isDateField(key)) continue;
       if (value instanceof Date || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
         json[key] = formatDate(value);
       }
     }
     return json;
+  }
+
+  getUpdatedAtAttribute(value: string | Date) {
+    return formatDate(value);
+  }
+
+  getCreatedAtAttribute(value: string | Date) {
+    return formatDate(value);
   }
 
   // 自动时间戳
   $beforeInsert() {
     if ((this.constructor as typeof BaseModel).useTimestamps) {
+      // const now = new Date().toISOString();
       const now = nowInTz();
       (this as any).createdAt = now;
       (this as any).updatedAt = now;
     }
   }
 
-  // 自动更新 updatedAt
+  // 自动更新 updatedAt（Objection 默认已支持，这里显式保留）
   $beforeUpdate() {
     if ((this.constructor as typeof BaseModel).useTimestamps) {
+      // (this as any).updatedAt = new Date().toISOString();
       (this as any).updatedAt = nowInTz();
     }
   }
@@ -100,6 +119,7 @@ export class BaseModel extends Model {
       if (method.startsWith('get') && method.endsWith('Attribute')) {
         const field = _.snakeCase(method.replace('get', '').replace('Attribute', ''));
         if (data[field] !== undefined) {
+          // 模拟 Laravel 传递当前值进行转换
           data[field] = (this as any)[method](data[field]);
         }
       }
@@ -130,15 +150,17 @@ export class BaseModel extends Model {
     return result;
   }
 
-  // 驼峰 → 下划线 映射
+  // 自动处理驼峰命名转下划线 (数据库用 snake_case, 代码用 camelCase)
   static get columnNameMappers() {
     return snakeCaseMappers();
   }
 
+  // 启用自动时间戳（createdAt）
   static get createdAtColumn() {
     return 'createdAt';
   }
 
+  // 启用自动时间戳（updatedAt）
   static get updatedAtColumn() {
     return 'updatedAt';
   }
@@ -149,6 +171,7 @@ export class BaseModel extends Model {
     order?: Array<{ column: string; order?: string }> | { column: string; order?: string }
   ): QueryBuilder<T> {
     let safeOrder: any[] = [];
+    // 1. 格式化 order 参数
     if (Array.isArray(order)) {
       safeOrder = order.map(item => ({
         column: item.column,
@@ -160,16 +183,20 @@ export class BaseModel extends Model {
         order: (order as any).order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
       }];
     }
+    // 2. 检查当前模型是否存在 'sort' 字段 (通过 jsonSchema 判断)
     const hasSortField = this.jsonSchema && this.jsonSchema.properties && Object.keys(this.jsonSchema.properties).includes('sort');
     if (hasSortField) {
+      // 存在 sort 字段时，插入权重排序：sort > 0 的排在前面，且按值升序
       safeOrder.unshift(
         { column: raw('CASE WHEN `sort` > 0 THEN 1 ELSE 0 END'), order: 'DESC' },
         { column: 'sort', order: 'ASC' }
       );
     }
+    // 3. 应用排序
     if (safeOrder.length > 0) {
       query.orderBy(safeOrder);
     } else {
+      // 默认排序
       query.orderBy('id', 'asc');
     }
     return query;
@@ -224,6 +251,7 @@ export class BaseModel extends Model {
     const countQuery = baseQuery.clone();
     const dataQuery = baseQuery.clone();
     const total = await countQuery.resultSize();
+    // 排序由 BaseModel 统一处理
     if (order) {
       (this as any).applyOrder(dataQuery, order);
     }
@@ -244,15 +272,17 @@ export class BaseModel extends Model {
     this: T,
     data: Record<string, any>
   ) {
-    let normalized = this.inserTable.length
-      ? Object.fromEntries(Object.entries(data).filter(([key]) => this.inserTable.includes(key)))
-      : { ...data };
+    // 1. 应用修改器和 casts（set）
+    let normalized = this.inserTable.length ? Object.fromEntries(Object.entries(data).filter(([key]) => this.inserTable.includes(key))) : { ...data };
     normalized = this.runMutators(normalized);
     normalized = this.runCasts(normalized, 'set');
+    // 2. 插入数据库（Objection 会自动调用  $ beforeInsert）
     const inserted = await this.query().insertAndFetch(normalized) as Partial<any>;
+    // 3. 转为 plain object 并应用访问器和 casts（get）
     let json = inserted.toJSON();
     json = this.runAccessors(json);
     json = this.runCasts(json, 'get');
+    // 4. 重新构造为模型实例（保留原型链）
     return Object.assign(Object.create(this.prototype), json);
   }
 
@@ -263,13 +293,16 @@ export class BaseModel extends Model {
   ) {
     if (data.length === 0) return [];
     const inserted: Array<InstanceType<T>> = [];
+    // 可以使用事务提高性能
     await this.transaction(async trx => {
       for (const item of data) {
-        let normalized = this.inserTable.length
-          ? Object.fromEntries(Object.entries(item).filter(([key]) => this.inserTable.includes(key)))
-          : { ...item };
+        // 1️⃣ 复制数据
+        let normalized = this.inserTable.length ? Object.fromEntries(Object.entries(item).filter(([key]) => this.inserTable.includes(key))) : { ...item };
+        // 2️⃣ 应用修改器（set）
         normalized = this.runMutators(normalized);
+        // 3️⃣ 应用类型转换（set）
         normalized = this.runCasts(normalized, 'set');
+        // 4️⃣ 单条插入 + 获取完整模型
         const result = await this.query(trx).insert(normalized);
         inserted.push(result as InstanceType<T>);
       }
@@ -294,7 +327,7 @@ export class BaseModel extends Model {
 
   // 通过ID恢复
   static async restoreById(id: number) {
-    if (this.softDelete) {
+    if (this.softDelete) { // 软删除
       return await this.query()
         .where('id', id)
         .patch({ [this.softDeleteColumn]: null });
@@ -308,15 +341,17 @@ export class BaseModel extends Model {
     filters: Parameters<T['buildQuery']>[1]
   ) {
     const query = this.buildQuery(this.query(), filters);
-    if (this.softDelete) {
-      return await query.patch({ [this.softDeleteColumn]: null });
+    if (this.softDelete) { // 软删除
+      return await query.patch({
+        [this.softDeleteColumn]: null,
+      });
     }
     return null;
   }
 
   // 通过ID删除
   static async deleteById(id: number) {
-    if (this.softDelete) {
+    if (this.softDelete) { // 软删除
       return await this.query()
         .where('id', id)
         .patch({ [this.softDeleteColumn]: nowInTz() });
@@ -326,18 +361,39 @@ export class BaseModel extends Model {
 
   // 通过过滤条件删除
   static async deleteByFilters<T extends typeof BaseModel>(
+    this: T,
     filters: Parameters<T['buildQuery']>[1]
   ) {
     const query = this.buildQuery(this.query(), filters);
-    if (this.softDelete) {
-      return await query.patch({ [this.softDeleteColumn]: nowInTz() });
+    if (this.softDelete) { // 软删除
+      return await query.patch({
+        [this.softDeleteColumn]: nowInTz(),
+      });
     }
     return await query.delete();
   }
 
   static async forceDelete<T extends typeof BaseModel>(
+    this: T,
     filters: Parameters<T['buildQuery']>[1]
   ) {
+    // 安全检查：只有启用软删除的表才需要验证 deleted_at
+    if ((this as any).softDelete === true) {
+      // 只查询已软删除的记录（deleted_at 不为 null）
+      const query = this.buildQuery(this.query(), filters, true);
+      const count = await query.resultSize();
+      if (count === 0) {
+        const err = new Error(
+          `No soft-deleted record found matching the given filters — ` +
+          `force delete requires the record to be soft-deleted first. ` +
+          `Table: ${(this as any).tableName}`
+        );
+        (err as any).code = 'BaseModel:forceDelete:notSoftDeleted';
+        throw err;
+      }
+      return await query.delete();
+    }
+    // 非软删除表（如日志表），直接删除
     const query = this.buildQuery(this.query(), filters);
     return await query.delete();
   }
