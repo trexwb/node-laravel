@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-02-05 10:40:12
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:56:47
+ * @LastEditTime: 2026-04-01 15:10:42
  * @FilePath: /node-laravel/src/app/Services/Schedules/SchedulesService.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -153,7 +153,9 @@ export class SchedulesService {
   }
 
   public static async clearUserCache(secret: SchedulesModel) {
-    CacheService.forget(`${this.cacheKey}[id:${secret.id}]`);
+    await Promise.all([
+      CacheService.forget(`${this.cacheKey}[secret:${secret.id}]`),
+    ]);
   }
 
   public static async flushallCache() {

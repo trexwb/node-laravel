@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-02-05 14:03:32
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:56:12
+ * @LastEditTime: 2026-04-01 14:49:58
  * @FilePath: /node-laravel/src/app/Models/ServersModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -114,12 +114,12 @@ export class ServersModel extends BaseModel {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${table}.name\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.url\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.key\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.app_id\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.permissions\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.extension\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${table}\`.\`name\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`url\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`key\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`app_id\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`permissions\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`extension\`) > 0`, [keyword])
         });
       });
     }

@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:50:51
+ * @LastEditTime: 2026-04-01 14:26:38
  * @FilePath: /node-laravel/src/app/Http/Controllers/AuthorizeController.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -81,11 +81,11 @@ export class AuthorizeController {
 
   public static async signInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      if (!(req as any).currentUser) {
+      if (!req.currentUser) {
         res.error(401009001007, 'User Error');
         return;
       }
-      res.success((req as any).currentUser);
+      res.success(req.currentUser);
     } catch (error) {
       next(error);
     }
@@ -93,14 +93,14 @@ export class AuthorizeController {
 
   public static async signOut(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      if (!(req as any).currentUser) {
+      if (!req.currentUser) {
         res.error(401009001008, 'User Error');
         return;
       }
       // 触发 Event (异步解耦，操作日志)
-      (req as any).eventEmitter.emit('writeLogs', { ...(req as any).currentUser }, { remember_token: '' }, 'authorize_signOut');
+      (req as any).eventEmitter.emit('writeLogs', { ...req.currentUser }, { remember_token: '' }, 'authorize_signOut');
       // 更新token
-      await UsersService.updateToken((req as any).currentUser);
+      await UsersService.updateToken(req.currentUser);
       res.success();
     } catch (error) {
       next(error);

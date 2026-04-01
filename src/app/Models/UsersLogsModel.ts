@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:53:11
+ * @LastEditTime: 2026-04-01 14:50:16
  * @FilePath: /node-laravel/src/app/Models/UsersLogsModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -99,8 +99,8 @@ export class UsersLogsModel extends BaseModel {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${table}.source\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.handle\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${table}\`.\`source\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`handle\`) > 0`, [keyword])
             .orWhereIn(`${table}.user_id`, function () {
               this.select('id').from(UsersModel.tableName).where(function () {
                 this.orWhereRaw('LOCATE(?, `nickname`) > 0', [keyword])

@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-23 14:52:39
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:49:06
+ * @LastEditTime: 2026-04-01 14:49:39
  * @FilePath: /node-laravel/src/app/Models/SecretsModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -112,10 +112,10 @@ export class SecretsModel extends BaseModel {
       const keywords = filters.keywords.trim().split(/\s+/); // 按一个或多个空格拆分
       keywords.forEach(keyword => {
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${table}.title\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.app_id\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.permissions\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${table}.extension\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${table}\`.\`title\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`app_id\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`permissions\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${table}\`.\`extension\`) > 0`, [keyword])
         });
       });
     }

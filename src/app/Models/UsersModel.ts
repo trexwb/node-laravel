@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:53:14
+ * @LastEditTime: 2026-04-01 14:47:29
  * @FilePath: /node-laravel/src/app/Models/UsersModel.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -133,12 +133,12 @@ export class UsersModel extends BaseModel {
       const myTableName = this.tableName;
       keywords.forEach(keyword => {
         query.where(function () {
-          this.orWhereRaw(`LOCATE(?, \`${myTableName}.nickname\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${myTableName}.truename\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${myTableName}.email\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${myTableName}.mobile\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${myTableName}.uuid\`) > 0`, [keyword])
-            .orWhereRaw(`LOCATE(?, \`${myTableName}.extension\`) > 0`, [keyword])
+          this.orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`nickname\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`truename\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`email\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`mobile\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`uuid\`) > 0`, [keyword])
+            .orWhereRaw(`LOCATE(?, \`${myTableName}\`.\`extension\`) > 0`, [keyword])
         });
       });
     }

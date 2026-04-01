@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-02-05 10:40:12
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:56:51
+ * @LastEditTime: 2026-04-01 14:31:42
  * @FilePath: /node-laravel/src/app/Services/Secrets/SecretsService.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -160,8 +160,10 @@ export class SecretsService {
   }
 
   public static async clearUserCache(secret: SecretsModel) {
-    CacheService.forget(`${this.cacheKey}[id:${secret.id}]`);
-    CacheService.forget(`${this.cacheKey}[appId:${secret.appId}]`);
+    await Promise.all([
+      CacheService.forget(`${this.cacheKey}[id:${secret.id}]`),
+      CacheService.forget(`${this.cacheKey}[appId:${secret.appId}]`),
+    ]);
   }
 
   public static async flushallCache() {

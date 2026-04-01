@@ -2,7 +2,7 @@
  * @Author: trexwb
  * @Date: 2026-02-05 10:40:12
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
+ * @LastEditTime: 2026-04-01 14:23:26
  * @FilePath: /node-laravel/src/app/Services/Users/UsersService.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -57,7 +57,7 @@ export class UsersService {
 
   public static async updateToken(user: InstanceType<typeof UsersModel>) {
     const newToken = Utils.generateRandomString(64);
-    UsersModel.modifyById(user.id, { rememberToken: newToken });
+    await UsersModel.modifyById(user.id, { rememberToken: newToken });
     await this.clearUserCache(user);
     return newToken;
   }
@@ -211,12 +211,14 @@ export class UsersService {
   // 缓存清理
   // ============================================================
   public static async clearUserCache(user: UsersModel) {
-    CacheService.forget(`${this.cacheKey}[id:${user.id}]`);
-    CacheService.forget(`${this.cacheKey}[uuid:${user.uuid}]`);
-    CacheService.forget(`${this.cacheKey}[token:${user.rememberToken}]`);
-    CacheService.forget(`${this.cacheKey}[account:${user.nickname}]`);
-    CacheService.forget(`${this.cacheKey}[account:${user.email}]`);
-    CacheService.forget(`${this.cacheKey}[account:${user.mobile}]`);
+    await Promise.all([
+      CacheService.forget(`${this.cacheKey}[id:${user.id}]`),
+      CacheService.forget(`${this.cacheKey}[uuid:${user.uuid}]`),
+      CacheService.forget(`${this.cacheKey}[token:${user.rememberToken}]`),
+      CacheService.forget(`${this.cacheKey}[account:${user.nickname}]`),
+      CacheService.forget(`${this.cacheKey}[account:${user.email}]`),
+      CacheService.forget(`${this.cacheKey}[account:${user.mobile}]`),
+    ]);
   }
 
   public static async flushallCache() {
