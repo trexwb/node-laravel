@@ -1,31 +1,24 @@
-/**
+/*
  * @Author: trexwb
- * @Date: 2024-01-10 08:57:26
- * @LastEditors: ${git_name}
- * @LastEditTime: 2025-07-15 15:07:51
- * @FilePath: /web/server/src/utils/index.ts
- * @Description: 
- * @一花一世界，一叶一如来
- * @Copyright (c) 2024 by 杭州大美, All Rights Reserved. 
+ * @Date: 2026-01-21 14:11:13
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-03-09 10:34:16
+ * @FilePath: /stl/server/src/utils/index.ts
+ * @Description:
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-import dayjs from 'dayjs';
+import { formatDbDateTime } from '#utils/format'
+import dayjs from 'dayjs'
+import type { DateTimeSlot, RGBColor } from '#types/utils'
 
 /**
  * RGB颜色对象接口
  */
-interface RGBColor {
-  r: number;
-  g: number;
-  b: number;
-}
 
 /**
  * 日期时间段对象接口
  */
-interface DateTimeSlot {
-  start: Date;
-  end: Date;
-}
 
 /**
  * 工具类：常用数据处理工具
@@ -41,8 +34,8 @@ class Utils {
    * @param {string}  value 需要处理的英文字符串
    */
   public static titleCase(value: string): string {
-    if (value == null || value.length === 0) return value;
-    return value.replace(/^[a-z]/, (matchStr: string) => matchStr.toLocaleUpperCase());
+    if (value == null || value.length === 0) return value
+    return value.replace(/^[a-z]/, (matchStr: string) => matchStr.toLocaleUpperCase())
   }
 
   /**
@@ -51,11 +44,11 @@ class Utils {
    * @param {boolean} ignoreCase 是否忽略大小写
    */
   public static compressLetter(value: string, ignoreCase: boolean = false): string {
-    if (typeof value !== "string") return value;
-    const pattern = new RegExp("([a-zA-Z])\\1+", ignoreCase ? "ig" : "g");
+    if (typeof value !== 'string') return value
+    const pattern = new RegExp('([a-zA-Z])\\1+', ignoreCase ? 'ig' : 'g')
     return value.replace(pattern, (matchStr: string, group_1: string) => {
-      return matchStr.length + group_1;
-    });
+      return matchStr.length + group_1
+    })
   }
 
   /**
@@ -63,8 +56,8 @@ class Utils {
    * @param {string} value 需要处理的字符串
    */
   public static trim(value: string): string {
-    if (typeof value !== 'string') return value;
-    return value.replace(/(^\s*)|(\s*$)/g, "");
+    if (typeof value !== 'string') return value
+    return value.replace(/(^\s*)|(\s*$)/g, '')
   }
 
   /**
@@ -72,8 +65,8 @@ class Utils {
    * @param {string} value 需要处理的字符串
    */
   public static trimAll(value: string): string {
-    if (typeof value !== 'string') return value;
-    return value.replace(/\s+/g, "");
+    if (typeof value !== 'string') return value
+    return value.replace(/\s+/g, '')
   }
 
   /**
@@ -83,8 +76,8 @@ class Utils {
    * @param {string} newstr 替换后的字符
    */
   public static replaceAll(text: string, repstr: string, newstr: string): string {
-    if (typeof text !== 'string' || typeof repstr !== 'string' || typeof newstr !== 'string') return text;
-    return text.replace(new RegExp(repstr, "gm"), newstr);
+    if (typeof text !== 'string' || typeof repstr !== 'string' || typeof newstr !== 'string') return text
+    return text.replace(new RegExp(repstr, 'gm'), newstr)
   }
 
   /**
@@ -92,9 +85,9 @@ class Utils {
    * @param {string | number} num 手机号码
    */
   public static numberFormatter(num: string | number): string | number {
-    if (typeof num !== 'string' && typeof num !== 'number') return num;
-    const strNum = num.toString();
-    return strNum.length === 11 ? strNum.replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2') : num;
+    if (typeof num !== 'string' && typeof num !== 'number') return num
+    const strNum = num.toString()
+    return strNum.length === 11 ? strNum.replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2') : num
   }
 
   /**
@@ -102,10 +95,20 @@ class Utils {
    * @param {string | number} money 金额值
    */
   public static moneyFormatter(money: string | number): string {
-    if (typeof money !== 'string' && typeof money !== 'number') return String(money);
-    const floatMoney = parseFloat(money.toString());
-    if (isNaN(floatMoney)) return '0.00';
-    return floatMoney.toFixed(2).toString().split('').reverse().join('').replace(/(\d{3})/g, '$1,').replace(/\,$/, '').split('').reverse().join('');
+    if (typeof money !== 'string' && typeof money !== 'number') return String(money)
+    const floatMoney = parseFloat(money.toString())
+    if (isNaN(floatMoney)) return '0.00'
+    return floatMoney
+      .toFixed(2)
+      .toString()
+      .split('')
+      .reverse()
+      .join('')
+      .replace(/(\d{3})/g, '$1,')
+      .replace(/\,$/, '')
+      .split('')
+      .reverse()
+      .join('')
   }
 
   /**
@@ -115,38 +118,38 @@ class Utils {
    * @param type  date的格式类型：1-日期字符串(2017/12/04 12:12:12) 2-时间戳(1603676514690) 3-日期字符串，无连接符(20171204121212) 4-new Date()时间格式(Thu Oct 01 2020 00:00:00 GMT+0800 (中国标准时间))
    * @param isMs  时间戳精度是否为毫秒，默认为true（当精度为秒时传false），type=2时有效
    */
-  public static dateFormatter(date: any, format: string, type: number = 1, isMs: boolean = true): string {
-    const formatDate = dayjs(date);
+  public static dateFormatter(date: string | number | Date, format: string, type: number = 1, isMs: boolean = true): string {
+    const formatDate = dayjs(date)
     if (formatDate.isValid()) {
       // 成功解析，转换为Y-m-d H:i:s格式
-      return formatDate.format(format);
+      return formatDate.format(format)
     } else if (type === 3) {
-      return Utils._formatTimeStr(date, format);
+      return Utils._formatTimeStr(typeof date === 'string' ? date : String(date), format)
     } else {
-      return Utils._formatDate(format, date, type, isMs);
+      return Utils._formatDate(format, date, type, isMs)
     }
   }
 
-  private static _formatDate(formatStr: string, fdate: any, type: number = 1, isMs: boolean): string {
-    if (!fdate) return '';
-    let fTime: Date;
-    let fStr = 'ymdhis';
+  private static _formatDate(formatStr: string, fdate: string | number | Date, type: number = 1, isMs: boolean): string {
+    if (!fdate) return ''
+    let fTime: Date
+    let fStr = 'ymdhis'
 
     if (type === 4) {
-      fTime = fdate;
+      fTime = fdate as Date
     } else {
-      let fdateStr = fdate.toString();
+      let fdateStr = fdate.toString()
       if (~fdateStr.indexOf('.')) {
-        fdateStr = fdateStr.substring(0, fdateStr.indexOf('.'));
+        fdateStr = fdateStr.substring(0, fdateStr.indexOf('.'))
       }
-      fdateStr = fdateStr.replace('T', ' ').replace(/\-/g, '/');
+      fdateStr = fdateStr.replace('T', ' ').replace(/\-/g, '/')
 
-      if (!formatStr) formatStr = "y-m-d h:i:s";
+      if (!formatStr) formatStr = 'y-m-d h:i:s'
       if (type === 2 || typeof fdate === 'number') {
-        const parsedDate = isMs ? Number(fdateStr) : Number(fdateStr) * 1000;
-        fTime = new Date(parsedDate);
+        const parsedDate = isMs ? Number(fdateStr) : Number(fdateStr) * 1000
+        fTime = new Date(parsedDate)
       } else {
-        fTime = new Date(fdateStr);
+        fTime = new Date(fdateStr)
       }
     }
 
@@ -156,13 +159,13 @@ class Utils {
       String(fTime.getDate()).padStart(2, '0'),
       String(fTime.getHours()).padStart(2, '0'),
       String(fTime.getMinutes()).padStart(2, '0'),
-      String(fTime.getSeconds()).padStart(2, '0')
-    ];
+      String(fTime.getSeconds()).padStart(2, '0'),
+    ]
 
     for (let i = 0; i < formatArr.length; i++) {
-      formatStr = formatStr.replace(fStr.charAt(i), formatArr[i]);
+      formatStr = formatStr.replace(fStr.charAt(i), formatArr[i])
     }
-    return formatStr;
+    return formatStr
   }
 
   /**
@@ -171,22 +174,22 @@ class Utils {
    * @param formatStr 需要的格式 如 y-m-d h:i:s | y/m/d h:i:s | y/m/d | y年m月d日 等
    */
   private static _formatTimeStr(timeStr: string, formatStr: string): string {
-    if (!timeStr || timeStr.length !== 14) return timeStr;
-    const timeArr = timeStr.split('');
+    if (!timeStr || timeStr.length !== 14) return timeStr
+    const timeArr = timeStr.split('')
     const formatArr = [
       timeArr.slice(0, 4).join(''),
       timeArr.slice(4, 6).join(''),
       timeArr.slice(6, 8).join(''),
       timeArr.slice(8, 10).join(''),
       timeArr.slice(10, 12).join(''),
-      timeArr.slice(12, 14).join('')
-    ];
-    const fStr = 'ymdhis';
-    if (!formatStr) formatStr = 'y-m-d h:i:s';
+      timeArr.slice(12, 14).join(''),
+    ]
+    const fStr = 'ymdhis'
+    if (!formatStr) formatStr = 'y-m-d h:i:s'
     for (let i = 0; i < formatArr.length; i++) {
-      formatStr = formatStr.replace(fStr.charAt(i), formatArr[i]);
+      formatStr = formatStr.replace(fStr.charAt(i), formatArr[i])
     }
-    return formatStr;
+    return formatStr
   }
 
   /**
@@ -196,14 +199,14 @@ class Utils {
    * @param b
    */
   public static rgbToHex(r: number, g: number, b: number): string {
-    return "#" + Utils._toHex(r) + Utils._toHex(g) + Utils._toHex(b);
+    return '#' + Utils._toHex(r) + Utils._toHex(g) + Utils._toHex(b)
   }
 
   private static _toHex(n: number): string {
-    const num = parseInt(n.toString(), 10);
-    if (isNaN(num)) return "00";
-    const clamped = Math.max(0, Math.min(num, 255));
-    return "0123456789ABCDEF".charAt((clamped - clamped % 16) / 16) + "0123456789ABCDEF".charAt(clamped % 16);
+    const num = parseInt(n.toString(), 10)
+    if (isNaN(num)) return '00'
+    const clamped = Math.max(0, Math.min(num, 255))
+    return '0123456789ABCDEF'.charAt((clamped - (clamped % 16)) / 16) + '0123456789ABCDEF'.charAt(clamped % 16)
   }
 
   /**
@@ -211,14 +214,16 @@ class Utils {
    * @param hex 颜色值 #333 或 #333333
    */
   public static hexToRGB(hex: string): RGBColor | null {
-    if (typeof hex !== 'string' || !/^#?([a-f\d]{3}|[a-f\d]{6})$/i.test(hex)) return null;
-    const normalizedHex = hex.length === 4 ? '#' + hex.substring(1).repeat(2) : hex;
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(normalizedHex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
+    if (typeof hex !== 'string' || !/^#?([a-f\d]{3}|[a-f\d]{6})$/i.test(hex)) return null
+    const normalizedHex = hex.length === 4 ? '#' + hex.substring(1).repeat(2) : hex
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(normalizedHex)
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : null
   }
 
   /**
@@ -226,22 +231,22 @@ class Utils {
    * @param n 随机数位数
    */
   public static unique(n: number = 6): string {
-    let rnd = (Math.floor(Math.random() * 9) + 1).toString();
+    let rnd = (Math.floor(Math.random() * 9) + 1).toString()
     for (let i = 1; i < n; i++) {
-      rnd += Math.floor(Math.random() * 10).toString();
+      rnd += Math.floor(Math.random() * 10).toString()
     }
-    return rnd;
+    return rnd
   }
 
   /**
    * @desc 获取uuid
    */
   public static getUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0
+      const v = c === 'x' ? r : (r & 0x3) | 0x8
+      return v.toString(16)
+    })
   }
 
   /**
@@ -250,54 +255,50 @@ class Utils {
    * @param arr2 数组2 可不传
    */
   public static distinctArray<T>(arr1: T[] = [], arr2: T[] = []): T[] {
-    return [...new Set([...arr1, ...arr2])] as T[];
+    return [...new Set([...arr1, ...arr2])] as T[]
   }
 
   /**
-   * @desc 获取日期时间段
-   * @param type 1-今天 2-昨天 3-本周 4-本月 5-本年
+   * @desc 获取日期时间段（使用北京时间）
+   * @param type 1-今天 2-昨天 3-本周 3-本月 5-本年
    */
   public static getDateTimeSlot(type: number): DateTimeSlot {
-    const now = new Date();
-    let start = now.toDateString();
-    let end = now.toDateString();
+    const now = new Date(formatDbDateTime())
+    let start: Date
+    let end: Date
 
     switch (type) {
-      case 1:
-        start = `${start} 00:00:00`;
-        end = `${end} 23:59:59`;
-        break;
-      case 2:
-        now.setTime(now.getTime() - 3600 * 1000 * 24 * 1);
-        start = `${now.toDateString()} 00:00:00`;
-        end = `${now.toDateString()} 23:59:59`;
-        break;
-      case 3:
-        // 获取星期几,getDay()返回值是 0（周日） 到 6（周六） 之间的一个整数。0||7为7，即weekday的值为1-7
-        const weekday = now.getDay() || 7;
-        // 往前算（weekday-1）天，年份、月份会自动变化
-        now.setDate(now.getDate() - weekday + 1);
-        start = `${now.toDateString()} 00:00:00`;
-        end = `${end} 23:59:59`;
-        break;
-      case 4:
-        start = `${now.getFullYear()}-${now.getMonth() + 1}-01 00:00:00`;
-        end = `${end} 23:59:59`;
-        break;
-      case 5:
-        start = `${now.getFullYear()}-01-01 00:00:00`;
-        end = `${end} 23:59:59`;
-        break;
+      case 1: // 今天
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+        break
+      case 2: // 昨天
+        const yesterday = new Date(now)
+        yesterday.setDate(yesterday.getDate() - 1)
+        start = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0, 0, 0)
+        end = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59)
+        break
+      case 3: // 本周
+        const weekday = now.getDay() || 7
+        const weekStart = new Date(now)
+        weekStart.setDate(weekStart.getDate() - weekday + 1)
+        start = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate(), 0, 0, 0)
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+        break
+      case 4: // 本月
+        start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+        break
+      case 5: // 本年
+        start = new Date(now.getFullYear(), 0, 1, 0, 0, 0)
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+        break
       default:
-        return {
-          start: new Date(start.replace(/\-/g, '/')),
-          end: new Date(end.replace(/\-/g, '/'))
-        };
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
     }
-    return {
-      start: new Date(start.replace(/\-/g, '/')),
-      end: new Date(end.replace(/\-/g, '/'))
-    };
+
+    return { start, end }
   }
 
   /**
@@ -311,7 +312,7 @@ class Utils {
    * @param fixedDay 是否需要天的固定文本，如昨天、前天
    */
   public static formatTimeAgo(
-    date: any,
+    date: string | number | Date,
     type: number = 1,
     isMs: boolean = true,
     suffix: string = '前',
@@ -319,85 +320,85 @@ class Utils {
     seconds: number = 10,
     fixedDay: boolean = true
   ): string {
-    const formatDate = Utils.dateFormatter(date, 'y/m/d h:i:s', type, isMs);
-    const beforeStamp = new Date(formatDate).getTime();
-    const nowStamp = new Date().getTime();
-    let res = '';
-    const diff = nowStamp - beforeStamp;
+    const formatDate = Utils.dateFormatter(date, 'y/m/d h:i:s', type, isMs)
+    const beforeStamp = new Date(formatDbDateTime(formatDate)).getTime()
+    const nowStamp = new Date(formatDbDateTime()).getTime()
+    let res = ''
+    const diff = nowStamp - beforeStamp
 
     if (diff > 0) {
-      const _minute = 1000 * 60;
-      const _hour = _minute * 60;
-      const _day = _hour * 24;
+      const _minute = 1000 * 60
+      const _hour = _minute * 60
+      const _day = _hour * 24
       // 不精确
-      const _month = _day * 30;
-      const _year = _month * 12;
-      const year = Math.floor(diff / _year);
-      const month = Math.floor(diff / _month);
-      const day = Math.floor(diff / _day);
-      const hour = Math.floor(diff / _hour);
-      const minute = Math.floor(diff / _minute);
-      const second = Math.floor(diff / 1000);
-      let isEmpty = false;
+      const _month = _day * 30
+      const _year = _month * 12
+      const year = Math.floor(diff / _year)
+      const month = Math.floor(diff / _month)
+      const day = Math.floor(diff / _day)
+      const hour = Math.floor(diff / _hour)
+      const minute = Math.floor(diff / _minute)
+      const second = Math.floor(diff / 1000)
+      let isEmpty = false
 
       switch (endUnit) {
         case 1:
-          isEmpty = (minute || hour || day || month || year) ? true : false;
-          break;
+          isEmpty = minute || hour || day || month || year ? true : false
+          break
         case 2:
-          isEmpty = (hour || day || month || year) ? true : false;
-          break;
+          isEmpty = hour || day || month || year ? true : false
+          break
         case 3:
-          isEmpty = (day || month || year) ? true : false;
-          break;
+          isEmpty = day || month || year ? true : false
+          break
         case 4:
-          isEmpty = (month || year) ? true : false;
-          break;
+          isEmpty = month || year ? true : false
+          break
         case 5:
-          isEmpty = year ? true : false;
-          break;
+          isEmpty = year ? true : false
+          break
         default:
-          break;
+          break
       }
 
       if (!isEmpty) {
         if (year) {
-          res = `${year}年${suffix}`;
+          res = `${year}年${suffix}`
         } else if (month) {
-          res = `${month}个月${suffix}`;
+          res = `${month}个月${suffix}`
         } else if (day) {
           if (day === 1 && fixedDay) {
             // 1天前
-            res = "昨天";
+            res = '昨天'
           } else if (day === 2 && fixedDay) {
             // 2天前
-            res = "前天";
+            res = '前天'
           } else {
-            res = `${day}天${suffix}`;
+            res = `${day}天${suffix}`
           }
         } else if (hour) {
-          res = `${hour}小时${suffix}`;
+          res = `${hour}小时${suffix}`
         } else if (minute) {
-          res = `${minute}分钟${suffix}`;
+          res = `${minute}分钟${suffix}`
         } else {
-          const sec = seconds < 60 ? seconds : 59;
-          res = second < sec ? '刚刚' : `${second}秒${suffix}`;
+          const sec = seconds < 60 ? seconds : 59
+          res = second < sec ? '刚刚' : `${second}秒${suffix}`
         }
       }
     }
-    return res;
+    return res
   }
 
   /**
    * 检查值是否为空
    * @param value 需要检查的值
    */
-  public static empty(value: any): boolean {
-    if (value === null || value === undefined) return true;
-    if (typeof value === 'string' && Utils.trim(value) === '') return true;
-    if (Array.isArray(value) && value.length === 0) return true;
-    if (typeof value === 'object' && Object.keys(value).length === 0) return true;
-    return false;
+  public static empty(value: unknown): boolean {
+    if (value === null || value === undefined) return true
+    if (typeof value === 'string' && Utils.trim(value) === '') return true
+    if (Array.isArray(value) && value.length === 0) return true
+    if (typeof value === 'object' && Object.keys(value).length === 0) return true
+    return false
   }
 
   /**
@@ -405,21 +406,19 @@ class Utils {
    * @param length 字符串长度
    */
   public static generateRandomString(length: number): string {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    return Array.from({ length }, () =>
-      characters.charAt(Math.floor(Math.random() * characters.length))
-    ).join('');
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    return Array.from({ length }, () => characters.charAt(Math.floor(Math.random() * characters.length))).join('')
   }
 
   /**
    * 工具函数：安全的JSON字符串化
    * @param value 需要序列化的值
    */
-  public static safeJSONStringify(value: any): string | null {
+  public static safeJSONStringify(value: unknown): string | null {
     try {
-      return JSON.stringify(value);
+      return JSON.stringify(value)
     } catch (error) {
-      return null; // 或者根据需要返回一个空对象或其他默认值
+      return null // 或者根据需要返回一个空对象或其他默认值
     }
   }
 
@@ -427,13 +426,13 @@ class Utils {
    * 工具函数：安全的整数转换
    * @param value 需要转换的值
    */
-  public static safeCastToInteger(value: any): number {
-    if (typeof value === 'number' && !isNaN(value)) return Number(value);
+  public static safeCastToInteger(value: unknown): number {
+    if (typeof value === 'number' && !isNaN(value)) return Math.max(0, Number(value))
     if (typeof value === 'string' && value.trim() !== '') {
-      const parsed = parseFloat(value);
-      return isNaN(parsed) ? 0 : Number(parsed);
+      const parsed = parseFloat(value)
+      return isNaN(parsed) ? 0 : Math.max(0, Number(parsed))
     }
-    return 0; // 或者根据需要返回其他默认值
+    return 0
   }
 
   /**
@@ -441,37 +440,34 @@ class Utils {
    *
    * @param value 需要转换的值
    */
-  public static normalizeSort(
-    sort: string | undefined,
-    allowedColumns: string[]
-  ): { column: string; order: 'ASC' | 'DESC' } | undefined {
-    if (!sort) return undefined;
-    const match = sort.match(/^([+-])(.*?)$/);
-    if (!match) return undefined;
-    const column = match[2];
-    if (!allowedColumns.includes(column)) return undefined;
+  public static normalizeSort(sort: string | undefined, allowedColumns: string[]): { column: string; order: 'ASC' | 'DESC' } | undefined {
+    if (!sort) return undefined
+    const match = sort.match(/^([+-])(.*?)$/)
+    if (!match) return undefined
+    const column = match[2]
+    if (!allowedColumns.includes(column)) return undefined
     return {
       column,
       order: match[1] === '-' ? 'DESC' : 'ASC',
-    };
+    }
   }
 
   /**
    * 工具函数：数组/对象排序
    * @param obj 需要排序的对象或数组
    */
-  public static sortMultiDimensionalObject(obj: any): any {
-    if (obj && typeof obj === 'object') {
-      const sortedObject: any = {};
-      const keys = Object.keys(obj).sort();
+  public static sortMultiDimensionalObject(obj: unknown): unknown {
+    if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+      const sortedObject: Record<string, unknown> = {}
+      const keys = Object.keys(obj).sort()
       for (const key of keys) {
-        sortedObject[key] = Utils.sortMultiDimensionalObject(obj[key]);
+        sortedObject[key] = Utils.sortMultiDimensionalObject((obj as Record<string, unknown>)[key])
       }
-      return Object.keys(obj).length > 0 ? sortedObject : null;
-    } else if (obj && Array.isArray(obj)) {
-      return obj.length > 0 ? obj.sort().map((item: any) => Utils.sortMultiDimensionalObject(item)) : null;
+      return Object.keys(obj).length > 0 ? sortedObject : null
+    } else if (Array.isArray(obj)) {
+      return obj.length > 0 ? obj.sort().map((item: unknown) => Utils.sortMultiDimensionalObject(item)) : null
     } else {
-      return obj || null;
+      return obj || null
     }
   }
 
@@ -488,9 +484,11 @@ class Utils {
     // 月份：1-12
     // 星期：0-6（0和7都代表周日）
     // 使用非捕获组(?:...)和问号?来标记秒字段为可选
-    const cronPatternWithSeconds = /^([0-5]?\d|\*|(?:\*\/[1-9][0-9]?))\s([0-5]?\d|\*|(?:\*\/[1-9][0-9]?))\s([01]?\d|2[0-3]|\*|(?:\*\/[1-9][0-9]?))\s([1-9]|1\d|2[0-9]|3[01]|\*)\s(1[0-2]|0?[1-9]|\*)\s([0-6]|\*)$/;
-    const cronPatternWithoutSeconds = /^([0-5]?\d|\*|(?:\*\/[1-9][0-9]?))\s([01]?\d|2[0-3]|\*|(?:\*\/[1-9][0-9]?))\s([1-9]|1\d|2[0-9]|3[01]|\*)\s(1[0-2]|0?[1-9]|\*)\s([0-6]|\*)$/;
-    return cronPatternWithSeconds.test(rowTime) || cronPatternWithoutSeconds.test(rowTime);
+    const cronPatternWithSeconds =
+      /^([0-5]?\d|\*|(?:\*\/[1-9][0-9]?))\s([0-5]?\d|\*|(?:\*\/[1-9][0-9]?))\s([01]?\d|2[0-3]|\*|(?:\*\/[1-9][0-9]?))\s([1-9]|1\d|2[0-9]|3[01]|\*)\s(1[0-2]|0?[1-9]|\*)\s([0-6]|\*)$/
+    const cronPatternWithoutSeconds =
+      /^([0-5]?\d|\*|(?:\*\/[1-9][0-9]?))\s([01]?\d|2[0-3]|\*|(?:\*\/[1-9][0-9]?))\s([1-9]|1\d|2[0-9]|3[01]|\*)\s(1[0-2]|0?[1-9]|\*)\s([0-6]|\*)$/
+    return cronPatternWithSeconds.test(rowTime) || cronPatternWithoutSeconds.test(rowTime)
   }
 
   /**
@@ -499,12 +497,12 @@ class Utils {
    * @param numberOfGroups 组数量
    */
   public static generateFormattedSerial(groupSize: number = 5, numberOfGroups: number = 4): string {
-    const possibleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const totalLength = (groupSize || 5) * (numberOfGroups || 4);
+    const possibleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    const totalLength = (groupSize || 5) * (numberOfGroups || 4)
     const randomPart = Array.from({ length: totalLength }, () =>
       possibleChars.charAt(Math.floor(Math.random() * possibleChars.length))
-    ).join('');
-    return 'SN-' + randomPart.match(new RegExp('.{1,' + groupSize + '}', 'g'))!.join('-');
+    ).join('')
+    return 'SN-' + randomPart.match(new RegExp('.{1,' + groupSize + '}', 'g'))!.join('-')
   }
 
   /**
@@ -514,7 +512,7 @@ class Utils {
   public static splitCamelCase(str: string): string[] {
     // 使用正则表达式匹配小写字母后跟大写字母的情况，并在其间插入空格。
     // 然后根据空格拆分字符串。
-    return str.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ');
+    return str.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ')
   }
 
   /**
@@ -522,14 +520,88 @@ class Utils {
    * @param arr 需要转换的字符串数组
    */
   public static toCamelCase(arr: string[]): string {
-    return arr.map((word, index) => {
-      // 对于第一个单词，全部小写；对于后续单词，首字母大写，其余小写
-      if (index === 0) {
-        return word.toLowerCase();
+    return arr
+      .map((word, index) => {
+        // 对于第一个单词，全部小写；对于后续单词，首字母大写，其余小写
+        if (index === 0) {
+          return word.toLowerCase()
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      })
+      .join('')
+  }
+
+  /**
+   * 递归过滤对象中的空值（null, undefined, 空字符串）。
+   * - 递归处理嵌套 plain object
+   * - 保留数组（含空数组 []，因为 whereIn([]) 是有效查询条件）
+   * - 保留数字 0（status=0、折扣率等场景有效）
+   * - 嵌套对象如果被洗空则整层丢弃
+   * @param obj 需要过滤的对象
+   * @returns 过滤后的新对象
+   */
+  public static filterEmpty<T extends Record<string, unknown>>(obj: T): Partial<T> {
+    const result: Partial<T> = {}
+    for (const [key, value] of Object.entries(obj)) {
+      // 跳过顶层的 null / undefined / 空字符串
+      if (value === null || value === undefined || value === '') continue
+      // 递归处理嵌套 plain object（排除数组和 Date 等特殊对象）
+      if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+        const cleaned = Utils.filterEmpty(value as unknown as Record<string, unknown>)
+        if (Object.keys(cleaned).length > 0) {
+          result[key as keyof T] = cleaned as unknown as T[keyof T]
+        }
+        continue
       }
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-    }).join('');
+      // 数字 0、空数组 []、其他一切有效值全部保留
+      result[key as keyof T] = value as T[keyof T]
+    }
+    return result
+  }
+
+  /**
+   * 解析并清洗 filter 参数。
+   * - 支持 String 类型：尝试 JSON.parse 转换为对象
+   * - 支持 Object 类型：直接使用
+   * - 空值/非法 JSON：返回空对象 {}
+   * - 自动调用 filterEmpty 移除 null / undefined / 空字符串
+   *
+   * @param input 来自 req.body.filter 的值（可能为 String | Object | undefined | null）
+   * @returns 清洗后的 filter 对象
+   */
+  public static parseFilter(input: unknown): Record<string, unknown> {
+    // 1. 处理空值
+    if (input === null || input === undefined) {
+      return {}
+    }
+    // 2. 处理字符串：尝试 JSON.parse
+    if (typeof input === 'string') {
+      const trimmed = input.trim()
+      if (trimmed === '') {
+        return {}
+      }
+      try {
+        const parsed = JSON.parse(trimmed)
+        // JSON.parse 成功但返回非对象时（如 "123"），返回空对象
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          return {}
+        }
+        // 对解析后的对象执行 filterEmpty
+        return Utils.filterEmpty(parsed)
+      } catch {
+        // 非法 JSON 字符串，返回空对象
+        return {}
+      }
+    }
+
+    // 3. 处理对象
+    if (typeof input === 'object' && !Array.isArray(input) && !(input instanceof Date)) {
+      return Utils.filterEmpty(input as Record<string, unknown>)
+    }
+
+    // 4. 其他类型（number, boolean 等非法输入），返回空对象
+    return {}
   }
 }
 
-export default Utils;
+export default Utils

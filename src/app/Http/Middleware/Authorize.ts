@@ -1,56 +1,43 @@
 /*
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
- * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 12:29:53
- * @FilePath: /node-laravel/src/app/Http/Middleware/Authorize.ts
- * @Description: 
+ * @LastEditors: ${git_name}
+ * @LastEditTime: 2026-04-02 17:03:04
+ * @FilePath: /stl-dev-server/server/src/app/Http/Middleware/Authorize.ts
+ * @Description:
  * 一花一世界，一叶一如来
- * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-import type { Request, Response, NextFunction } from 'express';
-import { logger } from '#utils/Logger';
+import type { NextFunction, Request, Response } from 'express'
 
-/**
- * 权限校验中间件工厂
- * @param permissionName 格式: "key:operation"，如 "users:create"
- * 
- * 使用示例：
- *   router.post('/users', authenticateToken, can('users:create'), UsersController.create)
- */
 export const can = (permissionName: string) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const currentUser = (req as any).currentUser;
-
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const currentUser = req.currentUser
     if (!currentUser) {
-      res.error(401010003001, 'Unauthorized');
-      return;
+      res.error(401019003001, 'Unauthorized: user not exist')
+      return
     }
-
-    const roles = currentUser.roles || [];
+    const roles = currentUser.roles || []
     if (!roles || !roles.length) {
-      res.error(401010003002, 'Unauthorized');
-      return;
+      res.error(401019003002, 'Unauthorized: roles not exist')
+      return
     }
-
-    const permissions: string[] = roles.flatMap((role: { permissions?: Array<{ key: string; operation: string }> }) =>
-      (role.permissions || []).map(p => `${p.key}:${p.operation}`)
-    );
-
-    if (!permissions.length) {
-      res.error(401010003003, 'Unauthorized');
-      return;
+    const permissions: string[] = roles.flatMap((role) =>
+      role.permissionDetails?.map((p) => `${p.key}:${p.operation}`) ?? []
+    )
+    if (!permissions || !permissions.length) {
+      res.error(401019003003, 'Unauthorized: permission not exist')
+      return
     }
-
     try {
+      // 校验权限
       if (!permissions.includes(permissionName)) {
-        logger.warn(`[Auth] User ${currentUser.id} 权限不足: 需要 "${permissionName}"，持有: [${permissions.join(', ')}]`);
-        res.error(403010003004, `Forbidden: Missing permission "${permissionName}"`);
-        return;
+        res.error(403019003004, `Forbidden: Missing permission`)
+        return
       }
-      next();
+      next()
     } catch (error) {
-      next(error);
+      next(error)
     }
-  };
-};
+  }
+}
