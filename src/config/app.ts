@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-05 10:40:12
+ * @Date: 2026-02-05
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
- * @FilePath: /node-laravel/src/config/app.ts
+ * @LastEditTime: 2026-03-27
+ * @FilePath: node-laravel/src/config/app.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
@@ -14,7 +14,7 @@ export default {
   debugger: process.env.APP_DEBUG === 'true',
   timezone: process.env.TIME_ZONE || 'Asia/Shanghai',
   url: process.env.APP_URL || 'localhost',
-  http_port: parseInt(process.env.HTTP_PORT || '80'),
+  http_port: parseInt(process.env.HTTP_PORT || process.env.PORT || '80'),
   https_port: parseInt(process.env.HTTPS_PORT || '443'),
   upload_path: process.env.UPLOAD_PATH || 'storage/uploads',
   ws: {
@@ -33,6 +33,12 @@ export default {
   },
   front: {
     port: parseInt(process.env.FRONT_PORT || '3000'),
+    host: process.env.FRONT_HOST || '0.0.0.0',
+  },
+  // 控制台（admin）前端服务地址，供 routes/console.ts 反向代理使用
+  console: {
+    port: parseInt(process.env.CONSOLE_PORT || '3000'),
+    host: process.env.CONSOLE_HOST || '0.0.0.0',
   },
   cluster: {
     enabled: process.env.CLUSTER_ENABLED === 'true',
@@ -60,4 +66,4 @@ export default {
   log: {
     level: process.env.LOG_LEVEL || (process.env.APP_ENV === 'production' ? 'info' : 'debug'),
   },
-};
+}

@@ -1,55 +1,123 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
- * @FilePath: /node-laravel/src/app/Http/Middleware/DecryptRequest.ts
- * @Description: 
+ * @LastEditTime: 2026-04-01
+ * @FilePath: node-laravel/src/app/Http/Middleware/DecryptRequest.ts
+ * @Description:
  * 一花一世界，一叶一如来
- * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-import type { Request, Response, NextFunction } from 'express';
-import { config } from '#bootstrap/configLoader';
-import { Crypto } from '#utils/Crypto';
-import { logger } from '#utils/Logger';
+import { config } from '#bootstrap/configLoader'
+import { CryptoTool } from '#app/Helpers/cryptoTool'
+import { createLogger } from '#app/Helpers/logger'
+import type { NextFunction, Request, Response } from 'express'
 
-export const decryptRequest = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  const isEnabled = config('app.security.request_encrypt');
-  if (!isEnabled || req.method === 'GET') {
-    next();
-    return;
+const log = createLogger('Middleware:Decrypt')
+
+export const decryptRequest = (req: Request, res: Response, next: NextFunction) => {
+  // 1. 检查环境变量
+  const isEnabled = config('app.security.request_encrypt')
+  if (!isEnabled || req.method === 'GET') return next()
+
+  // 2. 获取加密数据 (通常前端会将加密后的字符串放在 body 的某个字段，或直接作为整个 body)
+  if (!req.body) {
+    // body 为空（如 Content-Type 不正确或 body-parser 未解析），跳过解密
+    return next()
   }
-
-  // 从 body 或 header 中获取加密数据
-  const encryptedData = (req.body as any)?.encryptData as string | undefined;
-  const rawBody = req.headers['x-encrypted-body'] as string | undefined;
-  const targetData = encryptedData || rawBody;
-
-  if (!targetData || typeof targetData !== 'string') {
-    next();
-    return;
+  const encryptedData = req.body.encryptedData
+  if (!encryptedData || typeof encryptedData !== 'string') {
+    // 记录调试信息：为什么跳过了解密
+    if (config('app.debugger')) {
+      log.debug(
+        {
+          path: req.path,
+          hasEncryptedData: !!encryptedData,
+          encryptedDataType: typeof encryptedData,
+          bodyKeys: Object.keys(req.body),
+        },
+        'Skip decryption - no encryptedData found'
+      )
+    }
+    return next() // 如果不是字符串或没有数据，跳过
   }
 
   try {
-    const appKey = req.secretRow?.appSecret || config('app.security.app_key');
-    const appIv = req.secretRow?.appIv || config('app.security.app_iv');
-    const decrypted = Crypto.decrypt(targetData, appKey, appIv);
+    // 密钥分离（P3 修复）：与 EncryptResponse 一致，租户签名密钥经 HMAC 派生为独立 AES 密钥
+    const appSecret = req.secretRow?.appSecret
+    const appKey = appSecret ? CryptoTool.deriveEncryptionKey(appSecret) : false
 
-    if (!decrypted) {
-      res.error(401010004001, 'Data decryption failed: invalid format or key mismatch');
-      return;
+    // 记录调试信息
+    if (config('app.debugger')) {
+      log.debug(
+        {
+          path: req.path,
+          encryptedLength: encryptedData.length,
+          encryptedPreview: encryptedData.substring(0, 50),
+          hasCustomKey: !!appSecret,
+          hasCustomIv: !!req.secretRow?.appIv,
+        },
+        'Attempting decryption'
+      )
     }
 
-    // 解密后合并到 body（保留原始字段）
-    req.body = { ...decrypted, ...req.body };
-    logger.debug(`[DecryptRequest] req.id=${req.id} 解密成功`);
-    next();
-  } catch (err) {
-    logger.error(`[DecryptRequest] 解密异常:`, err);
-    res.error(401010004001, 'Data decryption failed');
+    // 3. 执行解密
+    const decryptData = CryptoTool.decrypt(encryptedData, appKey)
+    if (!decryptData) {
+      log.warn(
+        {
+          path: req.path,
+          encryptedPreview: encryptedData.substring(0, 50),
+        },
+        'Decryption returned empty result'
+      )
+      return res.error(400019004001, 'Data decryption failed. Invalid format or key.')
+    }
+
+    // 记录成功的解密
+    if (config('app.debugger')) {
+      log.debug(
+        {
+          path: req.path,
+          decryptedType: typeof decryptData,
+          decryptedKeys: typeof decryptData === 'object' ? Object.keys(decryptData) : 'not an object',
+        },
+        'Decryption successful'
+      )
+    }
+
+    req.body = decryptData
+    next()
+  } catch (error) {
+    // 增强错误处理：提供更有意义的客户端响应
+    const err = error as Error
+
+    // 记录详细的错误信息
+    log.error(
+      {
+        path: req.path,
+        method: req.method,
+        errorMessage: err.message,
+        encryptedDataLength: encryptedData?.length || 0,
+        encryptedPreview: encryptedData?.substring(0, 50) || 'N/A',
+        stack: config('app.debugger') ? err.stack : undefined,
+      },
+      'Decryption failed'
+    )
+
+    // 根据错误类型返回不同的客户端错误
+    if (err.message.includes('Invalid JSON format after decryption')) {
+      // 解密成功但JSON解析失败 - 可能是前端传了非JSON数据或格式错误
+      return res.error(400019004002, '请求数据格式错误：解密后的内容不是有效的JSON格式')
+    } else if (err.message.includes('Invalid key or iv length')) {
+      // 密钥长度错误 - 配置问题（不透传服务端配置细节，统一为通用文案）
+      return res.error(500019004003, '服务器解密配置异常，请联系管理员')
+    } else if (err.message.includes('Decryption failed')) {
+      // 其他加密相关的错误
+      return res.error(400019004004, '请求数据解密失败，请检查数据格式和密钥')
+    }
+
+    // 其他未知错误
+    next(error)
   }
-};
+}

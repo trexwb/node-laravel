@@ -1,80 +1,88 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-27 11:30:00
+ * @Date: 2026-03-27
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 13:45:00
- * @FilePath: /node-laravel/src/bootstrap/events.ts
+ * @LastEditTime: 2026-03-27
+ * @FilePath: node-laravel/src/bootstrap/events.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
  */
-import { EventEmitter } from 'node:events';
-import { config } from '#bootstrap/configLoader';
+import { EventEmitter } from 'node:events'
+import { randomUUID } from 'node:crypto'
+import type { RedisClientType } from 'redis'
+import { config } from '#bootstrap/configLoader'
 
 // ============================================================
 // 基础事件总线（单进程内使用）
 // ============================================================
 class LocalEventBus extends EventEmitter {
   constructor() {
-    super();
-    this.setMaxListeners(50);
+    super()
+    this.setMaxListeners(50)
   }
 }
 
-export const eventBus = new LocalEventBus();
+export const eventBus = new LocalEventBus()
 
 // ============================================================
 // 跨进程事件总线（Cluster 模式使用 Redis Pub/Sub）
 // ============================================================
 interface CrossProcessBusOptions {
-  channel: string;
-  redisUrl?: string;
+  channel: string
+  redisUrl?: string
 }
 
-type EventHandler = (...args: any[]) => void;
+type EventHandler = (...args: unknown[]) => void
 
-let redisClient: any = null;
-let redisSubscriber: any = null;
-let crossProcessBus: any = null;
+// 跨进程事件总线接口（事件载荷统一为 unknown[]，由监听方自行收窄类型）
+export interface CrossProcessEventBus {
+  publish(event: string, ...args: unknown[]): Promise<void>
+  subscribe(event: string, handler: EventHandler): void
+}
+
+let redisClient: RedisClientType | null = null
+let redisSubscriber: RedisClientType | null = null
+let crossProcessBus: CrossProcessEventBus | null = null
 
 async function getRedisClient() {
-  if (redisClient) return redisClient;
+  if (redisClient) return redisClient
 
-  const redisEnabled = config('cache.driver') === 'redis' && config('cache.host');
+  const redisEnabled = config<string>('cache.driver') === 'redis' && Boolean(config('cache.host'))
   if (!redisEnabled) {
-    return null;
+    return null
   }
 
   try {
-    const { createClient } = await import('redis');
-    const host = config('cache.host');
-    const port = config('cache.port');
-    const password = config('cache.passwd');
+    const { createClient } = await import('redis')
+    const host = config<string>('cache.host')
+    const port = config<number>('cache.port')
+    const password = config<string>('cache.passwd')
 
     redisClient = createClient({
       password: password || undefined,
       socket: { host, port },
-    });
+    })
     redisClient.on('error', (err: Error) => {
-      console.error('[CrossProcessBus] Redis Client Error:', err.message);
-    });
-    await redisClient.connect();
-    console.log('[CrossProcessBus] Redis 连接成功');
-    return redisClient;
+      console.error('[CrossProcessBus] Redis Client Error:', err.message)
+    })
+    await redisClient.connect()
+    console.log('[CrossProcessBus] Redis 连接成功')
+    return redisClient
   } catch (err) {
-    console.warn('[CrossProcessBus] Redis 连接失败，跨进程事件将不可用:', (err as Error).message);
-    return null;
+    console.warn('[CrossProcessBus] Redis 连接失败，跨进程事件将不可用:', (err as Error).message)
+    return null
   }
 }
 
 async function getRedisSubscriber() {
-  if (redisSubscriber) return redisSubscriber;
-  const client = await getRedisClient();
-  if (!client) return null;
+  if (redisSubscriber) return redisSubscriber
+  const client = await getRedisClient()
+  if (!client) return null
 
-  redisSubscriber = client.duplicate();
-  await redisSubscriber.connect();
-  return redisSubscriber;
+  redisSubscriber = client.duplicate()
+  await redisSubscriber.connect()
+  return redisSubscriber
 }
 
 /**
@@ -82,47 +90,60 @@ async function getRedisSubscriber() {
  * 返回的对象提供 publish() 和 subscribe() 方法
  */
 export async function createCrossProcessEventBus(options: CrossProcessBusOptions) {
-  if (crossProcessBus) return crossProcessBus;
+  if (crossProcessBus) return crossProcessBus
 
-  const subscriber = await getRedisSubscriber();
+  const subscriber = await getRedisSubscriber()
   if (!subscriber) {
-    console.warn('[CrossProcessBus] Redis 不可用，返回空实现');
+    console.warn('[CrossProcessBus] Redis 不可用，返回空实现')
     return {
-      publish: async (_channel: string, _data: any) => {},
+      publish: async (_channel: string, _data: unknown) => {},
       subscribe: (_channel: string, _handler: EventHandler) => {},
-    };
+    }
   }
 
-  const localHandlers = new Map<string, EventHandler[]>();
+  const localHandlers = new Map<string, EventHandler[]>()
+  // 本进程唯一标识：用于跨进程广播去重（跳过本进程自己发布的消息，避免 handler 重复触发）
+  const localSourceId = randomUUID()
 
   // 订阅 Redis 频道，收到消息后分发给本地处理器
   await subscriber.subscribe(options.channel, (message: string) => {
     try {
-      const { event, args } = JSON.parse(message);
-      const handlers = localHandlers.get(event) || [];
+      const { event, args, sourceId } = JSON.parse(message) as { event: string; args: unknown[]; sourceId?: string }
+      // 跳过本进程自己发布的消息（已在 publish 中本地直接触发，避免重复执行）
+      if (sourceId === localSourceId) return
+      const handlers = localHandlers.get(event) || []
       handlers.forEach(handler => {
         try {
-          handler(...args);
+          handler(...args)
         } catch (e) {
-          console.error(`[CrossProcessBus] Handler error for event "${event}":`, e);
+          console.error(`[CrossProcessBus] Handler error for event "${event}":`, e)
         }
-      });
+      })
     } catch (e) {
-      console.error('[CrossProcessBus] 消息解析失败:', e);
+      console.error('[CrossProcessBus] 消息解析失败:', e)
     }
-  });
+  })
 
   crossProcessBus = {
     /**
      * 向所有进程广播事件
      */
-    publish: async (event: string, ...args: any[]) => {
-      // 1. 本地进程直接触发
-      eventBus.emit(event, ...args);
-      // 2. 跨进程广播（通过 Redis）
-      const publisher = await getRedisClient();
+    publish: async (event: string, ...args: unknown[]) => {
+      // 1. 本地进程直接触发：eventBus（业务方直接 on 的监听器）+ localHandlers（subscribe 注册的处理器）
+      //    P1 修复：localHandlers 不再依赖 Redis 回环，Redis 不可用时本地事件也不会丢失
+      eventBus.emit(event, ...args)
+      const handlers = localHandlers.get(event) || []
+      handlers.forEach(handler => {
+        try {
+          handler(...args)
+        } catch (e) {
+          console.error(`[CrossProcessBus] Local handler error for event "${event}":`, e)
+        }
+      })
+      // 2. 跨进程广播（通过 Redis，携带 sourceId 供去重）
+      const publisher = await getRedisClient()
       if (publisher) {
-        await publisher.publish(options.channel, JSON.stringify({ event, args }));
+        await publisher.publish(options.channel, JSON.stringify({ event, args, sourceId: localSourceId }))
       }
     },
 
@@ -131,24 +152,24 @@ export async function createCrossProcessEventBus(options: CrossProcessBusOptions
      */
     subscribe: (event: string, handler: EventHandler) => {
       if (!localHandlers.has(event)) {
-        localHandlers.set(event, []);
+        localHandlers.set(event, [])
       }
-      localHandlers.get(event)!.push(handler);
+      localHandlers.get(event)!.push(handler)
     },
-  };
+  }
 
-  console.log(`[CrossProcessBus] 跨进程事件总线已就绪 (channel: ${options.channel})`);
-  return crossProcessBus;
+  console.log(`[CrossProcessBus] 跨进程事件总线已就绪 (channel: ${options.channel})`)
+  return crossProcessBus
 }
 
 /**
  * 快捷方法：broadcast() — 跨进程广播
  * 注意：需要在启动后调用 createCrossProcessEventBus() 初始化
  */
-export async function broadcast(event: string, ...args: any[]) {
+export async function broadcast(event: string, ...args: unknown[]) {
   if (crossProcessBus) {
-    await crossProcessBus.publish(event, ...args);
+    await crossProcessBus.publish(event, ...args)
   } else {
-    eventBus.emit(event, ...args);
+    eventBus.emit(event, ...args)
   }
 }

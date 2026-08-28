@@ -24,18 +24,17 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@app/*": ["src/app/*"],
-      "@bootstrap/*": ["src/bootstrap/*"],
-      "@config/*": ["src/config/*"],
-      "@database/*": ["src/database/*"],
-      "@public/*": ["src/public/*"],
-      "@resources/*": ["src/resources/*"],
-      "@routes/*": ["src/routes/*"],
-      "@storage/*": ["src/storage/*"],
-      "@utils/*": ["src/utils/*"]
+      "#app/*": ["./src/app/*"],
+      "#bootstrap/*": ["./src/bootstrap/*"],
+      "#config/*": ["./src/config/*"],
+      "#database/*": ["./src/database/*"],
+      "#public/*": ["./src/public/*"],
+      "#resources/*": ["./src/resources/*"],
+      "#routes/*": ["./src/routes/*"],
+      "#storage/*": ["./src/storage/*"],
+      "#types/*": ["./src/types/*"],
+      "#utils/*": ["./src/app/Helpers/*"]
     },
     "plugins": [
       { "transform": "typescript-transform-paths" },

@@ -1,71 +1,136 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
- * @FilePath: /node-laravel/src/app/Http/Middleware/VerifySignature.ts
- * @Description: 
+ * @LastEditTime: 2026-07-13
+ * @FilePath: node-laravel/src/app/Http/Middleware/VerifySignature.ts
+ * @Description:
  * 一花一世界，一叶一如来
- * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-import type { Request, Response, NextFunction } from 'express';
-import { config } from '#bootstrap/configLoader';
-import { Crypto } from '#utils/Crypto';
-import { logger } from '#utils/Logger';
+import { config } from '#bootstrap/configLoader'
+import { CryptoTool } from '#app/Helpers/cryptoTool'
+import type { NextFunction, Request, Response } from 'express'
 
-// 深度递归排序（保证签名一致性）
-function sortObjectDeep(obj: unknown): unknown {
+/**
+ * 递归排序对象（签名规范：对象键按字典序；纯数字键按数值升序，避免 '10' < '2' 导致签名不一致）。
+ * 导出供单元测试与外部签名工具复用，保证客户端/服务端排序规则一致。
+ */
+export function sortObjectDeep(obj: unknown): unknown {
   if (Array.isArray(obj)) {
-    return obj.map(sortObjectDeep);
+    return obj.map(sortObjectDeep)
   } else if (obj && typeof obj === 'object') {
     return Object.fromEntries(
-      Object.entries(obj as Record<string, unknown>)
-        .sort(([a], [b]) => a.localeCompare(b))
+      Object.entries(obj)
+        .sort(([a], [b]) => {
+          const aNum = /^\d+$/.test(a) ? Number(a) : null
+          const bNum = /^\d+$/.test(b) ? Number(b) : null
+          if (aNum !== null && bNum !== null) return aNum - bNum
+          if (aNum !== null) return -1
+          if (bNum !== null) return 1
+          return a.localeCompare(b)
+        })
         .map(([k, v]) => [k, sortObjectDeep(v)])
-    );
+    )
+  } else {
+    return obj
   }
-  return obj;
 }
 
-export const verifySignature = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  const isEnabled = config('app.security.verify_signature');
-  if (!isEnabled) {
-    next();
-    return;
+/**
+ * 获取签名密钥。
+ * 优先使用已鉴权 secretRow 的 appSecret；缺失时回退全局 app_key（S6：显式告警，避免静默降级导致密钥不一致）。
+ */
+function getSigningKey(req: Request): string {
+  if (req.secretRow?.appSecret) {
+    return req.secretRow.appSecret
   }
+  console.warn('[VerifySignature] secretRow missing, falling back to global app_key')
+  const fallbackKey: unknown = config('app.security.app_key')
+  return fallbackKey as string
+}
 
-  // 合并 Query + Body 作为签名内容
-  const params = { ...req.query, ...req.body };
+export const verifySignature = (req: Request, res: Response, next: NextFunction) => {
+  const isEnabled = config('app.security.verify_signature')
+  if (!isEnabled) return next()
+
+  // 1. 提取业务参数 (Query + Body)
+  const rawParams = { ...req.query, ...req.body }
+
+  if (Object.keys(rawParams).length === 0) return next()
+
+  // 2. 定义需要跳过签名的字段名单
+  // P2 收紧：仅豁免文件二进制与明确的富文本编辑器大字段（JSON 序列化开销过大）。
+  // content 字段已纳入签名——它可能承载业务关键数据（商品描述、公告等），不可被中间人静默篡改。
+  // 富文本字段的注入风险应通过服务端 XSS 过滤/白名单校验兜底，而非依赖签名豁免。
+  const skipFields = [
+    'file',
+    'files',
+    'filename',
+    'buffer',
+    'editorData', // 富文本编辑器大字段
+    'html', // 富文本编辑器大字段
+    'richText', // 富文本编辑器大字段
+  ]
+
+  // 3. 过滤掉不需要签名的字段
+  const params = Object.keys(rawParams).reduce(
+    (acc, key) => {
+      if (!skipFields.includes(key)) {
+        acc[key] = rawParams[key]
+      }
+      return acc
+    },
+    {} as Record<string, unknown>
+  )
+
+  // 4. 空参数处理：strict 模式下强制验签，非 strict 模式保持兼容
+  const strictMode = config('app.security.strict_signature') ?? false
   if (Object.keys(params).length === 0) {
-    next();
-    return;
+    if (!strictMode) {
+      return next()
+    }
+    // strict 模式：即使业务参数为空，也必须携带 x-sign
+    const signEmpty = req.headers['x-sign'] as string
+    if (!signEmpty) {
+      return res.error(403019011001, 'Signature missing')
+    }
+    const appKeyEmpty = getSigningKey(req)
+    // 升级为 HMAC-SHA256（与主签名路径一致，审计 2026-08-18）
+    const serverSignEmpty = CryptoTool.hmacSha256(CryptoTool.sha256(JSON.stringify({})), appKeyEmpty)
+    if (signEmpty !== serverSignEmpty) {
+      if (config('app.security.legacy_xsign_md5')) {
+        const legacyEmpty = CryptoTool.md5(CryptoTool.sha256(JSON.stringify({})) + appKeyEmpty)
+        if (signEmpty === legacyEmpty) return next()
+      }
+      return res.error(403019011002, 'Invalid signature')
+    }
+    return next()
   }
 
-  const sign = req.headers['x-sign'] as string;
+  // 5. 从 Headers 获取签名
+  const sign = req.headers['x-sign'] as string
   if (!sign) {
-    res.error(403010010001, 'Signature missing');
-    return;
+    return res.error(403019011003, 'Signature missing')
   }
 
-  // 使用 secretRow 中的 appSecret（如已通过 AuthenticateSecret 验证）
-  // 否则使用全局配置中的 app_key
-  const appSecret = req.secretRow?.appSecret || config('app.security.app_key');
-
-  const sortedParams = sortObjectDeep(params);
-  const serverSign = Crypto.md5(Crypto.sha256(JSON.stringify(sortedParams)) + appSecret);
+  // 6. 签名算法（升级，审计 2026-08-18）：参数排序 -> JSON -> SHA256 -> HMAC-SHA256(key)
+  // 旧算法 md5(sha256(params)+key) 默认拒绝，仅 LEGACY_XSIGN_MD5=true 时过渡兼容
+  const appKey = getSigningKey(req)
+  const sortedParams = sortObjectDeep(params)
+  const paramsDigest = CryptoTool.sha256(JSON.stringify(sortedParams))
+  const serverSign = CryptoTool.hmacSha256(paramsDigest, appKey)
 
   if (sign !== serverSign) {
-    logger.warn(
-      `[Signature] 签名校验失败 req.id=${req.id} ` +
-      `client=${sign.substring(0, 8)}... server=${serverSign.substring(0, 8)}...`
-    );
-    res.error(403010010002, 'Invalid signature');
-    return;
+    if (config('app.security.legacy_xsign_md5')) {
+      const legacySign = CryptoTool.md5(paramsDigest + appKey)
+      if (sign === legacySign) {
+        console.warn('[VerifySignature] Legacy x-sign algorithm used, please upgrade client to HMAC-SHA256')
+        return next()
+      }
+    }
+    return res.error(403019011004, 'Invalid signature')
   }
 
-  next();
-};
+  next()
+}

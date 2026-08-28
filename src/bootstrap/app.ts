@@ -1,210 +1,116 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-05 10:40:12
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 13:45:00
- * @FilePath: /node-laravel/src/bootstrap/app.ts
- * @Description: 
+ * @LastEditTime: 2026-08-28
+ * @FilePath: node-laravel/src/bootstrap/app.ts
+ * @Description:
+ * 框架引导 — Express 应用装配
+ * 框架版：已移除业务专属逻辑（支付宝/微信/OSS 回调 raw body 捕获等），
+ * 业务方如需对原始请求体验签，可在自身扩展点自行实现。
  * 一花一世界，一叶一如来
- * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import { Model } from 'objection';
-import knex from 'knex';
-import multer from 'multer';
-import { createServer as createHttpServer, type Server as HttpServer } from 'node:http';
-import { createServer as createHttpsServer } from 'node:https';
-import { readFileSync } from 'node:fs';
-import { WebSocketServer } from 'ws';
-import knexConfig from '#database/knexfile';
-import { eventBus, createCrossProcessEventBus } from '#bootstrap/events';
-import { AppServiceProvider } from '#app/Providers/AppServiceProvider';
-import { Handler } from '#app/Exceptions/Handler';
-import apiRoutes from '#routes/api';
-import consoleRoutes from '#routes/console';
-import frontRoutes from '#routes/front';
-import { forceHttps } from '#app/Http/Middleware/ForceHttps';
-import { responseWrapper } from '#app/Http/Middleware/ResponseWrapper';
-import { requestId } from '#app/Http/Middleware/RequestId';
-import { config, validateSecurityConfig } from '#bootstrap/configLoader';
-import { logger } from '#utils/Logger';
-import { bootScheduling } from '#bootstrap/schedule';
-import { registerChannels } from '#routes/channels';
+import { Handler } from '#app/Exceptions/Handler'
+import { forceHttps } from '#app/Http/Middleware/ForceHttps'
+import { responseWrapper } from '#app/Http/Middleware/ResponseWrapper'
+import { traceIdMiddleware } from '#app/Http/Middleware/TraceId'
+import { AppServiceProvider } from '#app/Providers/AppServiceProvider'
+import { config, validateSecurityConfig } from '#bootstrap/configLoader'
+import type { AppConfig } from '#bootstrap/configLoader'
+import { eventBus } from '#bootstrap/events'
+import knexConfig from '#database/knexfile'
+import { createApiRoutes } from '#routes/api'
+import consoleRoutes from '#routes/console'
+import { createEventRoutes } from '#routes/event'
+import webRoutes from '#routes/web'
+import { createLogger } from '#app/Helpers/logger'
+import cors from 'cors'
+import express from 'express'
+import helmet from 'helmet'
+import knex from 'knex'
+import { Model } from 'objection'
 
-// 🔴 安全配置验证必须在任何业务逻辑之前执行
-validateSecurityConfig();
+const log = createLogger('Bootstrap')
 
-// 1. 数据库初始化
-const db = knex(knexConfig[config('app.env') || 'development']);
-Model.knex(db);
-
-// 2. Express 应用初始化
-const app = express();
-app.set('trust proxy', true);
+// 1. 基础实例化
+const db = knex(knexConfig)
+const app = express()
+// 只信任一跳代理（前置 Nginx），
+// 防止直连客户端伪造 X-Forwarded-For 绕过基于 IP 的限流（登录爆破/短信轰炸防护）
+app.set('trust proxy', 1)
+Model.knex(db)
 
 /**
  * 核心引导函数
+ * 确保异步任务（路由加载）按顺序完成
  */
-export async function bootstrap(): Promise<HttpServer> {
-  const appConfig = config('app');
+export async function bootstrap(appInstance: express.Application) {
+  // 启动服务提供者 (初始化事件监听等)
+  AppServiceProvider.boot()
 
-  // 🔒 请求ID（所有中间件中最前面，确保日志可追踪）
-  app.use(requestId);
-
-  // 🔒 HTTPS 强制重定向（仅生产环境）
-  if (appConfig?.ssl?.enabled && config('app.env') === 'production') {
-    app.use(forceHttps);
+  // APP_KEY / APP_IV 启动校验：生产环境强制要求配置（接线 validateSecurityConfig，杜绝静默降级）
+  const appConfig = config<AppConfig>('app')
+  const appKey = appConfig?.security?.app_key
+  const appIv = appConfig?.security?.app_iv
+  if (appConfig.env === 'production') {
+    validateSecurityConfig()
+  } else if (!appKey || !appIv) {
+    console.warn('[Bootstrap] APP_KEY/APP_IV not configured — encryption features will not work properly')
   }
 
-  // 🔒 Helmet 安全头（必须在路由之前）
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-      },
-    },
-    crossOriginEmbedderPolicy: false,
-  }));
-
-  // 📋 基础中间件
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-  app.use(express.static('public'));
-  app.use(multer().none());
+  // 确保任何请求进来先检查协议
+  if (appConfig.env === 'production') {
+    appConfig?.ssl?.enabled && appInstance.use(forceHttps)
+  }
+  // Helmet 无条件启用（安全头保护）
+  appInstance.use(helmet())
+  // 基础中间件
+  appInstance.use(express.json({ limit: '10mb' }))
+  appInstance.use(express.static('public'))
+  appInstance.use(express.urlencoded({ limit: '10mb', extended: true }))
 
   // 🌐 统一 CORS 配置
-  const corsOrigins = config('app.cors.origins') || ['*'];
-  const corsMethods = config('app.cors.methods') || ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH'];
-  const corsAllowedHeaders = config('app.cors.allowedHeaders') || ['Content-Type'];
-  app.use(cors({
-    origin: corsOrigins.includes('*') ? true : corsOrigins,
-    methods: corsMethods,
-    allowedHeaders: corsAllowedHeaders,
-    credentials: !corsOrigins.includes('*'),
-  }));
-
-  // 📝 开发环境请求日志
-  if (config('app.env') === 'development') {
-    app.use((req, res, next) => {
-      const start = Date.now();
-      res.on('finish', () => {
-        const duration = Date.now() - start;
-        logger.debug(`[${req.id}] ${req.method} ${req.path} → ${res.statusCode} (${duration}ms)`);
-      });
-      next();
-    });
+  const corsOrigins = config<string[]>('app.cors.origins') || ['*']
+  // 生产环境 CORS 全开放仅告警不阻断（存量部署兼容），建议显式配置白名单
+  if (appConfig.env === 'production' && corsOrigins.includes('*')) {
+    console.warn('[Bootstrap] CORS origins is "*" in production — 建议配置 CORS_ORIGINS 白名单')
   }
+  const corsMethods = config<string[]>('app.cors.methods') || ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH']
+  const corsAllowedHeaders = config<string[]>('app.cors.allowedHeaders') || ['Content-Type']
+  appInstance.use(
+    cors({
+      origin: corsOrigins.includes('*') ? true : corsOrigins,
+      methods: corsMethods,
+      allowedHeaders: corsAllowedHeaders,
+      credentials: !corsOrigins.includes('*'),
+    })
+  )
 
-  // 事件总线注入
-  app.use((req: any, _res, next) => {
-    req.eventEmitter = eventBus;
-    next();
-  });
-
+  appInstance.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(204)
+    } else {
+      req.eventEmitter = eventBus
+      next()
+    }
+  })
+  // 注册 TraceId 中间件（在 responseWrapper 之前，确保请求上下文在整个链路可用）
+  appInstance.use(traceIdMiddleware)
   // 注册响应包装器
-  app.use(responseWrapper);
-
-  // 启动服务提供者
-  AppServiceProvider.boot();
-
-  // 动态加载路由
-  app.use('/api', apiRoutes);
-  app.use('/console', consoleRoutes);
-  app.use('/', frontRoutes);
-
-  // 🏥 健康检查端点
-  app.get('/health', (_req, res) => {
-    res.json({
-      status: 'ok',
-      pid: process.pid,
-      uptime: Math.floor(process.uptime()),
-      timestamp: new Date().toISOString(),
-    });
-  });
-
-  // 全局异常处理器（必须放在路由之后）
-  app.use(Handler.render);
-  logger.info('[Bootstrap] 全局异常处理器已就绪');
-
-  // ============================================================
-  // HTTP/HTTPS 服务器
-  // ============================================================
-  const httpServer = createHttpServer(app);
-  const httpPort = appConfig.http_port;
-  httpServer.listen(httpPort, () => {
-    logger.info(`[Worker ${process.pid}] 🔓 HTTP Server: http://${appConfig.url || 'localhost'}:${httpPort}`);
-  });
-
-  if (appConfig.ssl?.enabled) {
-    try {
-      const options = {
-        key: readFileSync(appConfig.ssl.key),
-        cert: readFileSync(appConfig.ssl.cert),
-      };
-      const httpsServer = createHttpsServer(options, app);
-      const httpsPort = appConfig.https_port;
-      httpsServer.listen(httpsPort, () => {
-        logger.info(`[Worker ${process.pid}] 🔒 HTTPS Server: https://${appConfig.url || 'localhost'}:${httpsPort}`);
-      });
-    } catch (err) {
-      logger.error('[SSL] 证书加载失败，HTTPS 未启动:', (err as Error).message);
-    }
-  }
-
-  // ============================================================
-  // WebSocket（非独立进程模式时挂载到 HTTP）
-  // ============================================================
-  if (appConfig.ws?.enabled && appConfig.ws.mode !== 'standalone') {
-    try {
-      const wss = new WebSocketServer({ server: httpServer });
-      registerChannels(wss);
-      // 初始化跨进程事件总线
-      createCrossProcessEventBus({ channel: 'ws:broadcast' });
-      logger.info('[WebSocket] 已挂载到 HTTP 服务器');
-    } catch (err) {
-      logger.error('[WebSocket] 启动失败:', (err as Error).message);
-    }
-  }
-
-  // ============================================================
-  // 启动定时任务调度器
-  // ============================================================
-  try {
-    bootScheduling();
-  } catch (err) {
-    logger.error('[Schedule] 调度器启动失败:', (err as Error).message);
-  }
-
-  // ============================================================
-  // 优雅关闭
-  // ============================================================
-  const gracefulShutdown = async (signal: string) => {
-    logger.info(`[${signal}] 收到退出信号，正在优雅关闭...`);
-    httpServer.close(async () => {
-      logger.info('HTTP 服务器已关闭');
-      try {
-        await db.destroy();
-        logger.info('数据库连接池已释放');
-      } catch (e) {
-        logger.error('数据库关闭时出错:', e);
-      }
-      process.exit(0);
-    });
-    setTimeout(() => {
-      logger.warn('优雅关闭超时，强制退出');
-      process.exit(1);
-    }, 10000);
-  };
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-  return httpServer;
+  appInstance.use(responseWrapper)
+  // 加载路由 (必须 await，确保启动阶段一次性完成)
+  const [apiRoutes, eventRoutes] = await Promise.all([createApiRoutes(), createEventRoutes()])
+  // 注意：/api 前缀天然覆盖 /api/v1，禁止将同一 router 重复挂载到 /api 与 /api/v1，
+  // 否则 /api/v1/* 请求会把整条中间件链执行两遍（限流翻倍、验签/解密二次执行导致签名必失败）。
+  appInstance.use('/api', apiRoutes)
+  appInstance.use('/event', eventRoutes)
+  appInstance.use('/console', consoleRoutes)
+  appInstance.use('/', webRoutes)
+  // 注册异常处理器 (!!! 关键点：必须在路由之后)
+  // 只有在上面的路由都没有匹配到，或者路由内部调用了 next(err) 时，才会流转到这里
+  appInstance.use(Handler.render)
+  log.info('全局异常处理器已就绪')
 }
 
 export const container = {
@@ -212,4 +118,4 @@ export const container = {
   db,
   events: eventBus,
   config,
-};
+}
