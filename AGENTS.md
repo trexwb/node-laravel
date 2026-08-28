@@ -115,7 +115,7 @@ node-laravel/
 | `#routes/*` | `./src/routes/*` |
 | `#storage/*` | `./src/storage/*` |
 | `#types/*` | `./src/types/*.d.ts` |
-| `#utils/*` | `./src/utils/*` |
+|  `./src/utils/*` | `./src/utils/*` |
 
 ```ts
 // ✅ 正确

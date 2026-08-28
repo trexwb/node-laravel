@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
  * @Date: 2026-03-24 09:46:21
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-04-02 14:57:11
- * @FilePath: /stl-dev-server/server/src/utils/string.ts
+ * @FilePath: node-laravel/src/app/Helpers/string.ts
  * @Description:
  * 字符串处理工具类（整合了 StrHelper 和 string 的所有功能）
  * 一花一世界，一叶一如来
@@ -11,7 +11,7 @@
  */
 
 import { randomBytes } from 'node:crypto'
-import Utils from '#utils/index'
+import Utils from '#app/Helpers/index'
 import type { SanitizeOptions } from '#types/helpers'
 export type { SanitizeOptions } from '#types/helpers'
 

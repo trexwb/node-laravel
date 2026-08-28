@@ -8,7 +8,7 @@
   "main": "./dist/src/public/index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/public/index.ts",
-    "build": "tsc && tsc-alias",
+    "build": "tsc && tsc-alias && node ./scripts/fix-imports.cjs",
     "start": "node ./dist/src/public/index.js",
     "artisan": "node ./dist/src/artisan.js",
     "artisan:dev": "ts-node -r tsconfig-paths/register src/artisan.ts",
@@ -17,7 +17,10 @@
     "migrate:latest": "npm run knex migrate:latest",
     "seed:make": "npm run knex seed:make -- -x ts",
     "seed:run": "npm run knex seed:run",
-    "postinstall": "node ./install.js"
+    "postinstall": "node ./install.js",
+    "pack": "node ./scripts/pack.cjs",
+    "start:fc": "node ./scripts/start-fc.js",
+    "test": "vitest run"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -72,6 +75,6 @@
     "#routes/*": "./src/routes/*.ts",
     "#storage/*": "./src/storage/*.ts",
     "#types/*": "./src/types/*.d.ts",
-    "#utils/*": "./src/utils/*.ts"
+    "#utils/*": "./src/app/Helpers/*.ts"
   }
 }

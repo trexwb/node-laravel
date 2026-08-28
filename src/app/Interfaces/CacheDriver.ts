@@ -3,7 +3,7 @@
  * @Date: 2026-01-22 11:07:07
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-17
- * @FilePath: /stl-dev-server/server/src/app/Interfaces/CacheDriver.ts
+ * @FilePath: node-laravel/src/app/Interfaces/CacheDriver.ts
  * @Description: 缓存驱动行为契约 — FileDriver / RedisDriver 均实现此契约
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

@@ -13,7 +13,7 @@
 import { Container } from '#app/Foundation/Container'
 import type { DispatchOptions } from '#types/jobs'
 import type { QueueStore } from '#types/framework'
-import { createLogger } from '#utils/logger'
+import { createLogger } from '#app/Helpers/logger'
 
 const log = createLogger('DatabaseQueueService')
 

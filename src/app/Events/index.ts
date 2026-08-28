@@ -11,7 +11,7 @@
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 import { registerAllListeners } from '#app/Listeners/index'
-import { createLogger } from '#utils/logger'
+import { createLogger } from '#app/Helpers/logger'
 
 const log = createLogger('Events')
 

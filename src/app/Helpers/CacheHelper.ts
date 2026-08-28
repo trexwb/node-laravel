@@ -3,7 +3,7 @@
  * @Date: 2026-03-24 09:47:40
  * @LastEditors: trexwb
  * @LastEditTime: 2026-03-24 09:54:50
- * @FilePath: /stl-dev-server/server/src/app/Helpers/CacheHelper.ts
+ * @FilePath: node-laravel/src/app/Helpers/CacheHelper.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

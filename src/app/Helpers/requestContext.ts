@@ -3,7 +3,7 @@
  * @Date: 2026-04-08
  * @LastEditors: trexwb
  * @LastEditTime: 2026-04-08
- * @FilePath: /stl-dev-server/server/src/utils/RequestContext.ts
+ * @FilePath: node-laravel/src/app/Helpers/RequestContext.ts
  * @Description:
  * 请求上下文（AsyncLocalStorage）
  * 在整个异步调用链中透明传递 traceId、pid 等轻量元数据，

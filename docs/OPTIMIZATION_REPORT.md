@@ -1,7 +1,7 @@
 # 🎯 Node-Laravel 框架优化完成报告
 
 > ⚠️ **文档说明**：本文档为框架从史特牢（STL）提取过程中的**历史优化记录**，记录当时修复的 TypeScript 错误与架构优化内容。
-> **最新变更**请参见 [docs/version/v1.0.0.md](./version/v1.0.0.md) 与 [CHANGELOG.md](./CHANGELOG.md)。
+> **最新变更**请参见 [docs/version/v1.0.md](./version/v1.0.md) 与 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## ✅ 构建状态
 - **TypeScript 编译**: ✅ 成功

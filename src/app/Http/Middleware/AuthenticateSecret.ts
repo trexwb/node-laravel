@@ -14,7 +14,7 @@ import { Container } from '#app/Foundation/Container'
 import { CacheService } from '#app/Services/Cache/CacheService'
 import { config } from '#bootstrap/configLoader'
 import type { SecretProvider } from '#types/framework'
-import { CryptoTool } from '#utils/cryptoTool'
+import { CryptoTool } from '#app/Helpers/cryptoTool'
 import type { NextFunction, Request, Response } from 'express'
 
 export const authenticateSecret = async (req: Request, res: Response, next: NextFunction) => {

@@ -1,7 +1,7 @@
 /*
  * @Author: trexwb
  * @Date: 2026-02-06 14:18:20
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-04-16 10:16:00
  * @FilePath: node-laravel/src/routes/web.ts
  * @Description:

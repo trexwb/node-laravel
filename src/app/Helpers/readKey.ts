@@ -3,7 +3,7 @@
  * @Date: 2026-03-11 00:00:00
  * @LastEditors: trexwb
  * @LastEditTime: 2026-05-14 17:40:00
- * @FilePath: /stl-dev-server/server/src/utils/readKey.ts
+ * @FilePath: node-laravel/src/app/Helpers/readKey.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

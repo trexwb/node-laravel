@@ -9,7 +9,7 @@
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 import type { CastInterface } from '#app/Interfaces/CastInterface'
-import dayjs from '#utils/format'
+import dayjs from '#app/Helpers/format'
 import type { CastDateTimeOptions, DayjsInput } from '#types/casts'
 export type { CastDateTimeOptions } from '#types/casts'
 

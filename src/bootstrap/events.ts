@@ -9,6 +9,7 @@
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
  */
 import { EventEmitter } from 'node:events';
+import type { RedisClientType } from 'redis';
 import { config } from '#bootstrap/configLoader';
 
 // ============================================================
@@ -33,9 +34,15 @@ interface CrossProcessBusOptions {
 
 type EventHandler = (...args: any[]) => void;
 
-let redisClient: any = null;
-let redisSubscriber: any = null;
-let crossProcessBus: any = null;
+// P3 修复：收窄 any 为具体类型（redis 客户端类型 + 跨进程总线接口）
+export interface CrossProcessEventBus {
+  publish(event: string, ...args: any[]): Promise<void>;
+  subscribe(event: string, handler: EventHandler): void;
+}
+
+let redisClient: RedisClientType | null = null;
+let redisSubscriber: RedisClientType | null = null;
+let crossProcessBus: CrossProcessEventBus | null = null;
 
 async function getRedisClient() {
   if (redisClient) return redisClient;

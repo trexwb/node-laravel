@@ -17,8 +17,8 @@
  */
 import { Container } from '#app/Foundation/Container'
 import knexConfig from '#database/knexfile'
-import { formatDate } from '#utils/format'
-import { createLogger } from '#utils/logger'
+import { formatDate } from '#app/Helpers/format'
+import { createLogger } from '#app/Helpers/logger'
 import knexLib from 'knex'
 import { Model } from 'objection'
 import type { JobResolver, QueueJobRow, QueueStore } from '#types/framework'

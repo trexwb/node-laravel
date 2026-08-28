@@ -13,8 +13,8 @@
 import { Container } from '#app/Foundation/Container'
 import { ScheduleChanged } from '#app/Events/System/ScheduleChanged'
 import { eventBus } from '#bootstrap/events'
-import Utils from '#utils/index'
-import { createLogger } from '#utils/logger'
+import Utils from '#app/Helpers/index'
+import { createLogger } from '#app/Helpers/logger'
 import type { TaskExecutor, TaskRepository } from '#types/framework'
 import schedule from 'node-schedule'
 

@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-04-02 10:55:23
- * @FilePath: /stl-dev-server/server/src/public/index.ts
+ * @FilePath: node-laravel/src/public/index.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
@@ -15,7 +15,7 @@ import '#bootstrap/env'
 import { envBoolean } from '#bootstrap/env'
 import { bootScheduling } from '#bootstrap/schedule'
 import { registerChannels } from '#routes/channels'
-import { createLogger } from '#utils/logger'
+import { createLogger } from '#app/Helpers/logger'
 import { readFileSync } from 'node:fs'
 import { createServer as createHttpServer } from 'node:http'
 import { createServer as createHttpsServer, Server as HttpsServer } from 'node:https'

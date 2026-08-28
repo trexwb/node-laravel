@@ -14,7 +14,7 @@ export default {
   debugger: process.env.APP_DEBUG === 'true',
   timezone: process.env.TIME_ZONE || 'Asia/Shanghai',
   url: process.env.APP_URL || 'localhost',
-  http_port: parseInt(process.env.HTTP_PORT || '80'),
+  http_port: parseInt(process.env.HTTP_PORT || process.env.PORT || '80'),
   https_port: parseInt(process.env.HTTPS_PORT || '443'),
   upload_path: process.env.UPLOAD_PATH || 'storage/uploads',
   ws: {

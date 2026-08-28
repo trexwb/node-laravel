@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
  * @Date: 2026-01-22 11:07:15
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-05-07 11:14:29
- * @FilePath: /stl-dev-server/server/src/utils/format.ts
+ * @FilePath: node-laravel/src/app/Helpers/format.ts
  * @Description: 日期格式化工具
  *
  * ⚠️ 时区语义说明：

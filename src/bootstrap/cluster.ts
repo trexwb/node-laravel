@@ -11,7 +11,7 @@
 import cluster from 'node:cluster';
 import os from 'node:os';
 import { config } from '#bootstrap/configLoader';
-import { logger } from '#utils/logger';
+import { logger } from '#app/Helpers/logger';
 
 interface ClusterOptions {
   /** 是否启用集群 */

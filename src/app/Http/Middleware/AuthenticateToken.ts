@@ -14,7 +14,7 @@ import { Container } from '#app/Foundation/Container'
 import { CacheService } from '#app/Services/Cache/CacheService'
 import type { AuthUser } from '#types/express'
 import type { TokenUserProvider } from '#types/framework'
-import { CryptoTool } from '#utils/cryptoTool'
+import { CryptoTool } from '#app/Helpers/cryptoTool'
 import type { NextFunction, Request, Response } from 'express'
 
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

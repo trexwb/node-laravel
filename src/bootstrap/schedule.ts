@@ -9,7 +9,7 @@
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 import { Kernel } from '#app/Console/Kernel'
-import { createLogger } from '#utils/logger'
+import { createLogger } from '#app/Helpers/logger'
 import cluster from 'node:cluster'
 
 const log = createLogger('Scheduler')

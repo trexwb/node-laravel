@@ -34,7 +34,7 @@
       "#routes/*": ["./src/routes/*"],
       "#storage/*": ["./src/storage/*"],
       "#types/*": ["./src/types/*"],
-      "#utils/*": ["./src/utils/*"]
+      "#utils/*": ["./src/app/Helpers/*"]
     },
     "plugins": [
       { "transform": "typescript-transform-paths" },

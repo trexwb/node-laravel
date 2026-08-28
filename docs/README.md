@@ -60,7 +60,7 @@ AIGC:
   密钥鉴权、请求签名、请求解密、响应加密、限流、全链路追踪（TraceId）
 
 * 📦 **`#` 子路径别名**
-  `#app/* #routes/* #types/* #utils/*` 等，告别相对路径地狱
+  `#app/* #routes/* #types/* #app/Helpers/*` 等，告别相对路径地狱
 
 ---
 
@@ -234,7 +234,7 @@ src/app/Http/Controllers/WebSocket/ChannelController.ts
 提供加解密、哈希、签名等工具：
 
 ```ts
-import { CryptoTool } from '#utils/cryptoTool'
+import { CryptoTool } from '#app/Helpers/cryptoTool'
 
 CryptoTool.encrypt(value)          // AES-256-CBC 加密
 CryptoTool.decrypt(payload)        // AES-256-CBC 解密
@@ -305,7 +305,7 @@ npm run artisan:dev# 开发环境命令行工具
 | 019 | src/app/Services/Example |
 | 020 | src/app/Services/Queue |
 | 021 | src/app/Services/Rpc |
-| 022 | src/utils |
+| 022 | src/app/Helpers |
 
 ---
 
@@ -367,19 +367,19 @@ npm run artisan:dev# 开发环境命令行工具
 | 001 | src/app/Services/Rpc/CircuitBreaker.ts |
 | 002 | src/app/Services/Rpc/JsonRpcClient.ts |
 | 003 | src/app/Services/Rpc/LoadRpcClients.ts |
-| 001 | src/utils/amount.ts |
-| 002 | src/utils/cryptoTool.ts |
-| 003 | src/utils/format.ts |
-| 004 | src/utils/hashPassword.ts |
-| 005 | src/utils/index.ts |
-| 006 | src/utils/logger.ts |
-| 007 | src/utils/mask.ts |
-| 008 | src/utils/query.ts |
-| 009 | src/utils/readKey.ts |
-| 010 | src/utils/requestContext.ts |
-| 011 | src/utils/string.ts |
-| 012 | src/utils/treeBuilder.ts |
-| 013 | src/utils/validation.ts |
+| 001 | src/app/Helpers/amount.ts |
+| 002 | src/app/Helpers/cryptoTool.ts |
+| 003 | src/app/Helpers/format.ts |
+| 004 | src/app/Helpers/hashPassword.ts |
+| 005 | src/app/Helpers/index.ts |
+| 006 | src/app/Helpers/logger.ts |
+| 007 | src/app/Helpers/mask.ts |
+| 008 | src/app/Helpers/query.ts |
+| 009 | src/app/Helpers/readKey.ts |
+| 010 | src/app/Helpers/requestContext.ts |
+| 011 | src/app/Helpers/string.ts |
+| 012 | src/app/Helpers/treeBuilder.ts |
+| 013 | src/app/Helpers/validation.ts |
 
 ---
 

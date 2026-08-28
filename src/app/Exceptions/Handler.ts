@@ -11,7 +11,7 @@
  */
 import { config } from '#bootstrap/configLoader'
 import type { AppErrorLike, MapEntry } from '#types/http'
-import { createLogger } from '#utils/logger'
+import { createLogger } from '#app/Helpers/logger'
 import type { NextFunction, Request, Response } from 'express'
 
 const log = createLogger('Handler')

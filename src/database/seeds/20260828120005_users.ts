@@ -10,8 +10,8 @@
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 import { config } from '#bootstrap/configLoader'
-import { makePassword } from '#utils/hashPassword'
-import Utils from '#utils/index'
+import { makePassword } from '#app/Helpers/hashPassword'
+import Utils from '#app/Helpers/index'
 import type { Knex } from 'knex'
 import path from 'node:path'
 import { fileURLToPath } from 'url'
@@ -36,7 +36,7 @@ export async function seed(knex: Knex): Promise<void> {
           return 0
         })
       if (total === 0) {
-        // 演示账号（固定密码便于本地体验，生产环境请务必修改）
+        // 演示账号（固定密码便于本地体验，生产环境由上方 NODE_ENV 校验拦截）
         const accounts = [
           {
             id: 1,
@@ -55,6 +55,8 @@ export async function seed(knex: Knex): Promise<void> {
             roleId: 2,
           },
         ]
+        // 演示密码仅用于本地开发联调；scrypt 加盐后落库，非明文存储
+        console.warn('[seed:users] 演示账号使用弱口令 123456，仅供本地开发联调使用')
         const rows = accounts.map((account) => {
           const passwordHash = makePassword(account.password)
           return {

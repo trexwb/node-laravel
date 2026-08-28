@@ -3,7 +3,7 @@
  * @Date: 2026-03-30
  * @LastEditors: trexwb
  * @LastEditTime: 2026-03-30
- * @FilePath: /stl-dev-server/server/src/app/Events/System/CacheInvalidated.ts
+ * @FilePath: node-laravel/src/app/Events/System/CacheInvalidated.ts
  * @Description:
  * 缓存失效事件
  * 【订阅者】

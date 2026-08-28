@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-04-12 09:13:32
- * @FilePath: /stl-dev-server/server/src/app/Services/Cache/CacheService.ts
+ * @FilePath: node-laravel/src/app/Services/Cache/CacheService.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

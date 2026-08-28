@@ -1,7 +1,7 @@
 /***
- * @Author: ${git_name}
+ * @Author: trexwb
  * @Date: 2026-07-17 15:09:29
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-07-17 15:14:29
  * @FilePath: /stl/server/src/app/Models/BaseModel.ts
  * @Description:
@@ -13,7 +13,7 @@ import { config } from '#bootstrap/configLoader'
 import type { AppError } from '#types/errors'
 import type { FilterValue, SchemaProp, SchemaProps } from '#types/models'
 import type { SortOrder } from '#types/query'
-import { DEFAULT_TIME_ZONE, formatDateFromUTC, formatDbDateTimeFromUTC, nowDate } from '#utils/format'
+import { DEFAULT_TIME_ZONE, formatDateFromUTC, formatDbDateTimeFromUTC, nowDate } from '#app/Helpers/format'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone.js'
 import utc from 'dayjs/plugin/utc.js'
@@ -116,8 +116,7 @@ export class BaseModel extends Model {
           }
           const n = Number(value)
           if (!Number.isFinite(n)) return value
-          if (prop.minimum !== undefined) n < prop.minimum
-          if (prop.maximum !== undefined) Math.min(n, prop.maximum)
+          // P3 修复：旧代码此处两行比较/调用无赋值副作用（悬空语句），钳制逻辑仅在下两行生效
           if (prop.minimum !== undefined) return Math.max(n, prop.minimum)
           if (prop.maximum !== undefined) return Math.min(n, prop.maximum)
           return n

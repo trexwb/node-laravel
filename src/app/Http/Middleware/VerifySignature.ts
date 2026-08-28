@@ -1,24 +1,35 @@
 /*
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-07-13 10:35:00
- * @FilePath: /stl-dev-server/server/src/app/Http/Middleware/VerifySignature.ts
+ * @FilePath: node-laravel/src/app/Http/Middleware/VerifySignature.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 import { config } from '#bootstrap/configLoader'
-import { CryptoTool } from '#utils/cryptoTool'
+import { CryptoTool } from '#app/Helpers/cryptoTool'
 import type { NextFunction, Request, Response } from 'express'
 
-function sortObjectDeep(obj: unknown): unknown {
+/**
+ * 递归排序对象（签名规范：对象键按字典序；纯数字键按数值升序，避免 '10' < '2' 导致签名不一致）。
+ * 导出供单元测试与外部签名工具复用，保证客户端/服务端排序规则一致。
+ */
+export function sortObjectDeep(obj: unknown): unknown {
   if (Array.isArray(obj)) {
     return obj.map(sortObjectDeep)
   } else if (obj && typeof obj === 'object') {
     return Object.fromEntries(
       Object.entries(obj)
-        .sort(([a], [b]) => a.localeCompare(b))
+        .sort(([a], [b]) => {
+          const aNum = /^\d+$/.test(a) ? Number(a) : null
+          const bNum = /^\d+$/.test(b) ? Number(b) : null
+          if (aNum !== null && bNum !== null) return aNum - bNum
+          if (aNum !== null) return -1
+          if (bNum !== null) return 1
+          return a.localeCompare(b)
+        })
         .map(([k, v]) => [k, sortObjectDeep(v)])
     )
   } else {

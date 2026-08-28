@@ -3,12 +3,12 @@
  * @Date: 2026-04-08
  * @LastEditors: trexwb
  * @LastEditTime: 2026-04-08
- * @FilePath: /stl-dev-server/server/src/utils/logger.ts
+ * @FilePath: node-laravel/src/app/Helpers/logger.ts
  * @Description:
  * 统一结构化日志（pino）
  *
  * 使用方式：
- *   import { logger } from '#utils/logger';
+ *   import { logger } from '#app/Helpers/logger';
  *   logger.info({ userId: 123 }, '用户登录成功');
  *   logger.error({ err }, '数据库查询失败');
  *
@@ -24,7 +24,7 @@
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-import { getTraceId } from '#utils/requestContext'
+import { getTraceId } from '#app/Helpers/requestContext'
 import pino from 'pino'
 
 const isDev = (process.env.APP_ENV || process.env.NODE_ENV || 'development') !== 'production'

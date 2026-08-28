@@ -3,7 +3,7 @@
  * @Date: 2026-04-08
  * @LastEditors: trexwb
  * @LastEditTime: 2026-04-08
- * @FilePath: /stl-dev-server/server/src/app/Http/Middleware/TraceId.ts
+ * @FilePath: node-laravel/src/app/Http/Middleware/TraceId.ts
  * @Description:
  * TraceId 中间件 — 请求唯一追踪标识
  *
@@ -18,7 +18,7 @@
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-import { requestContext } from '#utils/requestContext'
+import { requestContext } from '#app/Helpers/requestContext'
 import type { NextFunction, Request, Response } from 'express'
 import { randomUUID } from 'node:crypto'
 

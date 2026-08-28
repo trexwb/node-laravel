@@ -3,7 +3,7 @@
  * @Date: 2026-03-30
  * @LastEditors: trexwb
  * @LastEditTime: 2026-03-30
- * @FilePath: /stl-dev-server/server/src/app/Listeners/BaseListener.ts
+ * @FilePath: node-laravel/src/app/Listeners/BaseListener.ts
  * @Description:
  * 监听器基类 - 统一事件监听模式
  * 一花一世界，一叶如来

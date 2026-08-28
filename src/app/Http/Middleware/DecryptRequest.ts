@@ -1,16 +1,16 @@
 /*
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-04-01 21:44:51
- * @FilePath: /stl-dev-server/server/src/app/Http/Middleware/DecryptRequest.ts
+ * @FilePath: node-laravel/src/app/Http/Middleware/DecryptRequest.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 import { config } from '#bootstrap/configLoader'
-import { CryptoTool } from '#utils/cryptoTool'
-import { createLogger } from '#utils/logger'
+import { CryptoTool } from '#app/Helpers/cryptoTool'
+import { createLogger } from '#app/Helpers/logger'
 import type { NextFunction, Request, Response } from 'express'
 
 const log = createLogger('Middleware:Decrypt')
@@ -44,7 +44,6 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
 
   try {
     const appKey = req.secretRow?.appSecret || config('app.security.app_key')
-    const appIv = req.secretRow?.appIv || config('app.security.app_iv')
 
     // 记录调试信息
     if (config('app.debugger')) {
@@ -61,7 +60,7 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
     }
 
     // 3. 执行解密
-    const decryptData = CryptoTool.decrypt(encryptedData, appKey, appIv)
+    const decryptData = CryptoTool.decrypt(encryptedData, appKey)
     if (!decryptData) {
       log.warn(
         {
@@ -109,9 +108,9 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
       // 解密成功但JSON解析失败 - 可能是前端传了非JSON数据或格式错误
       return res.error(400019004002, '请求数据格式错误：解密后的内容不是有效的JSON格式')
     } else if (err.message.includes('Invalid key or iv length')) {
-      // 密钥长度错误 - 配置问题
-      return res.error(500019004003, '服务器配置错误：加密密钥长度不正确')
-    } else if (err.message.includes('Encryption failed')) {
+      // 密钥长度错误 - 配置问题（不透传服务端配置细节，统一为通用文案）
+      return res.error(500019004003, '服务器解密配置异常，请联系管理员')
+    } else if (err.message.includes('Decryption failed')) {
       // 其他加密相关的错误
       return res.error(400019004004, '请求数据解密失败，请检查数据格式和密钥')
     }

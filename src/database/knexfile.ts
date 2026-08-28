@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
  * @Date: 2026-01-21 13:48:24
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-04-25 17:05:06
- * @FilePath: /stl-dev-server/server/src/database/knexfile.ts
+ * @FilePath: node-laravel/src/database/knexfile.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 

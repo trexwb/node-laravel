@@ -3,12 +3,12 @@
  * @Date: 2026-01-21 14:11:13
  * @LastEditors: trexwb
  * @LastEditTime: 2026-03-09 10:34:16
- * @FilePath: /stl/server/src/utils/index.ts
+ * @FilePath: node-laravel/src/app/Helpers/index.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-import { formatDbDateTime } from '#utils/format'
+import { formatDbDateTime } from '#app/Helpers/format'
 import dayjs from 'dayjs'
 import type { DateTimeSlot, RGBColor } from '#types/utils'
 

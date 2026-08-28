@@ -3,7 +3,7 @@
  * @Date: 2026-01-22 11:07:07
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-17
- * @FilePath: /stl-dev-server/server/src/app/Interfaces/CastInterface.ts
+ * @FilePath: node-laravel/src/app/Interfaces/CastInterface.ts
  * @Description: 模型字段类型转换契约 — 所有 Cast 实现类必须实现 get/set 两个方法
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

@@ -1,16 +1,16 @@
 /*
  * @Author: trexwb
  * @Date: 2026-02-05 15:03:20
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-03-29 08:13:23
- * @FilePath: /stl-dev-server/server/src/app/Services/Rpc/JsonRpcClient.ts
+ * @FilePath: node-laravel/src/app/Services/Rpc/JsonRpcClient.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 import { CircuitBreaker } from '#app/Services/Rpc/CircuitBreaker'
 import type { RpcResponse, RpcServerConfig } from '#types/rpc'
-import { CryptoTool } from '#utils/cryptoTool'
+import { CryptoTool } from '#app/Helpers/cryptoTool'
 export type { RpcServerConfig } from '#types/rpc'
 
 // 定义响应数据的类型
@@ -22,7 +22,6 @@ export class JsonRpcClient {
   private appId: number
   private appSecret: string
   private breaker = new CircuitBreaker()
-  private appIv: string
 
   /**
    * 初始化 JSON-RPC 客户端实例。
@@ -32,7 +31,6 @@ export class JsonRpcClient {
     this.url = serverConfig.url
     this.appId = serverConfig.appId
     this.appSecret = serverConfig.appSecret
-    this.appIv = serverConfig.appIv
   }
 
   /**
@@ -82,7 +80,7 @@ export class JsonRpcClient {
       }
       let data: unknown = rpcResponse.data || {}
       if (rpcResponse.encryptedData) {
-        data = CryptoTool.decrypt(rpcResponse.encryptedData, this.appSecret, this.appIv)
+        data = CryptoTool.decrypt(rpcResponse.encryptedData, this.appSecret)
       }
       return data
     } catch (err) {

@@ -16,14 +16,14 @@ import { forceHttps } from '#app/Http/Middleware/ForceHttps'
 import { responseWrapper } from '#app/Http/Middleware/ResponseWrapper'
 import { traceIdMiddleware } from '#app/Http/Middleware/TraceId'
 import { AppServiceProvider } from '#app/Providers/AppServiceProvider'
-import { config } from '#bootstrap/configLoader'
+import { config, validateSecurityConfig } from '#bootstrap/configLoader'
 import { eventBus } from '#bootstrap/events'
 import knexConfig from '#database/knexfile'
 import { createApiRoutes } from '#routes/api'
 import consoleRoutes from '#routes/console'
 import { createEventRoutes } from '#routes/event'
 import webRoutes from '#routes/web'
-import { createLogger } from '#utils/logger'
+import { createLogger } from '#app/Helpers/logger'
 import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
@@ -48,14 +48,13 @@ export async function bootstrap(appInstance: express.Application) {
   // 启动服务提供者 (初始化事件监听等)
   AppServiceProvider.boot()
 
-  // APP_KEY / APP_IV 启动校验：生产环境强制要求配置
+  // APP_KEY / APP_IV 启动校验：生产环境强制要求配置（接线 validateSecurityConfig，杜绝静默降级）
   const appConfig = config('app')
   const appKey = appConfig?.security?.app_key
   const appIv = appConfig?.security?.app_iv
-  if (!appKey || !appIv) {
-    if (appConfig.env === 'production') {
-      throw new Error('FATAL: APP_KEY and APP_IV must be configured in production environment')
-    }
+  if (appConfig.env === 'production') {
+    validateSecurityConfig()
+  } else if (!appKey || !appIv) {
     console.warn('[Bootstrap] APP_KEY/APP_IV not configured — encryption features will not work properly')
   }
 
@@ -101,8 +100,9 @@ export async function bootstrap(appInstance: express.Application) {
   appInstance.use(responseWrapper)
   // 加载路由 (必须 await，确保启动阶段一次性完成)
   const [apiRoutes, eventRoutes] = await Promise.all([createApiRoutes(), createEventRoutes()])
+  // 注意：/api 前缀天然覆盖 /api/v1，禁止将同一 router 重复挂载到 /api 与 /api/v1，
+  // 否则 /api/v1/* 请求会把整条中间件链执行两遍（限流翻倍、验签/解密二次执行导致签名必失败）。
   appInstance.use('/api', apiRoutes)
-  appInstance.use('/api/v1', apiRoutes)
   appInstance.use('/event', eventRoutes)
   appInstance.use('/console', consoleRoutes)
   appInstance.use('/', webRoutes)

@@ -3,7 +3,7 @@
  * @Date: 2026-08-17
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-17
- * @FilePath: /stl-dev-server/server/src/utils/amount.ts
+ * @FilePath: node-laravel/src/app/Helpers/amount.ts
  * @Description: 金额字符串校验工具 — 基于原始字符串正则，避免浮点乘法误差导致的精度误判
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

@@ -10,7 +10,7 @@
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 import { config } from '#bootstrap/configLoader'
-import Utils from '#utils/index'
+import Utils from '#app/Helpers/index'
 import type { Knex } from 'knex'
 import path from 'node:path'
 import { fileURLToPath } from 'url'

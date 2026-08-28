@@ -3,7 +3,7 @@
  * @Date: 2026-04-10 11:35:00
  * @LastEditors: trexwb
  * @LastEditTime: 2026-04-10 11:35:00
- * @FilePath: /stl-dev-server/server/src/app/Helpers/TransformerHelper.ts
+ * @FilePath: node-laravel/src/app/Helpers/TransformerHelper.ts
  * @Description:
  * 数据转换工具函数（Transformer Helper）
  * 用于 API 响应字段过滤、结构化转换

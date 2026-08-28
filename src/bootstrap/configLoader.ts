@@ -58,12 +58,8 @@ export function validateSecurityConfig(): void {
     );
   }
 
-  if (Buffer.byteLength(app_iv) !== 16) {
-    console.warn(
-      `[WARN] APP_IV 长度应为 16 字节（当前 ${Buffer.byteLength(app_iv)} 字节），` +
-      `已自动补齐或截断处理，但建议使用 16 字节密钥`
-    );
-  }
+  // APP_IV 不再强校验长度：AES-256-GCM 下 IV 会经 SHA-256 派生为 12 字节，
+  // 任意长度配置均可安全使用（仅建议使用 12/16 字节随机串）。
 }
 
 /**

@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
  * @Date: 2026-01-29 11:25:15
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-04-02 09:40:09
- * @FilePath: /stl-dev-server/server/src/app/Http/Middleware/RefreshToken.ts
+ * @FilePath: node-laravel/src/app/Http/Middleware/RefreshToken.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
@@ -11,7 +11,7 @@
 import crypto from 'node:crypto'
 import { config } from '#bootstrap/configLoader'
 import { CacheService } from '#app/Services/Cache/CacheService'
-import { CryptoTool } from '#utils/cryptoTool'
+import { CryptoTool } from '#app/Helpers/cryptoTool'
 import type { NextFunction, Request, Response } from 'express'
 
 export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {

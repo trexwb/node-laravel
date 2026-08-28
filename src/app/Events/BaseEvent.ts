@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
  * @Date: 2026-03-30
- * @LastEditors: ${git_name}
+ * @LastEditors: trexwb
  * @LastEditTime: 2026-04-01 13:47:13
- * @FilePath: /stl-dev-server/server/src/app/Events/BaseEvent.ts
+ * @FilePath: node-laravel/src/app/Events/BaseEvent.ts
  * @Description:
  * 事件基类 - 统一事件名称、Payload 约束、toJSON 序列化
  * 一花一世界，一叶一如来

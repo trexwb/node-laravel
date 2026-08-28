@@ -18,7 +18,7 @@
   - Web 控制器 `Front/ExampleController`（`GET /example`、`GET /example/:id`、`POST /example`）
   - API 控制器 `Api/ExampleUserController`（`GET /api/example/users`、`GET /api/example/users/:id`）
   - 服务层 `Services/Example/ExampleUserService`（演示 Container 依赖注入）
-- **`docs/version/` 目录**：建立版本化变更记录机制，首个版本文件为 `docs/version/v1.0.0.md`。
+- **`docs/version/` 目录**：建立版本化变更记录机制，首个版本文件为 `docs/version/v1.0.md`。
 - **`AGENTS.md`**：新增 AI 开发规范，约束所有 Agent 按规范编写文件。
 - **文档对齐**：更新 `docs/README.md`、`docs/QUICK_START.md`、`docs/开发手册.md`、`docs/接口对接文档模版.md`、`docs/OPTIMIZATION_REPORT.md`，补全空文档 `CHANGELOG.md`、`RELEASE.md`。
 - **根 README.md**：补充框架简介、技术栈、目录结构、快速开始、文档入口，并新增**应用案例**（史特牢 STL、仟标、大美）。
