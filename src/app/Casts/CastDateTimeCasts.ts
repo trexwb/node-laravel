@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-22 11:07:12
+ * @Date: 2026-01-22
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-09 10:31:17
- * @FilePath: /stl/server/src/app/Casts/CastDateTime.ts
+ * @LastEditTime: 2026-03-09
+ * @FilePath: node-laravel/src/app/Casts/CastDateTimeCasts.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

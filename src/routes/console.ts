@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-21 15:04:21
+ * @Date: 2026-01-21
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-02 09:48:52
+ * @LastEditTime: 2026-04-02
  * @FilePath: node-laravel/src/routes/console.ts
  * @Description:
  * 一花一世界，一叶一如来
@@ -19,8 +19,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const router = Router()
-const WEB_PORT = config('app.web.console.port') || 3000
-const WEB_HOST = config('app.web.console.host') || '0.0.0.0'
+const WEB_PORT = config<number>('app.console.port') || 3000
+const WEB_HOST = config<string>('app.console.host') || '0.0.0.0'
 
 // 静态文件服务优化
 const consoleDistPath = path.resolve(__dirname, '../../../console/dist')

@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-24 09:45:06
+ * @Date: 2026-03-24
  * @LastEditors: trexwb
- * @LastEditTime: 2026-08-17 15:21:00
+ * @LastEditTime: 2026-08-17
  * @FilePath: node-laravel/src/app/Helpers/query.ts
  * @Description:
  * 查询工具函数 — 缓存键生成、分页规范化、排序辅助

@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-02 09:40:09
+ * @LastEditTime: 2026-04-02
  * @FilePath: node-laravel/src/app/Http/Middleware/RefreshToken.ts
  * @Description:
  * 一花一世界，一叶一如来
@@ -15,7 +15,7 @@ import { CryptoTool } from '#app/Helpers/cryptoTool'
 import type { NextFunction, Request, Response } from 'express'
 
 export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
-  const tokenTime = config('app.security.token_time')
+  const tokenTime = config<number>('app.security.token_time', 1800)
   // 1. 从请求中获取当前的 User 对象（假设前面的 Authenticate 中间件已解析并注入）
   const currentUser = req.currentUser
   const currentTokenPayload = req.tokenPayload // 假设解析 Token 时把原始 payload 存了进来

@@ -1,6 +1,6 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-22 11:07:07
+ * @Date: 2026-01-22
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-17
  * @FilePath: node-laravel/src/app/Interfaces/CacheDriver.ts

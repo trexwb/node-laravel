@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-07-09 11:30:00
- * @FilePath: /stl/server/src/bootstrap/env.ts
+ * @LastEditTime: 2026-07-09
+ * @FilePath: node-laravel/src/bootstrap/env.ts
  * @Description: 环境变量统一加载与读取
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

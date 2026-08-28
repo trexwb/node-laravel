@@ -1,9 +1,9 @@
 /***
  * @Author: trexwb
- * @Date: 2026-07-17 15:09:29
+ * @Date: 2026-07-17
  * @LastEditors: trexwb
- * @LastEditTime: 2026-07-17 15:14:29
- * @FilePath: /stl/server/src/app/Models/BaseModel.ts
+ * @LastEditTime: 2026-07-17
+ * @FilePath: node-laravel/src/app/Models/BaseModel.ts
  * @Description:
  * @一花一世界，一叶一如来
  * @Copyright (c) 2026 by 杭州大美, All Rights Reserved.
@@ -11,7 +11,7 @@
 import type { CastInterface } from '#app/Interfaces/CastInterface'
 import { config } from '#bootstrap/configLoader'
 import type { AppError } from '#types/errors'
-import type { FilterValue, SchemaProp, SchemaProps } from '#types/models'
+import type { FilterValue, FilterCondition, SchemaProp, SchemaProps } from '#types/models'
 import type { SortOrder } from '#types/query'
 import { DEFAULT_TIME_ZONE, formatDateFromUTC, formatDbDateTimeFromUTC, nowDate } from '#app/Helpers/format'
 import dayjs from 'dayjs'
@@ -202,11 +202,11 @@ export class BaseModel extends Model {
    *
    * 注意：此方法返回新对象，不修改原始引用。
    */
-  protected static sanitize(data: Record<string, any>): Record<string, any> {
+  protected static sanitize(data: Record<string, unknown>): Record<string, unknown> {
     const props = getSchemaProps(this)
     if (!props) return { ...data }
 
-    const result: Record<string, any> = {}
+    const result: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(data)) {
       const prop = props[key]
       if (!prop) {
@@ -279,7 +279,7 @@ export class BaseModel extends Model {
   protected static coerceObject(value: unknown, prop: SchemaProp): unknown {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) return value
 
-    const result: Record<string, any> = {}
+    const result: Record<string, unknown> = {}
     const definedProps = prop.properties || {}
     const additionalProps = prop.additionalProperties
 
@@ -632,7 +632,7 @@ export class BaseModel extends Model {
    * 确保通过 BaseModel.insert / modifyById / modifyByFilters 封装方法写入时，
    * 数据在进入 Objection 之前已经是正确类型，Ajv 一定能通过。
    */
-  static coerceSchemaTypes(data: Record<string, any>): Record<string, any> {
+  static coerceSchemaTypes(data: Record<string, unknown>): Record<string, unknown> {
     const props = getSchemaProps(this)
     if (!props) return data
     const result = { ...data }
@@ -649,7 +649,7 @@ export class BaseModel extends Model {
    * 用于 update/patch 场景，防止关联表字段（packagings, gradesPrices 等）
    * 被当作主表列写入导致 SQL 语法错误。
    */
-  static filterSchemaFields(data: Record<string, any>): Record<string, any> {
+  static filterSchemaFields(data: Record<string, unknown>): Record<string, unknown> {
     if (!data || typeof data !== 'object') return {}
 
     const props = this.jsonSchema?.properties as unknown as SchemaProps | undefined
@@ -669,7 +669,7 @@ export class BaseModel extends Model {
   // §4  实例辅助（访问器 / 修改器 / casts）
   // ══════════════════════════════════════════════════════════════════════════
 
-  protected static runAccessors(data: Record<string, any>): Record<string, any> {
+  protected static runAccessors(data: Record<string, unknown>): Record<string, unknown> {
     const proto = this.prototype
     const methods = Object.getOwnPropertyNames(this).concat(Object.getOwnPropertyNames(proto))
     const staticCtx = this as unknown as Record<string, (val: unknown) => unknown>
@@ -684,7 +684,7 @@ export class BaseModel extends Model {
     return data
   }
 
-  protected static runMutators(data: Record<string, any>): Record<string, any> {
+  protected static runMutators(data: Record<string, unknown>): Record<string, unknown> {
     const staticCtx = this as unknown as Record<string, unknown>
     for (const key in data) {
       const methodName = `set${_.upperFirst(_.camelCase(key))}Attribute`
@@ -696,7 +696,7 @@ export class BaseModel extends Model {
     return data
   }
 
-  protected static runCasts(data: Record<string, any>, type: 'get' | 'set'): Record<string, any> {
+  protected static runCasts(data: Record<string, unknown>, type: 'get' | 'set'): Record<string, unknown> {
     const result = { ...data }
     for (const key in this.casts) {
       const caster = this.casts[key]
@@ -831,7 +831,7 @@ export class BaseModel extends Model {
 
   static buildQuery(
     query: QueryBuilder<BaseModel> = this.query(),
-    _filters: Record<string, any> | undefined = {},
+    _filters: Record<string, unknown> | undefined = {},
     _trashed: boolean = false
   ): QueryBuilder<BaseModel> {
     if (config('app.debugger') === true) {
@@ -868,10 +868,11 @@ export class BaseModel extends Model {
           }
         }
         if (typeof id === 'object' && !Array.isArray(id)) {
-          if (id.eq !== undefined) apply(`${table}.id`, id.eq)
-          if (id.not !== undefined) apply(`${table}.id`, id.not, true)
+          const cond = id as FilterCondition
+          if (cond.eq !== undefined) apply(`${table}.id`, cond.eq)
+          if (cond.not !== undefined) apply(`${table}.id`, cond.not, true)
         } else {
-          apply(`${table}.id`, id)
+          apply(`${table}.id`, id as FilterValue)
         }
       }
     }
@@ -886,12 +887,12 @@ export class BaseModel extends Model {
 
   /**
    * 通用筛选器类型：
-   *  - Record<string, any> 兼容 Service 层以 Parameters<...buildQuery>[1] 推导的匿名对象类型
+   *  - Record<string, unknown> 兼容 Service 层以 Parameters<...buildQuery>[1] 推导的匿名对象类型
    *  - undefined 兼容 Service 层「未传筛选器」的可选参数语义（运行时由各 buildQuery 默认 {} 兜底）
    */
   static async findOne<T extends typeof BaseModel>(
     this: T,
-    filters: Record<string, any> | undefined = {},
+    filters: Record<string, unknown> | undefined = {},
     trashed: boolean = false
   ): Promise<InstanceType<T> | undefined> {
     const query = this.buildQuery(this.query(), filters, trashed)
@@ -901,7 +902,7 @@ export class BaseModel extends Model {
 
   static async findAll<T extends typeof BaseModel>(
     this: T,
-    filters: Record<string, any> | undefined = {},
+    filters: Record<string, unknown> | undefined = {},
     options: {
       order?: SortOrder
     } = {},
@@ -916,7 +917,7 @@ export class BaseModel extends Model {
 
   static async findMany<T extends typeof BaseModel>(
     this: T,
-    filters: Record<string, any> | undefined = {},
+    filters: Record<string, unknown> | undefined = {},
     options: {
       page?: number
       pageSize?: number
@@ -951,9 +952,9 @@ export class BaseModel extends Model {
   // ══════════════════════════════════════════════════════════════════════════
 
   /** 预处理流水线（insert / modify 公共逻辑） */
-  protected static prepareData(data: Record<string, any>, opts: { filter?: boolean } = {}): Record<string, any> {
+  protected static prepareData(data: Record<string, unknown>, opts: { filter?: boolean } = {}): Record<string, unknown> {
     // 0. undefined → null
-    let d: Record<string, any> = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v === undefined ? null : v]))
+    let d: Record<string, unknown> = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v === undefined ? null : v]))
     // 1. 字段白名单过滤（update 场景需要）
     if (opts.filter) {
       const filtered = this.filterSchemaFields(d)
@@ -969,8 +970,8 @@ export class BaseModel extends Model {
     return d
   }
 
-  static async insert<T extends typeof BaseModel>(this: T, data: Partial<InstanceType<T>> | Record<string, any>) {
-    let d = (this as typeof BaseModel).prepareData(data as Record<string, any>)
+  static async insert<T extends typeof BaseModel>(this: T, data: Partial<InstanceType<T>> | Record<string, unknown>) {
+    let d = (this as typeof BaseModel).prepareData(data as Record<string, unknown>)
     // inserTable 白名单（额外过滤，兼容旧逻辑）
     if (this.inserTable.length) {
       const filtered = Object.fromEntries(Object.entries(d).filter(([key]) => this.inserTable.includes(key)))
@@ -988,12 +989,12 @@ export class BaseModel extends Model {
     return Object.assign(Object.create(this.prototype), json)
   }
 
-  static async insertMany<T extends typeof BaseModel>(this: T, data: Array<Partial<InstanceType<T>> | Record<string, any>>) {
+  static async insertMany<T extends typeof BaseModel>(this: T, data: Array<Partial<InstanceType<T>> | Record<string, unknown>>) {
     if (data.length === 0) return []
     const inserted: Array<InstanceType<T>> = []
     await this.transaction(async (trx) => {
       for (const item of data) {
-        let d = (this as typeof BaseModel).prepareData(item as Record<string, any>)
+        let d = (this as typeof BaseModel).prepareData(item as Record<string, unknown>)
         if (this.inserTable.length) {
           const filtered = Object.fromEntries(Object.entries(d).filter(([key]) => this.inserTable.includes(key)))
           if (Object.keys(filtered).length > 0) d = filtered
@@ -1010,7 +1011,7 @@ export class BaseModel extends Model {
     id: number,
     data: Partial<InstanceType<T>>
   ): Promise<InstanceType<T> | null> {
-    const d = (this as typeof BaseModel).prepareData(data as Record<string, any>, { filter: true })
+    const d = (this as typeof BaseModel).prepareData(data as Record<string, unknown>, { filter: true })
     // 移除 id 字段，patch 不需要更新主键
     const { id: _, ...patchData } = d
     if (Object.keys(patchData).length === 0) return null
@@ -1019,12 +1020,12 @@ export class BaseModel extends Model {
 
   static async modifyByFilters<T extends typeof BaseModel>(
     this: T,
-    filters: Record<string, any> | undefined = {},
+    filters: Record<string, unknown> | undefined = {},
     data: Partial<InstanceType<T>>
   ) {
     // 空 filter 会导致全表改状态，必须拒绝
     this.assertNonEmptyFilter(filters, 'modifyByFilters')
-    const d = (this as typeof BaseModel).prepareData(data as Record<string, any>, { filter: true }) as Partial<InstanceType<T>>
+    const d = (this as typeof BaseModel).prepareData(data as Record<string, unknown>, { filter: true }) as Partial<InstanceType<T>>
     if (Object.keys(d).length === 0) return 0
     // 批量 patch 不触发 $beforeUpdate，手动补 updatedAt
     if ((this as typeof BaseModel).useTimestamps) {
@@ -1043,7 +1044,7 @@ export class BaseModel extends Model {
     return null
   }
 
-  static async restoreByFilters<T extends typeof BaseModel>(this: T, filters: Record<string, any> | undefined = {}) {
+  static async restoreByFilters<T extends typeof BaseModel>(this: T, filters: Record<string, unknown> | undefined = {}) {
     const query = this.buildQuery(this.query(), filters)
     if (this.softDelete) {
       return await query.patch({ [this.softDeleteColumn]: null })
@@ -1060,7 +1061,7 @@ export class BaseModel extends Model {
     return await this.query().deleteById(id)
   }
 
-  static async deleteByFilters<T extends typeof BaseModel>(this: T, filters: Record<string, any> | undefined = {}) {
+  static async deleteByFilters<T extends typeof BaseModel>(this: T, filters: Record<string, unknown> | undefined = {}) {
     // 空 filter 不生成 WHERE 会导致全表操作，必须拒绝
     this.assertNonEmptyFilter(filters, 'deleteByFilters')
     const query = this.buildQuery(this.query(), filters)
@@ -1070,7 +1071,7 @@ export class BaseModel extends Model {
     return await query.delete()
   }
 
-  static async forceDelete<T extends typeof BaseModel>(this: T, filters: Record<string, any> | undefined = {}) {
+  static async forceDelete<T extends typeof BaseModel>(this: T, filters: Record<string, unknown> | undefined = {}) {
     if (this.softDelete === true) {
       const query = this.buildQuery(this.query(), filters, true)
       const count = await query.resultSize()
@@ -1093,7 +1094,7 @@ export class BaseModel extends Model {
    * P0 修复（审计 2026-08-18）：批量操作（删除/改状态）拒绝空 filter，
    * 防止 {"filter":{}} 触发全表删除或全表启停
    */
-  static assertNonEmptyFilter<T extends typeof BaseModel>(this: T, filters: Record<string, any> | undefined, method: string): void {
+  static assertNonEmptyFilter<T extends typeof BaseModel>(this: T, filters: Record<string, unknown> | undefined, method: string): void {
     if (!filters || typeof filters !== 'object' || Object.keys(filters).length === 0) {
       const err = new Error(
         `${method} requires a non-empty filter — refusing batch operation on the whole table. ` + `Table: ${this.tableName}`

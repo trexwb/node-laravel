@@ -1,6 +1,6 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-27 11:30:00
+ * @Date: 2026-03-27
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-28
  * @FilePath: node-laravel/src/types/express.d.ts
@@ -79,6 +79,7 @@ export interface AuthUser {
 export interface SecretRow {
   appSecret?: string
   appId?: string | number
+  appIv?: string
   [key: string]: unknown
 }
 

@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-21 10:47:25
+ * @Date: 2026-01-21
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-01 18:22:25
+ * @LastEditTime: 2026-04-01
  * @FilePath: node-laravel/src/app/Events/System/WriteLogs.ts
  * @Description:
  * 系统日志事件 - 统一记录各类操作日志

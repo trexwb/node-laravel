@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-06 14:18:20
+ * @Date: 2026-02-06
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-16 10:16:00
+ * @LastEditTime: 2026-04-16
  * @FilePath: node-laravel/src/routes/web.ts
  * @Description:
  * 一花一世界，一叶一如来
@@ -22,8 +22,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const router = Router()
-const WEB_PORT = config('app.web.front.port') || 3000
-const WEB_HOST = config('app.web.front.host') || '0.0.0.0'
+const WEB_PORT = config<number>('app.front.port') || 3000
+const WEB_HOST = config<string>('app.front.host') || '0.0.0.0'
 
 // 静态文件服务优化
 const rootPath = path.resolve(__dirname, '../')

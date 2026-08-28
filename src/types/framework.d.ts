@@ -1,6 +1,11 @@
-/**
- * 框架扩展点类型声明（framework.d.ts）
- * 框架层仅依赖本文件中的抽象接口；业务方通过 Container 注册对应实现完成注入。
+/*
+ * @Author: trexwb
+ * @Date: 2026-08-28
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-08-28
+ * @FilePath: node-laravel/src/types/framework.d.ts
+ * @Description:
+ * 框架扩展点类型声明 — 框架层仅依赖本文件中的抽象接口，业务方通过 Container 注册对应实现完成注入。
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
@@ -12,6 +17,7 @@ export interface SecretRow {
   id: number
   appId: number | string
   appSecret: string
+  appIv?: string
   status?: number
   [key: string]: unknown
 }

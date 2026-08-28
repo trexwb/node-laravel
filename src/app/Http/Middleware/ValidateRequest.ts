@@ -3,7 +3,7 @@
  * @Date: 2026-08-13
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-13
- * @FilePath: /stl/server/src/app/Http/Middleware/ValidateRequest.ts
+ * @FilePath: node-laravel/src/app/Http/Middleware/ValidateRequest.ts
  * @Description:
  * 请求校验中间件工厂：将 BaseRequest 子类包装为 Express 中间件。
  * 校验通过后以 req.body = validated 透传，校验失败 next(error)。

@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-05 10:40:12
+ * @Date: 2026-02-05
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
+ * @LastEditTime: 2026-03-27
  * @FilePath: /node-laravel/src/bootstrap/configLoader.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -13,10 +13,15 @@ import database from '#config/database';
 import cache from '#config/cache';
 import * as _ from 'lodash-es';
 
-const configs: Record<string, any> = {
+/** 各配置模块的实际类型（供 `config<T>()` 显式标注，避免 any 扩散到调用方） */
+export type AppConfig = typeof app;
+export type DatabaseConfig = typeof database;
+export type CacheConfig = typeof cache;
+
+const configs = {
   app,
   database,
-  cache
+  cache,
 };
 
 // ============================================================
@@ -65,21 +70,22 @@ export function validateSecurityConfig(): void {
 /**
  * 模拟 Laravel 的 config() 辅助函数
  * 支持小点语法获取配置，如: config('database.host')
+ * 泛型 T 允许调用方显式标注返回类型（不标注时默认 unknown，强制调用方做类型收窄）。
  */
-export function config(path: string, defaultValue: any = null): any {
-  return _.get(configs, path, defaultValue);
+export function config<T = unknown>(path: string, defaultValue?: T): T {
+  return _.get(configs, path, defaultValue) as T;
 }
 
 /**
  * 判断是否为生产环境
  */
 export function isProduction(): boolean {
-  return config('app.env') === 'production';
+  return config<string>('app.env') === 'production';
 }
 
 /**
  * 判断是否启用调试模式
  */
 export function isDebug(): boolean {
-  return config('app.debugger') === true;
+  return config<boolean>('app.debugger') === true;
 }

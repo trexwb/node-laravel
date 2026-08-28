@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-11 00:00:00
+ * @Date: 2026-03-11
  * @LastEditors: trexwb
- * @LastEditTime: 2026-05-14 17:40:00
+ * @LastEditTime: 2026-05-14
  * @FilePath: node-laravel/src/app/Helpers/readKey.ts
  * @Description:
  * 一花一世界，一叶一如来

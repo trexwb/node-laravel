@@ -1,9 +1,14 @@
-/**
+/*
+ * @Author: trexwb
+ * @Date: 2026-08-28
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-08-28
+ * @FilePath: node-laravel/src/types/utils.d.ts
+ * @Description:
  * 工具层类型声明 — utils 目录与纯技术工具共用。
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-
 /** RGB 颜色对象接口 */
 export interface RGBColor {
   r: number

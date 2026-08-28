@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-21 13:00:00
+ * @Date: 2026-03-21
  * @LastEditors: trexwb
- * @LastEditTime: 2026-08-17 15:21:00
- * @FilePath: /stl/server/src/app/Helpers/ControllerHelper.ts
+ * @LastEditTime: 2026-08-17
+ * @FilePath: node-laravel/src/app/Helpers/ControllerHelper.ts
  * @Description:
  * Controller 辅助函数
  * 一花一世界，一叶如来

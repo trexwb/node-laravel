@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-05 17:37:09
+ * @LastEditTime: 2026-02-05
  * @FilePath: node-laravel/src/routes/channels.ts
  * @Description:
  * 一花一世界，一叶一如来

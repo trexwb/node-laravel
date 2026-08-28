@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-02 10:55:23
+ * @LastEditTime: 2026-04-02
  * @FilePath: node-laravel/src/public/index.ts
  * @Description:
  * 一花一世界，一叶一如来
@@ -11,6 +11,7 @@
 import { QueueWorker } from '#app/Console/Commands/QueueWorker'
 import { bootstrap, container } from '#bootstrap/app'
 import { runWithCluster } from '#bootstrap/cluster'
+import type { AppConfig } from '#bootstrap/configLoader'
 import '#bootstrap/env'
 import { envBoolean } from '#bootstrap/env'
 import { bootScheduling } from '#bootstrap/schedule'
@@ -25,7 +26,7 @@ const log = createLogger('Server')
 
 runWithCluster(async () => {
   const { app, db } = container
-  const config = container.config('app')
+  const config = container.config<AppConfig>('app')
   await bootstrap(app)
 
   let wss: WebSocketServer | undefined
@@ -58,7 +59,7 @@ runWithCluster(async () => {
 
   httpServer.listen(httpPort, () => {
     log.info(
-      { port: httpPort, url: `http://${config.app_url || 'localhost'}:${httpPort}` },
+      { port: httpPort, url: `http://${config.url || 'localhost'}:${httpPort}` },
       `[Worker ${process.pid}] 🔓 HTTP Server 已启动`
     )
   })
@@ -66,7 +67,7 @@ runWithCluster(async () => {
   if (httpsServer) {
     httpsServer.listen(httpsPort, () => {
       log.info(
-        { port: httpsPort, url: `https://${config.app_url || 'localhost'}:${httpsPort}` },
+        { port: httpsPort, url: `https://${config.url || 'localhost'}:${httpsPort}` },
         `[Worker ${process.pid}] 🔒 HTTPS Server 已启动`
       )
     })

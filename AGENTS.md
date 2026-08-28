@@ -70,8 +70,7 @@ node-laravel/
 │   ├── resources/                  # 原始资源
 │   ├── routes/                     # 路由：web.ts / api.ts / console.ts / event.ts / channels.ts
 │   ├── storage/                    # 存储
-│   ├── types/                      # 全局类型声明（*.d.ts）
-│   └── utils/                      # 通用工具函数
+│   └── types/                      # 全局类型声明（*.d.ts）
 ├── docs/                           # 文档（README / QUICK_START / 开发手册 / version/ 变更日志）
 ├── tests/                          # 测试
 ├── AGENTS.md                       # 本文件（AI 开发规范）
@@ -115,7 +114,7 @@ node-laravel/
 | `#routes/*` | `./src/routes/*` |
 | `#storage/*` | `./src/storage/*` |
 | `#types/*` | `./src/types/*.d.ts` |
-|  `./src/utils/*` | `./src/utils/*` |
+| `#utils/*` | `./src/app/Helpers/*` |
 
 ```ts
 // ✅ 正确

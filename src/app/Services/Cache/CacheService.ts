@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-12 09:13:32
+ * @LastEditTime: 2026-04-12
  * @FilePath: node-laravel/src/app/Services/Cache/CacheService.ts
  * @Description:
  * 一花一世界，一叶一如来
@@ -23,7 +23,7 @@ export class CacheService {
    */
   public static getDriver(): CacheDriver {
     if (this.instance) return this.instance
-    const driverType = config('cache.driver')
+    const driverType = config<string>('cache.driver')
     switch (driverType) {
       case 'redis':
         this.instance = new RedisDriver()

@@ -1,10 +1,14 @@
-/**
- * 事件域类型声明 — 框架级事件 payload 统一收敛于此。
- * 业务事件及其 payload 由业务方在自身模块内扩展声明，不进入框架层。
+/*
+ * @Author: trexwb
+ * @Date: 2026-08-28
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-08-28
+ * @FilePath: node-laravel/src/types/events.d.ts
+ * @Description:
+ * 事件域类型声明 — 框架级事件 payload 统一收敛于此，业务事件及其 payload 由业务方在自身模块内扩展声明。
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-
 // ─── 系统模块 ────────────────────────────────────────────────────────
 
 /** 系统日志事件 payload（action 为业务自定义操作标识，由 LogSinkRegistry 按 action 路由） */

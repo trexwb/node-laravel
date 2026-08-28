@@ -12,7 +12,7 @@
 import { config } from '#bootstrap/configLoader'
 import type { Knex } from 'knex'
 
-const prefix = config('database.prefix')
+const prefix = config<string>('database.prefix')
 
 export async function up(knex: Knex): Promise<void> {
   // ======= servers.ts =======

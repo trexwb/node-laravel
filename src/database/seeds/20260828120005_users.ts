@@ -19,7 +19,7 @@ import { fileURLToPath } from 'url'
 export async function seed(knex: Knex): Promise<void> {
   const __filename = fileURLToPath(import.meta.url)
   const seedFilePath = path.basename(__filename, path.extname(__filename))
-  const prefix = config('database.prefix')
+  const prefix = config<string>('database.prefix')
   return await knex(`${prefix}seeds`)
     .where({ name: seedFilePath })
     .first()

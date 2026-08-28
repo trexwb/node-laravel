@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-05 10:40:12
+ * @Date: 2026-02-05
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 14:57:37
+ * @LastEditTime: 2026-02-09
  * @FilePath: /node-laravel/src/config/database.ts
  * @Description: 
  * 一花一世界，一叶一如来

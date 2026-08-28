@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-05 17:34:31
- * @FilePath: /stl/server/src/app/Services/Cache/CacheFileDriver.ts
+ * @LastEditTime: 2026-02-05
+ * @FilePath: node-laravel/src/app/Services/Cache/CacheFileDriver.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
@@ -21,14 +21,14 @@ const __dirname = path.dirname(__filename)
 /** 文件缓存落盘结构 */
 
 export class FileDriver implements CacheDriver {
-  private cachePath = path.resolve(__dirname, '../../../', config('cache.path') || 'storage/cache')
+  private cachePath = path.resolve(__dirname, '../../../', config<string>('cache.path') || 'storage/cache')
   private prefix: string
 
   /**
    * 初始化文件缓存驱动，读取配置中的缓存前缀。
    */
   constructor() {
-    this.prefix = config('cache.prefix') || ''
+    this.prefix = config<string>('cache.prefix') || ''
   }
 
   /**

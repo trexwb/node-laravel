@@ -1,6 +1,6 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-22 13:26:00
+ * @Date: 2026-03-22
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-28
  * @FilePath: node-laravel/src/app/Events/index.ts

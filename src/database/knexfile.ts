@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-21 13:48:24
+ * @Date: 2026-01-21
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-25 17:05:06
+ * @LastEditTime: 2026-04-25
  * @FilePath: node-laravel/src/database/knexfile.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -15,10 +15,10 @@ import { config } from '#bootstrap/configLoader';
 const dbConfig: Knex.Config = {
   client: 'mysql2',
   connection: {
-    host: config('database.host'),
-    user: config('database.user'),
-    password: config('database.password'),
-    database: config('database.database'),
+    host: config<string>('database.host'),
+    user: config<string>('database.user'),
+    password: config<string>('database.password'),
+    database: config<string>('database.database'),
     // ⚠️ 每个新连接显式设置 MySQL session 时区为北京时间
     // phpMyAdmin 自动做这件事所以正常；应用层必须显式设置
     // timezone:'+08:00' 让 MySQL 返回 TIMESTAMP 时做 +08:00 转换（相对于 UTC）
@@ -50,7 +50,7 @@ const dbConfig: Knex.Config = {
     },
   },
   migrations: {
-    tableName: `${config('database.prefix')}migrations`,
+    tableName: `${config<string>('database.prefix')}migrations`,
     directory: './migrations',
     extension: config('app.env') == 'development' ? 'ts' : 'js',
   },

@@ -3,7 +3,7 @@
  * @Date: 2026-08-13
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-13
- * @FilePath: /stl/server/src/app/Http/Middleware/OptionalAuth.ts
+ * @FilePath: node-laravel/src/app/Http/Middleware/OptionalAuth.ts
  * @Description:
  * 可选登录态中间件：请求头携带 Bearer token 时执行 authenticateToken，否则放行。
  * 适用场景：同一接口既支持游客访问（如登录二维码）也支持登录态访问（如绑定二维码）。

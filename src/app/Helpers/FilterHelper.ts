@@ -1,15 +1,14 @@
-/**
- * FilterHelper — 规范化 Controller 层的查询过滤器
- *
- * 背景：Controller 层常需要合并前端传入的 filter 与控制器默认条件，
- * 模式为 `req.body.filter || { id: req.body.id }`，导致大量重复代码
- * 和 `(req.body.filter || { id: req.body.id })` 的类型强制。
- *
- * 使用方式：
- *   import { buildFilter } from '#app/Helpers/FilterHelper'
- *   const filter = buildFilter(req, { status: 1 })
- *   // 或传入自定义覆盖字段
- *   const filter = buildFilter(req, { status: 1 }, { id: 'orderId' })
+/*
+ * @Author: trexwb
+ * @Date: 2026-08-28
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-08-28
+ * @FilePath: node-laravel/src/app/Helpers/FilterHelper.ts
+ * @Description:
+ * FilterHelper — 规范化 Controller 层的查询过滤器，合并前端 filter 与控制器默认条件，消除重复代码与类型强制。
+ * 使用方式：import { buildFilter } from '#app/Helpers/FilterHelper'
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 import type { Request } from 'express'
 

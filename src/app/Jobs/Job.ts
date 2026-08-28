@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
  * @LastEditTime: 2026-04-17
- * @FilePath: /stl/server/src/app/Jobs/Job.ts
+ * @FilePath: node-laravel/src/app/Jobs/Job.ts
  * @Description:
  * Job 基类 — 将任务推送到数据库队列（jobs 表）
  *

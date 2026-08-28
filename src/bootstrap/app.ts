@@ -1,6 +1,6 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-28
  * @FilePath: node-laravel/src/bootstrap/app.ts
@@ -17,6 +17,7 @@ import { responseWrapper } from '#app/Http/Middleware/ResponseWrapper'
 import { traceIdMiddleware } from '#app/Http/Middleware/TraceId'
 import { AppServiceProvider } from '#app/Providers/AppServiceProvider'
 import { config, validateSecurityConfig } from '#bootstrap/configLoader'
+import type { AppConfig } from '#bootstrap/configLoader'
 import { eventBus } from '#bootstrap/events'
 import knexConfig from '#database/knexfile'
 import { createApiRoutes } from '#routes/api'
@@ -49,7 +50,7 @@ export async function bootstrap(appInstance: express.Application) {
   AppServiceProvider.boot()
 
   // APP_KEY / APP_IV 启动校验：生产环境强制要求配置（接线 validateSecurityConfig，杜绝静默降级）
-  const appConfig = config('app')
+  const appConfig = config<AppConfig>('app')
   const appKey = appConfig?.security?.app_key
   const appIv = appConfig?.security?.app_iv
   if (appConfig.env === 'production') {
@@ -70,13 +71,13 @@ export async function bootstrap(appInstance: express.Application) {
   appInstance.use(express.urlencoded({ limit: '10mb', extended: true }))
 
   // 🌐 统一 CORS 配置
-  const corsOrigins = config('app.cors.origins') || ['*']
+  const corsOrigins = config<string[]>('app.cors.origins') || ['*']
   // 生产环境 CORS 全开放仅告警不阻断（存量部署兼容），建议显式配置白名单
   if (appConfig.env === 'production' && corsOrigins.includes('*')) {
     console.warn('[Bootstrap] CORS origins is "*" in production — 建议配置 CORS_ORIGINS 白名单')
   }
-  const corsMethods = config('app.cors.methods') || ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH']
-  const corsAllowedHeaders = config('app.cors.allowedHeaders') || ['Content-Type']
+  const corsMethods = config<string[]>('app.cors.methods') || ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH']
+  const corsAllowedHeaders = config<string[]>('app.cors.allowedHeaders') || ['Content-Type']
   appInstance.use(
     cors({
       origin: corsOrigins.includes('*') ? true : corsOrigins,

@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-05 10:40:12
+ * @Date: 2026-02-05
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 13:45:00
+ * @LastEditTime: 2026-03-27
  * @FilePath: /node-laravel/src/bootstrap/cluster.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -24,9 +24,9 @@ export function runWithCluster(
   boot: (isMaster: boolean) => Promise<void>,
   options: ClusterOptions = {}
 ) {
-  const { enabled = config('app.cluster.enabled'), workers } = options;
-  const wsEnabled = config('app.ws.enabled');
-  const wsMode = config('app.ws.mode');
+  const { enabled = config<boolean>('app.cluster.enabled'), workers } = options;
+  const wsEnabled = config<boolean>('app.ws.enabled');
+  const wsMode = config<string>('app.ws.mode');
 
   // ============================================================
   // 独立 WebSocket 进程检测

@@ -1,6 +1,6 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-28
  * @FilePath: node-laravel/src/app/Http/Middleware/AuthenticateSecret.ts
@@ -33,9 +33,9 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
   // 2. 提取时间戳（密文末尾固定 10 位；兼容旧 md5(32hex) 与新版 hmac(64hex) 两种前缀长度）
   const timeStampStr = appSecret.substring(appSecret.length - 10)
   const timeStamp = parseInt(timeStampStr) || 0
-  const tokenTime = parseInt(config('app.security.token_time') || '1800')
+  const tokenTime = config<number>('app.security.token_time', 1800)
   // 允许客户端/服务端存在少量时钟偏差（秒）
-  const maxFutureSkew = parseInt(config('app.security.max_future_skew', 300) || '300')
+  const maxFutureSkew = config<number>('app.security.max_future_skew', 300)
   // 3. 校验时间戳是否过期
   const now = Math.floor(Date.now() / 1000)
   if (timeStamp > now + maxFutureSkew) {

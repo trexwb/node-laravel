@@ -1,4 +1,10 @@
-/**
+/*
+ * @Author: trexwb
+ * @Date: 2026-08-28
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-08-28
+ * @FilePath: node-laravel/src/types/http.d.ts
+ * @Description:
  * HTTP 层类型声明 — 异常处理、响应包装、请求体解析共用。
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

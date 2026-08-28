@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-24 09:45:06
+ * @Date: 2026-03-24
  * @LastEditors: trexwb
- * @LastEditTime: 2026-08-17 15:21:00
- * @FilePath: /stl/server/src/app/Helpers/QueryHelper.ts
+ * @LastEditTime: 2026-08-17
+ * @FilePath: node-laravel/src/app/Helpers/QueryHelper.ts
  * @Description:
  * 查询辅助函数 — 纯函数，可独立使用
  * 一花一世界，一叶一如来

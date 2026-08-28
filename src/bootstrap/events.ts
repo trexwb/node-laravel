@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-27 11:30:00
+ * @Date: 2026-03-27
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 13:45:00
+ * @LastEditTime: 2026-03-27
  * @FilePath: /node-laravel/src/bootstrap/events.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -32,11 +32,11 @@ interface CrossProcessBusOptions {
   redisUrl?: string;
 }
 
-type EventHandler = (...args: any[]) => void;
+type EventHandler = (...args: unknown[]) => void;
 
-// P3 修复：收窄 any 为具体类型（redis 客户端类型 + 跨进程总线接口）
+// 跨进程事件总线接口（事件载荷统一为 unknown[]，由监听方自行收窄类型）
 export interface CrossProcessEventBus {
-  publish(event: string, ...args: any[]): Promise<void>;
+  publish(event: string, ...args: unknown[]): Promise<void>;
   subscribe(event: string, handler: EventHandler): void;
 }
 
@@ -47,16 +47,16 @@ let crossProcessBus: CrossProcessEventBus | null = null;
 async function getRedisClient() {
   if (redisClient) return redisClient;
 
-  const redisEnabled = config('cache.driver') === 'redis' && config('cache.host');
+  const redisEnabled = config<string>('cache.driver') === 'redis' && Boolean(config('cache.host'));
   if (!redisEnabled) {
     return null;
   }
 
   try {
     const { createClient } = await import('redis');
-    const host = config('cache.host');
-    const port = config('cache.port');
-    const password = config('cache.passwd');
+    const host = config<string>('cache.host');
+    const port = config<number>('cache.port');
+    const password = config<string>('cache.passwd');
 
     redisClient = createClient({
       password: password || undefined,
@@ -95,7 +95,7 @@ export async function createCrossProcessEventBus(options: CrossProcessBusOptions
   if (!subscriber) {
     console.warn('[CrossProcessBus] Redis 不可用，返回空实现');
     return {
-      publish: async (_channel: string, _data: any) => {},
+      publish: async (_channel: string, _data: unknown) => {},
       subscribe: (_channel: string, _handler: EventHandler) => {},
     };
   }
@@ -105,17 +105,17 @@ export async function createCrossProcessEventBus(options: CrossProcessBusOptions
   // 订阅 Redis 频道，收到消息后分发给本地处理器
   await subscriber.subscribe(options.channel, (message: string) => {
     try {
-      const { event, args } = JSON.parse(message);
-      const handlers = localHandlers.get(event) || [];
+      const { event, args } = JSON.parse(message) as { event: string; args: unknown[] }
+      const handlers = localHandlers.get(event) || []
       handlers.forEach(handler => {
         try {
-          handler(...args);
+          handler(...args)
         } catch (e) {
-          console.error(`[CrossProcessBus] Handler error for event "${event}":`, e);
+          console.error(`[CrossProcessBus] Handler error for event "${event}":`, e)
         }
-      });
+      })
     } catch (e) {
-      console.error('[CrossProcessBus] 消息解析失败:', e);
+      console.error('[CrossProcessBus] 消息解析失败:', e)
     }
   });
 
@@ -123,7 +123,7 @@ export async function createCrossProcessEventBus(options: CrossProcessBusOptions
     /**
      * 向所有进程广播事件
      */
-    publish: async (event: string, ...args: any[]) => {
+    publish: async (event: string, ...args: unknown[]) => {
       // 1. 本地进程直接触发
       eventBus.emit(event, ...args);
       // 2. 跨进程广播（通过 Redis）
@@ -152,7 +152,7 @@ export async function createCrossProcessEventBus(options: CrossProcessBusOptions
  * 快捷方法：broadcast() — 跨进程广播
  * 注意：需要在启动后调用 createCrossProcessEventBus() 初始化
  */
-export async function broadcast(event: string, ...args: any[]) {
+export async function broadcast(event: string, ...args: unknown[]) {
   if (crossProcessBus) {
     await crossProcessBus.publish(event, ...args);
   } else {

@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-05 15:03:20
+ * @Date: 2026-02-05
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-29 08:13:23
+ * @LastEditTime: 2026-03-29
  * @FilePath: node-laravel/src/app/Services/Rpc/JsonRpcClient.ts
  * @Description:
  * 一花一世界，一叶一如来
@@ -25,7 +25,7 @@ export class JsonRpcClient {
 
   /**
    * 初始化 JSON-RPC 客户端实例。
-   * @param {any} serverConfig - 服务器配置对象，需包含 url、appId、appSecret、appIv
+   * @param {RpcServerConfig} serverConfig - 服务器配置对象，需包含 url、appId、appSecret、appIv
    */
   constructor(serverConfig: RpcServerConfig) {
     this.url = serverConfig.url
@@ -48,8 +48,8 @@ export class JsonRpcClient {
   /**
    * 发起 RPC 调用（使用 fetch）。
    * @param {string} method - RPC 方法名
-   * @param {any} [params={}] - 调用参数
-   * @returns {Promise<any|{code: number, msg: string}|false>} 返回数据对象；若响应码非 200 返回 {code, msg}；网络异常返回 false
+   * @param {unknown} [params={}] - 调用参数
+   * @returns {Promise<unknown|{code: number, msg: string}|false>} 返回数据对象；若响应码非 200 返回 {code, msg}；网络异常返回 false
    * @throws {Error} 当请求失败或响应类型不正确时抛出
    */
   private async transport(method: string, params: unknown = {}) {
@@ -132,8 +132,8 @@ export class JsonRpcClient {
   /**
    * 执行 RPC 调用（集成熔断器、重试和超时机制）。
    * @param {string} method - RPC 方法名
-   * @param {any} params - 调用参数
-   * @returns {Promise<any>} RPC 调用结果
+   * @param {unknown} params - 调用参数
+   * @returns {Promise<unknown>} RPC 调用结果
    * @throws {Error} 当熔断器打开、超时或重试耗尽时抛出
    */
   async call(method: string, params: unknown) {

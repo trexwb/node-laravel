@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-01 21:28:57
+ * @LastEditTime: 2026-04-01
  * @FilePath: node-laravel/src/app/Http/Middleware/EncryptResponse.ts
  * @Description:
  * 一花一世界，一叶一如来
@@ -93,8 +93,8 @@ export const encryptResponse = (req: Request, res: Response, next: NextFunction)
       return originalJson.call(this, payload)
     }
     // 3️⃣ 加密
-    const appKey = req.secretRow?.appSecret || config('app.security.app_key')
-    const appIv = req.secretRow?.appIv || config('app.security.app_iv')
+    const appKey = req.secretRow?.appSecret || config<string>('app.security.app_key')
+    const appIv = req.secretRow?.appIv || config<string>('app.security.app_iv')
     if (!req.secretRow?.appSecret && !warnedGlobalKey) {
       // 未按租户注册密钥提供者时使用全局 key——仅在首个请求提示一次，避免刷屏
       warnedGlobalKey = true

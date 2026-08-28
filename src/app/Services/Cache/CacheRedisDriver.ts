@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-16 15:00:00
- * @FilePath: /stl/server/src/app/Services/Cache/CacheRedisDriver.ts
+ * @LastEditTime: 2026-04-16
+ * @FilePath: node-laravel/src/app/Services/Cache/CacheRedisDriver.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
@@ -23,10 +23,10 @@ export class RedisDriver implements CacheDriver {
    * 连接失败时会打印错误日志，不会抛出异常（异步连接）。
    */
   constructor() {
-    const host = config('cache.host')
-    const port = config('cache.port')
-    const password = config('cache.passwd')
-    this.prefix = config('cache.prefix') || ''
+    const host = config<string>('cache.host')
+    const port = config<number>('cache.port')
+    const password = config<string>('cache.passwd')
+    this.prefix = config<string>('cache.prefix') || ''
     /**
      * 构建 Redis 连接配置
      * 格式：redis[s]://[[username][:password]@][host][:port][/db-number]

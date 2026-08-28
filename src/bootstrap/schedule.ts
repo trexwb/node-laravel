@@ -1,6 +1,6 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-05 10:40:12
+ * @Date: 2026-02-05
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-28
  * @FilePath: node-laravel/src/bootstrap/schedule.ts

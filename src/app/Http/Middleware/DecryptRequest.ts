@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-01 21:44:51
+ * @LastEditTime: 2026-04-01
  * @FilePath: node-laravel/src/app/Http/Middleware/DecryptRequest.ts
  * @Description:
  * 一花一世界，一叶一如来
@@ -43,7 +43,7 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
   }
 
   try {
-    const appKey = req.secretRow?.appSecret || config('app.security.app_key')
+    const appKey = req.secretRow?.appSecret || config<string>('app.security.app_key')
 
     // 记录调试信息
     if (config('app.debugger')) {

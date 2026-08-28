@@ -1,10 +1,10 @@
 import type { CircuitBreakerState } from '#types/rpc'
 /*
  * @Author: trexwb
- * @Date: 2026-02-09 11:07:29
+ * @Date: 2026-02-09
  * @LastEditors: trexwb
- * @LastEditTime: 2026-02-09 11:15:04
- * @FilePath: /stl/server/src/app/Services/Rpc/CircuitBreaker.ts
+ * @LastEditTime: 2026-02-09
+ * @FilePath: node-laravel/src/app/Services/Rpc/CircuitBreaker.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

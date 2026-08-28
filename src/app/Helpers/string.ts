@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-24 09:46:21
+ * @Date: 2026-03-24
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-02 14:57:11
+ * @LastEditTime: 2026-04-02
  * @FilePath: node-laravel/src/app/Helpers/string.ts
  * @Description:
  * 字符串处理工具类（整合了 StrHelper 和 string 的所有功能）

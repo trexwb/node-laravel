@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-22 09:10:00
+ * @Date: 2026-03-22
  * @LastEditors: trexwb
- * @LastEditTime: 2026-04-16 11:26:55
+ * @LastEditTime: 2026-04-16
  * @FilePath: node-laravel/src/app/Helpers/TreeBuilderHelper.ts
  * @Description:
  * 扁平列表 → 树形结构工具函数

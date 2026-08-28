@@ -3,7 +3,7 @@
  * @Date: 2026-08-13
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-13
- * @FilePath: /stl/server/src/app/Events/System/ScheduleChanged.ts
+ * @FilePath: node-laravel/src/app/Events/System/ScheduleChanged.ts
  * @Description:
  * 调度变更事件
  * 【订阅者】

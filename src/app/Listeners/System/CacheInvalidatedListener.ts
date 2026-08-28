@@ -1,9 +1,9 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-23 09:30:00
+ * @Date: 2026-03-23
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-23 09:30:00
- * @FilePath: /stl/server/src/app/Listeners/System/CacheInvalidatedListener.ts
+ * @LastEditTime: 2026-03-23
+ * @FilePath: node-laravel/src/app/Listeners/System/CacheInvalidatedListener.ts
  * @Description:
  * 缓存失效监听器
  * 触发：任意 Service.flushallCache 后

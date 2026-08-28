@@ -1,6 +1,6 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
  * @LastEditTime: 2026-04-15 17:30
  * @FilePath: node-laravel/src/app/Http/Requests/BaseRequest.ts

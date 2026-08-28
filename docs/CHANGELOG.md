@@ -3,7 +3,7 @@
 本项目变更记录格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/) 约定，版本遵循 [语义化版本 2.0.0](https://semver.org/lang/zh-CN/)。
 
 - 详细的分版本记录请见 [`docs/version/`](./version/)
-- 每次发布需在 `docs/version/` 下新建 `vX.Y.Z.md`，并在本文件汇总
+- 每次发布需在 `docs/version/` 下新建 `vX.Y.md`（v1.0.x 系列更新统一记录于 `v1.0.md`），并在本文件汇总
 
 ---
 

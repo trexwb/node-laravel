@@ -1,6 +1,6 @@
 /*
  * @Author: trexwb
- * @Date: 2026-01-29 11:25:15
+ * @Date: 2026-01-29
  * @LastEditors: trexwb
  * @LastEditTime: 2026-08-28
  * @FilePath: node-laravel/src/artisan.ts
@@ -58,7 +58,7 @@ program
   .description('创建存储目录符号链接')
   .action(async () => {
     const publicPath = path.resolve(__dirname, './public/uploads')
-    const storagePath = path.resolve(__dirname, config('app.upload_path'))
+    const storagePath = path.resolve(__dirname, config<string>('app.upload_path'))
     try {
       await fs.unlink(publicPath)
     } catch (err) {

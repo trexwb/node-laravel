@@ -1,15 +1,14 @@
-/**
- * 通用错误类型 — 替代 `(err as any).code = 'xxx'` 的散落写法。
- *
- * 使用方式：
- *   const err = new Error('...') as AppError
- *   err.code = 'ENUM_VIOLATION'
- *   err.field = key
- *   throw err
- *
- * 调用方可直接访问 err.code / err.field，无需二次断言。
+/*
+ * @Author: trexwb
+ * @Date: 2026-08-28
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-08-28
+ * @FilePath: node-laravel/src/types/errors.d.ts
+ * @Description:
+ * 通用错误类型 — AppError 扩展，统一携带业务错误码（code）与字段（field），调用方可直接访问 err.code / err.field 而无需二次断言。
+ * 一花一世界，一叶一如来
+ * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
-
 /** 携带业务错误码 / 字段信息的 Error 扩展 */
 export interface AppError extends Error {
   /** 结构化错误码（如 'ENUM_VIOLATION'、'BaseModel:insert:emptyFields'） */

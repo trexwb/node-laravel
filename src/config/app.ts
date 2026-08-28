@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-02-05 10:40:12
+ * @Date: 2026-02-05
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-27 11:30:00
+ * @LastEditTime: 2026-03-27
  * @FilePath: /node-laravel/src/config/app.ts
  * @Description: 
  * 一花一世界，一叶一如来
@@ -33,6 +33,12 @@ export default {
   },
   front: {
     port: parseInt(process.env.FRONT_PORT || '3000'),
+    host: process.env.FRONT_HOST || '0.0.0.0',
+  },
+  // 控制台（admin）前端服务地址，供 routes/console.ts 反向代理使用
+  console: {
+    port: parseInt(process.env.CONSOLE_PORT || '3000'),
+    host: process.env.CONSOLE_HOST || '0.0.0.0',
   },
   cluster: {
     enabled: process.env.CLUSTER_ENABLED === 'true',

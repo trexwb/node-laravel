@@ -1,4 +1,10 @@
-/**
+/*
+ * @Author: trexwb
+ * @Date: 2026-08-28
+ * @LastEditors: trexwb
+ * @LastEditTime: 2026-08-28
+ * @FilePath: node-laravel/src/types/helpers.d.ts
+ * @Description:
  * 辅助层类型声明 — Helpers 目录各辅助函数的参数与返回类型。
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.

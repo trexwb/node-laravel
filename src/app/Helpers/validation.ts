@@ -1,8 +1,8 @@
 /*
  * @Author: trexwb
- * @Date: 2026-03-24 09:49:16
+ * @Date: 2026-03-24
  * @LastEditors: trexwb
- * @LastEditTime: 2026-03-24 16:30:26
+ * @LastEditTime: 2026-03-24
  * @FilePath: node-laravel/src/app/Helpers/validation.ts
  * @Description:
  * 一花一世界，一叶一如来
