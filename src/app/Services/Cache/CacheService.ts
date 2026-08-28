@@ -60,6 +60,18 @@ export class CacheService {
   }
 
   /**
+   * 仅当 key 不存在时写入（原子 SET NX），返回是否写入成功。
+   * 供互斥锁 / 防重放等 check-and-set 场景使用，避免 check-then-set 竞态。
+   * @param {string} key - 缓存键名
+   * @param {unknown} value - 要存储的值
+   * @param {number} [ttl] - 过期时间（秒），不传则使用驱动默认值
+   * @returns {Promise<boolean>} true 表示写入成功（此前不存在），false 表示 key 已存在
+   */
+  static async add(key: string, value: unknown, ttl?: number): Promise<boolean> {
+    return await this.getDriver().add(key, value, ttl)
+  }
+
+  /**
    * 从缓存中删除指定键
    * @param {string} key - 缓存键名
    * @returns {Promise<boolean>} 删除成功返回 true，键不存在返回 false
@@ -92,17 +104,12 @@ export class CacheService {
     const val = await this.get(key)
     if (val !== null) return val as T
 
-    // 互斥锁：尝试获取锁，防止缓存击穿（stampede）
+    // 互斥锁：原子获取锁（SET NX），防止缓存击穿（stampede）
     const lockKey = `lock:${key}`
     const lockTtl = 30 // 锁最多持有 30 秒，防止持锁进程崩溃后死锁
     let lockAcquired = false
     try {
-      // 检查锁是否已存在（set 返回 void，需先 get 判断）
-      const existingLock = await this.get(lockKey)
-      if (existingLock === null) {
-        await this.set(lockKey, '1', lockTtl)
-        lockAcquired = true
-      }
+      lockAcquired = await this.add(lockKey, '1', lockTtl)
     } catch {
       // 锁操作失败时降级为无锁模式
     }
@@ -119,7 +126,8 @@ export class CacheService {
 
     try {
       const freshData = await callback()
-      if (freshData !== null && freshData !== undefined && freshData) {
+      // 只排除 null/undefined，允许缓存 0 / false / '' 等假值（P2 修复）
+      if (freshData !== null && freshData !== undefined) {
         // 如果 ttl 为 0，调用我们各驱动中约定的"永久"逻辑或给一个超长有效期
         const expire = ttl === 0 ? 315360000 : ttl
         await this.set(key, freshData, expire)

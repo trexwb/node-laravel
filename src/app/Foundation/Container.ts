@@ -11,7 +11,9 @@
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
  */
 
-type Resolver<T> = () => T | Promise<T>
+// resolver 必须为同步函数：resolve() 是同步方法，异步 resolver（返回 Promise）会被当作实例缓存，
+// 造成类型与运行时不一致。需异步初始化时请显式初始化后再用 instance() 注册。
+type Resolver<T> = () => T
 
 interface Binding<T> {
   resolver: Resolver<T>

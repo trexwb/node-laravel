@@ -13,6 +13,8 @@
 export interface CacheDriver {
   get(key: string): Promise<unknown>
   set(key: string, value: unknown, ttl?: number): Promise<void> // ttl 单位：秒
+  /** 仅当 key 不存在时写入（原子 SET NX），返回是否写入成功；用于互斥锁/防重放等 check-then-set 竞态场景 */
+  add(key: string, value: unknown, ttl?: number): Promise<boolean>
   forget(key: string): Promise<void>
   flush(): Promise<void>
   forgetByPattern(pattern: string): Promise<number> // 返回删除的 key 数量

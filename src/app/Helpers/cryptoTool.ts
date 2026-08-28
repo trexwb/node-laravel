@@ -3,7 +3,7 @@
  * @Date: 2026-01-29
  * @LastEditors: trexwb
  * @LastEditTime: 2026-04-08
- * @FilePath: node-laravel/src/app/Helpers/CryptoTool.ts
+ * @FilePath: node-laravel/src/app/Helpers/cryptoTool.ts
  * @Description:
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved.
@@ -107,6 +107,14 @@ export class CryptoTool {
   }
 
   /**
+   * 从签名密钥（appSecret）派生独立的 AES 加密密钥（域分离，避免签名/加密密钥复用）。
+   * 使用 HMAC-SHA256(appSecret, 域标签) 派生 32 字节密钥，任意长度 appSecret 均可安全使用。
+   */
+  public static deriveEncryptionKey(secret: string): Buffer {
+    return crypto.createHmac('sha256', secret).update('node-laravel:aes-256-gcm:key').digest()
+  }
+
+  /**
    * HMAC-SHA256 签名（P2 加固：用于 appSecret 签名算法升级，替代弱 md5 拼接）
    */
   public static hmacSha256(str: string, key: string): string {
@@ -120,7 +128,7 @@ export class CryptoTool {
       .digest('base64')
   }
   // 加密函数（AES-256-GCM，输出 <iv><tag><ciphertext> 拼接 hex）
-  public static encrypt(encryptedData: unknown, keyStr: string | false = false, ivStr: string | false = false): string | undefined {
+  public static encrypt(encryptedData: unknown, keyStr: string | Buffer | false = false, ivStr: string | false = false): string | undefined {
     if (!encryptedData) return
     const key = keyStr ? Buffer.from(keyStr) : this.getKey()
     const iv = ivStr ? Buffer.from(crypto.createHash('sha256').update(ivStr).digest().subarray(0, 12)) : this.getIv()
@@ -133,20 +141,19 @@ export class CryptoTool {
     }
   }
   // 解密函数（IV 与认证标签从密文头部解析；认证失败即抛错，防止密文被篡改）
-  public static decrypt(encryptedText: string, keyStr: string | false = false): unknown {
+  public static decrypt(encryptedText: string, keyStr: string | Buffer | false = false): unknown {
     if (!encryptedText) return
     const key = keyStr ? Buffer.from(keyStr) : this.getKey()
     try {
       const decrypted = this.gcmDecrypt(encryptedText, key)
 
-      // 开发环境：记录解密后的原始字符串用于调试
+      // 开发环境：记录解密元信息（绝不含明文片段，避免敏感数据泄露进日志）
       if (process.env.APP_DEBUG === 'true') {
         console.debug(
           {
             encryptedTextLength: encryptedText.length,
             encryptedPreview: encryptedText.substring(0, 50),
             decryptedLength: decrypted.length,
-            decryptedPreview: decrypted.substring(0, 100),
           },
           'Decryption details'
         )
@@ -155,17 +162,13 @@ export class CryptoTool {
       // 验证解密后的字符串是否为有效的 JSON
       try {
         return JSON.parse(decrypted)
-      } catch (jsonError) {
-        // 增强错误信息，包含解密后的原始内容
-        const preview =
-          decrypted.length > 0
-            ? `Decrypted content: "${decrypted.substring(0, 100)}${decrypted.length > 100 ? '...' : ''}"`
-            : 'Decrypted content is empty'
-        throw new Error(`Invalid JSON format after decryption. ${preview}`)
+      } catch {
+        // 错误信息只保留长度等元信息，绝不含明文片段（P1 修复：防止明文泄露进服务端日志）
+        throw new Error(`Invalid JSON format after decryption (decrypted length=${decrypted.length})`)
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      // 提供更详细的错误信息
+      // 提供更详细的错误信息（此处拼接的是密文片段，不含明文，安全）
       const additionalInfo = errorMessage.includes('Invalid JSON format')
         ? ''
         : ` | Encrypted input: "${encryptedText.substring(0, 50)}${encryptedText.length > 50 ? '...' : ''}"`
@@ -182,17 +185,11 @@ export class CryptoTool {
     }
   }
   // 校验 Token
-  public static decryptToken(encryptedText: string): TokenPayload | null | undefined {
+  public static decryptToken(encryptedText: string): TokenPayload | null {
     try {
       const decrypted = this.gcmDecrypt(encryptedText, this.getKey())
-      // 如果返回的是字符串，则解析为对象
-      let decryptedPayload = null
-      try {
-        decryptedPayload = JSON.parse(decrypted)
-      } catch (error) {
-        console.error('Failed to parse decrypted token:', error)
-      }
-      return decryptedPayload
+      // JSON.parse 失败时抛错（与 decrypt 一致），不再静默返回 null（P2 修复）
+      return JSON.parse(decrypted) as TokenPayload
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
       throw new Error(`Decryption failed: ${errorMessage}`)

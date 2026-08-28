@@ -93,9 +93,11 @@ export const encryptResponse = (req: Request, res: Response, next: NextFunction)
       return originalJson.call(this, payload)
     }
     // 3️⃣ 加密
-    const appKey = req.secretRow?.appSecret || config<string>('app.security.app_key')
+    // 密钥分离（P3 修复）：租户签名密钥 appSecret 经 HMAC 派生为独立 AES 加密密钥，避免签名/加密复用同一密钥
+    const appSecret = req.secretRow?.appSecret
+    const appKey = appSecret ? CryptoTool.deriveEncryptionKey(appSecret) : false
     const appIv = req.secretRow?.appIv || config<string>('app.security.app_iv')
-    if (!req.secretRow?.appSecret && !warnedGlobalKey) {
+    if (!appSecret && !warnedGlobalKey) {
       // 未按租户注册密钥提供者时使用全局 key——仅在首个请求提示一次，避免刷屏
       warnedGlobalKey = true
       console.warn('[EncryptResponse] 未配置租户密钥（secretRow），正在使用全局 APP_KEY 加密响应')

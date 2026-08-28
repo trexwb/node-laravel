@@ -116,10 +116,11 @@ export class BaseModel extends Model {
           }
           const n = Number(value)
           if (!Number.isFinite(n)) return value
-          // P3 修复：旧代码此处两行比较/调用无赋值副作用（悬空语句），钳制逻辑仅在下两行生效
-          if (prop.minimum !== undefined) return Math.max(n, prop.minimum)
-          if (prop.maximum !== undefined) return Math.min(n, prop.maximum)
-          return n
+          // minimum 与 maximum 同时生效（clamp），避免 early return 跳过 maximum 钳制（P2 修复）
+          let clamped = n
+          if (prop.minimum !== undefined) clamped = Math.max(clamped, prop.minimum)
+          if (prop.maximum !== undefined) clamped = Math.min(clamped, prop.maximum)
+          return clamped
         }
         case 'boolean': {
           if (typeof value === 'boolean') return value
@@ -841,7 +842,7 @@ export class BaseModel extends Model {
     // ── 通用兜底过滤（仅当子类未覆盖 buildQuery 时生效）────────────────────
     // 目的：避免新 Model 忘记覆盖 buildQuery 时 filters 被静默丢弃，
     // 至少保证「软删除过滤」与「通用 id 过滤」两条基础契约不被破坏。
-    // 已覆盖 buildQuery 的 74 个子类均为完整重写、不调用本基类，故不受影响。
+    // 已覆盖 buildQuery 的子类均为完整重写、不调用本基类，故不受影响。
     const table = this.tableName
 
     // 1) 软删除过滤
@@ -997,7 +998,13 @@ export class BaseModel extends Model {
         let d = (this as typeof BaseModel).prepareData(item as Record<string, unknown>)
         if (this.inserTable.length) {
           const filtered = Object.fromEntries(Object.entries(d).filter(([key]) => this.inserTable.includes(key)))
-          if (Object.keys(filtered).length > 0) d = filtered
+          // 与 insert 行为一致：过滤后无有效字段时显式报错（P2 修复）
+          if (Object.keys(filtered).length === 0) {
+            const err = new Error(`No valid fields to insert for table ${this.tableName}.`) as AppError
+            err.code = 'BaseModel:insertMany:emptyFields'
+            throw err
+          }
+          d = filtered
         }
         const result = await this.query(trx).insert(d)
         inserted.push(result as InstanceType<T>)

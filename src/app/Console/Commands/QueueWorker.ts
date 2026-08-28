@@ -124,12 +124,17 @@ export class QueueWorker {
    */
   private static async processJob(job: QueueJobRow): Promise<void> {
     const jobId = job.id
-    const payload = typeof job.payload === 'string' ? JSON.parse(job.payload as string) : job.payload
-    const { className, params } = payload as { className: string; params: unknown }
-
-    log.info({ jobId, className, attempts: job.attempts, reservedAt: formatDate() }, '开始处理任务')
+    let className = 'unknown'
 
     try {
+      // P2 修复：JSON.parse 移入 try 内，损坏 payload 走 markFailed 流程（而非让任务永久卡死）
+      const payload = typeof job.payload === 'string' ? JSON.parse(job.payload as string) : job.payload
+      const parsed = payload as { className: string; params: unknown }
+      className = parsed.className
+      const params = parsed.params
+
+      log.info({ jobId, className, attempts: job.attempts, reservedAt: formatDate() }, '开始处理任务')
+
       // Job 类由业务方通过 queue.jobResolver 注册解析
       const jobResolver = Container.resolve<JobResolver>('queue.jobResolver', () => () => undefined)
       const JobClass = jobResolver(className)

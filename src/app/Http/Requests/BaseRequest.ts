@@ -257,7 +257,12 @@ export abstract class BaseRequest {
     const rules = rule.split('|')
     if (rules.includes('integer')) return Number(value)
     if (rules.includes('numeric')) return Number(value)
-    if (rules.includes('boolean')) return Boolean(value)
+    if (rules.includes('boolean')) {
+      // P2 修复：Boolean("0") 恒为 true 导致语义反转，改为显式映射
+      if (value === 'true' || value === '1' || value === 1) return true
+      if (value === 'false' || value === '0' || value === 0) return false
+      return value
+    }
     if (rules.includes('string')) return String(value)
     return value // 默认不转换
   }

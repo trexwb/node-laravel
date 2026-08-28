@@ -3,7 +3,7 @@
  * @Date: 2026-02-05
  * @LastEditors: trexwb
  * @LastEditTime: 2026-03-27
- * @FilePath: /node-laravel/src/config/app.ts
+ * @FilePath: node-laravel/src/config/app.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
@@ -66,4 +66,4 @@ export default {
   log: {
     level: process.env.LOG_LEVEL || (process.env.APP_ENV === 'production' ? 'info' : 'debug'),
   },
-};
+}

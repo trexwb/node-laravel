@@ -51,7 +51,8 @@ export class FileDriver implements CacheDriver {
     try {
       const data = JSON.parse(await fs.readFile(this.getFilePath(this.prefix + key), 'utf-8')) as CacheFileData
       if (Date.now() > data.expire) {
-        await this.forget(this.prefix + key)
+        // forget 内部会拼接 prefix，此处传不含 prefix 的 key（修复双前缀导致过期文件无法删除）
+        await this.forget(key)
         return null
       }
       return data.value
@@ -72,6 +73,37 @@ export class FileDriver implements CacheDriver {
     const data = { value, expire: Date.now() + ttl * 1000 }
     await fs.mkdir(this.cachePath, { recursive: true })
     await fs.writeFile(this.getFilePath(this.prefix + key), JSON.stringify(data))
+  }
+
+  /**
+   * 仅当 key 不存在时写入（原子创建，'wx' 标志），返回是否写入成功。
+   * 单进程场景下通过文件原子创建（O_EXCL）实现 check-and-set，避免 check-then-set 竞态。
+   * @param {string} key - 缓存键名
+   * @param {unknown} value - 要写入的值
+   * @param {number} [ttl=3600] - 过期时间（秒）
+   * @returns {Promise<boolean>} true 表示写入成功（此前不存在），false 表示 key 已存在
+   */
+  async add(key: string, value: unknown, ttl: number = 3600): Promise<boolean> {
+    const data = { value, expire: Date.now() + ttl * 1000 }
+    await fs.mkdir(this.cachePath, { recursive: true })
+    try {
+      const handle = await fs.open(this.getFilePath(this.prefix + key), 'wx')
+      try {
+        await handle.writeFile(JSON.stringify(data))
+      } finally {
+        await handle.close()
+      }
+      return true
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err
+      // 文件已存在：可能是过期残留，读取检查（get 内部会删除过期文件）
+      const existing = await this.get(key)
+      if (existing === null) {
+        // 已过期，重试一次
+        return this.add(key, value, ttl)
+      }
+      return false
+    }
   }
 
   /**

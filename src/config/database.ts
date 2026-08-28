@@ -3,7 +3,7 @@
  * @Date: 2026-02-05
  * @LastEditors: trexwb
  * @LastEditTime: 2026-02-09
- * @FilePath: /node-laravel/src/config/database.ts
+ * @FilePath: node-laravel/src/config/database.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
@@ -16,4 +16,4 @@ export default {
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'node_laravel',
   prefix: process.env.DB_PREFIX || '',
-};
+}

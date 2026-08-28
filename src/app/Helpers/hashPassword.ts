@@ -22,6 +22,11 @@ const SCRYPT_P = 1
 const KEY_LEN = 64
 const PREFIX = 'scrypt$'
 
+// scrypt 参数上限（P2 修复：防止恶意参数导致 CPU/内存 DoS）
+const MAX_SCRYPT_N = 1 << 17 // 131072
+const MAX_SCRYPT_R = 32
+const MAX_SCRYPT_P = 16
+
 // 删除遗留 MD5 哈希导出（零引用死代码，防误用）
 // 密码存储统一走下方 scrypt 实现
 
@@ -57,10 +62,11 @@ export function verifyPassword(plain: string, storedPassword: string, legacySalt
       const r = Number(rStr)
       const p = Number(pStr)
       if (!n || !r || !p || !salt || !hashB64) return { valid: false, upgrade: false }
+      // P2 修复：校验参数上限，拒绝超大 N/r/p 的恶意哈希，防止 DoS
+      if (n > MAX_SCRYPT_N || r > MAX_SCRYPT_R || p > MAX_SCRYPT_P) return { valid: false, upgrade: false }
       const derived = crypto.scryptSync(plain, salt, KEY_LEN, { N: n, r, p })
       const expected = Buffer.from(hashB64, 'base64')
       const valid = derived.length === expected.length && crypto.timingSafeEqual(derived, expected)
-      console.log('valid', valid)
       return { valid, upgrade: false }
     } catch {
       return { valid: false, upgrade: false }

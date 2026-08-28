@@ -17,10 +17,11 @@ export class RedisDriver implements CacheDriver {
   private client: RedisClientType
   private prefix: string
   private readyPromise: Promise<void>
+  private connectError: Error | null = null
 
   /**
    * 初始化 Redis 缓存驱动，读取配置并建立连接。
-   * 连接失败时会打印错误日志，不会抛出异常（异步连接）。
+   * 连接失败时保留错误（不吞错），由 ensureReady 快速失败抛出，而非无限轮询。
    */
   constructor() {
     const host = config<string>('cache.host')
@@ -45,34 +46,36 @@ export class RedisDriver implements CacheDriver {
     this.client.on('error', (err) => {
       console.error('Redis Client Error:', err)
     })
-    // 保存连接 Promise，确保操作前已就绪
+    // 保存连接 Promise，确保操作前已就绪；连接失败保留错误，交由 ensureReady 快速失败
     this.readyPromise = this.client
       .connect()
       .then(() => {
+        this.connectError = null
         console.log(`[CacheRedisDriver] Connected to Redis ${host}:${port}`)
       })
-      .catch((err) => {
-        console.error('[CacheRedisDriver] Failed to connect to Redis:', err)
+      .catch((err: unknown) => {
+        this.connectError = err instanceof Error ? err : new Error(String(err))
       })
   }
 
   /**
-   * 等待 Redis 连接就绪（供内部方法调用）
+   * 等待 Redis 连接就绪（供内部方法调用）。
+   * 带超时快速失败：连接失败或超时均抛出异常，避免所有缓存操作永久挂起。
    */
   private async ensureReady() {
-    await this.readyPromise
-    // 额外等待 client.isReady 状态
+    const timeoutMs = config<number>('cache.connect_timeout', 3000)
+    await Promise.race([
+      this.readyPromise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Redis connection timeout after ${timeoutMs}ms`)), timeoutMs)
+      ),
+    ])
+    // 连接阶段已失败（如认证失败等不可恢复错误），直接抛出
+    if (this.connectError) {
+      throw this.connectError
+    }
     if (!this.client.isReady) {
-      await new Promise<void>((resolve) => {
-        const check = () => {
-          if (this.client.isReady) {
-            resolve()
-          } else {
-            setTimeout(check, 10)
-          }
-        }
-        check()
-      })
+      throw new Error('Redis client is not ready')
     }
   }
 
@@ -110,6 +113,24 @@ export class RedisDriver implements CacheDriver {
     await this.client.set(this.prefix + key, val, {
       EX: ttl,
     })
+  }
+
+  /**
+   * 仅当 key 不存在时写入（原子 SET NX），返回是否写入成功。
+   * 用于互斥锁 / 防重放等需要原子 check-and-set 的场景（避免 check-then-set 竞态）。
+   * @param {string} key - 缓存键名
+   * @param {unknown} value - 要写入的值
+   * @param {number} [ttl=3600] - 过期时间（秒）
+   * @returns {Promise<boolean>} true 表示写入成功（此前不存在），false 表示 key 已存在
+   */
+  async add(key: string, value: unknown, ttl: number = 3600): Promise<boolean> {
+    await this.ensureReady()
+    const val = typeof value === 'object' ? JSON.stringify(value) : String(value)
+    const result = await this.client.set(this.prefix + key, val, {
+      EX: ttl,
+      NX: true,
+    })
+    return result === 'OK'
   }
 
   /**
@@ -180,7 +201,10 @@ export class RedisDriver implements CacheDriver {
       console.error(`[CacheRedisDriver] forgetByPattern error (pattern: ${match}):`, err)
       throw err
     }
-    console.log(`[CacheRedisDriver] forgetByPattern: pattern=${match} scanned=${totalScanned} deleted=${totalDeleted}`)
+    // 统计日志降级为 debug：仅在调试模式输出，避免高频删除操作刷屏（P3 修复）
+    if (config('app.debugger') === true) {
+      console.debug(`[CacheRedisDriver] forgetByPattern: pattern=${match} scanned=${totalScanned} deleted=${totalDeleted}`)
+    }
     return totalDeleted
   }
 

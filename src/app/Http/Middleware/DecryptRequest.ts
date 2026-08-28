@@ -43,7 +43,9 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
   }
 
   try {
-    const appKey = req.secretRow?.appSecret || config<string>('app.security.app_key')
+    // 密钥分离（P3 修复）：与 EncryptResponse 一致，租户签名密钥经 HMAC 派生为独立 AES 密钥
+    const appSecret = req.secretRow?.appSecret
+    const appKey = appSecret ? CryptoTool.deriveEncryptionKey(appSecret) : false
 
     // 记录调试信息
     if (config('app.debugger')) {
@@ -52,7 +54,7 @@ export const decryptRequest = (req: Request, res: Response, next: NextFunction) 
           path: req.path,
           encryptedLength: encryptedData.length,
           encryptedPreview: encryptedData.substring(0, 50),
-          hasCustomKey: !!req.secretRow?.appSecret,
+          hasCustomKey: !!appSecret,
           hasCustomIv: !!req.secretRow?.appIv,
         },
         'Attempting decryption'

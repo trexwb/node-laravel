@@ -72,11 +72,11 @@ export const authenticateSecret = async (req: Request, res: Response, next: Next
   const nonce = req.headers['x-nonce'] as string | undefined
   if (nonce && nonce.length > 0 && nonce.length <= 128) {
     const nonceKey = `secret:nonce:${appId}:${nonce}`
-    const used = await CacheService.get(nonceKey)
-    if (used) {
+    // 原子 check-and-set（SET NX）：仅首次出现的 nonce 写入成功，避免 check-then-set 竞态（TOCTOU）
+    const acquired = await CacheService.add(nonceKey, '1', tokenTime)
+    if (!acquired) {
       return res.error(401000100006, 'appSecret nonce already used')
     }
-    await CacheService.set(nonceKey, '1', tokenTime)
   } else {
     if (config('app.security.require_nonce')) {
       return res.error(401000100007, 'appSecret nonce required')

@@ -3,14 +3,14 @@
  * @Date: 2026-02-05
  * @LastEditors: trexwb
  * @LastEditTime: 2026-02-09
- * @FilePath: /node-laravel/src/bootstrap/routeLoader.ts
+ * @FilePath: node-laravel/src/bootstrap/routeLoader.ts
  * @Description: 
  * 一花一世界，一叶一如来
  * Copyright (c) 2026 by 杭州大美/trexwb, All Rights Reserved. 
  */
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { Router } from 'express';
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { Router } from 'express'
 
 /**
  * 自动扫描目录并注册路由
@@ -18,20 +18,20 @@ import { Router } from 'express';
  * @param urlPrefix URL 前缀
  */
 export async function loadDynamicRoutes(basePath: string, urlPrefix: string = ''): Promise<Router> {
-  const router = Router();
+  const router = Router()
   // 递归获取所有 .ts 或 .js 文件 (兼容开发和编译后)
   async function getFiles(dir: string): Promise<string[]> {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
+    const entries = await fs.readdir(dir, { withFileTypes: true })
     const files = await Promise.all(entries.map((entry) => {
-      const res = path.resolve(dir, entry.name);
-      return entry.isDirectory() ? getFiles(res) : res;
-    }));
-    return files.flat().filter(file => /\.(ts|js)$/.test(file) && !file.endsWith('.d.ts'));
+      const res = path.resolve(dir, entry.name)
+      return entry.isDirectory() ? getFiles(res) : res
+    }))
+    return files.flat().filter(file => /\.(ts|js)$/.test(file) && !file.endsWith('.d.ts'))
   }
-  const files = await getFiles(basePath);
+  const files = await getFiles(basePath)
   for (const file of files) {
-    const relativePath = path.relative(basePath, file);
-    const pathParsed = path.parse(relativePath);
+    const relativePath = path.relative(basePath, file)
+    const pathParsed = path.parse(relativePath)
     // 构造路由路径: 
     // v1/user.ts -> /v1/user
     // v1/index.ts -> /v1/
@@ -39,15 +39,14 @@ export async function loadDynamicRoutes(basePath: string, urlPrefix: string = ''
       urlPrefix,
       pathParsed.dir,
       pathParsed.name === 'index' ? '' : pathParsed.name
-    ).replace(/\\/g, '/'); // 统一转换 Windows 路径分隔符
+    ).replace(/\\/g, '/') // 统一转换 Windows 路径分隔符
     // 动态加载模块
-    const module = await import(`file://${file}`);
-    const routeHandler = module.default || module;
+    const module = await import(`file://${file}`)
+    const routeHandler = module.default || module
     if (typeof routeHandler === 'function' || Object.getPrototypeOf(routeHandler) === Router) {
-      router.use(`/${routePath}`, routeHandler);
-      // console.log(`[Route] Registered: /${routePath}`);
+      router.use(`/${routePath}`, routeHandler)
     }
   }
 
-  return router;
+  return router
 }
