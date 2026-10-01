@@ -1,14 +1,3 @@
----
-AIGC:
-    Label: "1"
-    ContentProducer: 001191440300708461136T1XGW3
-    ProduceID: 16825e3339a4e87ec3619b4c10842061_3977e1b5a2b711f193c6525400f8a581
-    ReservedCode1: daiYuVWDxHxCw9m5XOJytqRONruBNKpq+IBIlXp0Kz6ZNqy03D4cjr0542u5u4nwMi359Ehg1XvYrC7JxcJdZirG63sUF3svaceQ3nt1pbEas4uriP6e8OTdVZHhwLZ5VcwzuDoqxSKtKy1UvgrP7x/K/QSarqNnzVElVwfisZUpivp59aqi/C0GbeM=
-    ContentPropagator: 001191440300708461136T1XGW3
-    PropagateID: 16825e3339a4e87ec3619b4c10842061_3977e1b5a2b711f193c6525400f8a581
-    ReservedCode2: daiYuVWDxHxCw9m5XOJytqRONruBNKpq+IBIlXp0Kz6ZNqy03D4cjr0542u5u4nwMi359Ehg1XvYrC7JxcJdZirG63sUF3svaceQ3nt1pbEas4uriP6e8OTdVZHhwLZ5VcwzuDoqxSKtKy1UvgrP7x/K/QSarqNnzVElVwfisZUpivp59aqi/C0GbeM=
----
-
 # Node-Laravel（Node Laravel Style Framework）
 
 > A Laravel-inspired backend framework built with **Node.js + Express + TypeScript + Knex.js**.
@@ -191,4 +180,3 @@ npm start       # node ./dist/src/public/index.js
 ## 📄 License
 
 MIT License
-*（内容由AI生成，仅供参考）*

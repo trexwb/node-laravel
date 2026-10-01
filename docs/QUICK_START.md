@@ -1,14 +1,3 @@
----
-AIGC:
-    Label: "1"
-    ContentProducer: 001191440300708461136T1XGW3
-    ProduceID: 16825e3339a4e87ec3619b4c10842061_44eef352a2b711f192a2525400287e28
-    ReservedCode1: h431sF8Gf7ceIcbesQVrNVtig5vYzATOD4VJTtwadiz0aDEffqOd7TROhhHaUiApTuZIiQc1g/jgHxeeE1wpMjsZ0XlUPbXdZBQ3kKgKKGWTVEVxDqmN+5i+RCDsadNmfbg3IdyIJIAQHBoeJ3W0dBCa3iTkc6/Yh6D2L3CYTSLTKrnsMlXrNbz8l9s=
-    ContentPropagator: 001191440300708461136T1XGW3
-    PropagateID: 16825e3339a4e87ec3619b4c10842061_44eef352a2b711f192a2525400287e28
-    ReservedCode2: h431sF8Gf7ceIcbesQVrNVtig5vYzATOD4VJTtwadiz0aDEffqOd7TROhhHaUiApTuZIiQc1g/jgHxeeE1wpMjsZ0XlUPbXdZBQ3kKgKKGWTVEVxDqmN+5i+RCDsadNmfbg3IdyIJIAQHBoeJ3W0dBCa3iTkc6/Yh6D2L3CYTSLTKrnsMlXrNbz8l9s=
----
-
 # 🚀 快速启动指南
 
 ## 环境要求
@@ -290,4 +279,3 @@ curl http://localhost:3000/health
 ---
 
 **祝你使用愉快！** 🎉
-*（内容由AI生成，仅供参考）*

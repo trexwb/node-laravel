@@ -1,14 +1,3 @@
----
-AIGC:
-    Label: "1"
-    ContentProducer: 001191440300708461136T1XGW3
-    ProduceID: 16825e3339a4e87ec3619b4c10842061_421d18cca2b711f193c6525400f8a581
-    ReservedCode1: R9LVdN6HVoW05u8YSgStrv6BsBYzIDOsFsu+91mtd+apfhwR2qvmQcO6/4HOm5v6spLrQqmZgk84hO8mcKyWABKWckD8pkYLh95M/0dnDWWURo3F8H8VpSVS1tYOKKaB56u3PkTcX6iOm5k710nUEkBQdA7yk8qGVvdjnxSoZyF82PPBLFpUYuWW6Rk=
-    ContentPropagator: 001191440300708461136T1XGW3
-    PropagateID: 16825e3339a4e87ec3619b4c10842061_421d18cca2b711f193c6525400f8a581
-    ReservedCode2: R9LVdN6HVoW05u8YSgStrv6BsBYzIDOsFsu+91mtd+apfhwR2qvmQcO6/4HOm5v6spLrQqmZgk84hO8mcKyWABKWckD8pkYLh95M/0dnDWWURo3F8H8VpSVS1tYOKKaB56u3PkTcX6iOm5k710nUEkBQdA7yk8qGVvdjnxSoZyF82PPBLFpUYuWW6Rk=
----
-
 # Node-Laravel（Node Laravel Style Framework）
 
 > 它是 Node 和 Laravel 的某种韵律结合（取 No 和 ra）。
@@ -437,4 +426,3 @@ if (!appId || !appSecret) {
 ## 📄 License
 
 MIT License
-*（内容由AI生成，仅供参考）*

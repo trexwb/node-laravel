@@ -1,14 +1,3 @@
----
-AIGC:
-    Label: "1"
-    ContentProducer: 001191440300708461136T1XGW3
-    ProduceID: 16825e3339a4e87ec3619b4c10842061_3e7faf63a2b711f192a2525400287e28
-    ReservedCode1: YUs4E/iH2KrhemImxuL0F5eV1EeV/pMR7pCFXwGAu06qFemMKi9C+D2tnjuELRPjzz3KcCtSwq0JT0Hnn7VjNQkKaupjjSZxPqAiCIIxXmxliL8wuwEr9eSZgPz6rgUtqv2LLqSq0fE2TvKEjpTLSO413L0t8CucEN7/Lqvysg78tc+H0zxOkUY5/FM=
-    ContentPropagator: 001191440300708461136T1XGW3
-    PropagateID: 16825e3339a4e87ec3619b4c10842061_3e7faf63a2b711f192a2525400287e28
-    ReservedCode2: YUs4E/iH2KrhemImxuL0F5eV1EeV/pMR7pCFXwGAu06qFemMKi9C+D2tnjuELRPjzz3KcCtSwq0JT0Hnn7VjNQkKaupjjSZxPqAiCIIxXmxliL8wuwEr9eSZgPz6rgUtqv2LLqSq0fE2TvKEjpTLSO413L0t8CucEN7/Lqvysg78tc+H0zxOkUY5/FM=
----
-
 # AGENTS.md — AI 开发规范
 
 > 本文件约束所有在此仓库中编写、修改代码的 **AI Agent 与开发者**。
@@ -218,4 +207,3 @@ const service = Container.resolve<ExampleUserService>('example.userService', () 
 6. [ ] 新增路由已正确注册（web 路由在通配代理前，api 路由在网关链后）
 7. [ ] 无破坏既有路由 / 中间件链的变更
 8. [ ] 变更已同步更新 `docs/version/` 变更日志与 `docs/CHANGELOG.md`
-*（内容由AI生成，仅供参考）*
